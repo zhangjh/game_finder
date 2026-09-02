@@ -2,14 +2,14 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 import { GameCard } from "@/components/games/game-card";
-import { mockGames, type GameCardData } from "@/lib/games/mock-data";
+import { listGames, type GameListFilters } from "@/lib/games/queries";
 
 export const metadata: Metadata = {
   title: "全部游戏",
   description: "按分类、难度、时长、人数、设备筛选网页游戏。",
 };
 
-/** 筛选维度定义（PRD §33）——值与 mock 数据字段对齐，M2 起由 DB 枚举驱动 */
+/** 筛选维度定义（PRD §33）；M3 后从 DB distinct genre 动态生成 */
 const GENRES = ["休闲", "塔防", "Roguelike", "解谜", "对战"] as const;
 const DURATIONS = [
   { value: "5", label: "5分钟内" },
@@ -38,45 +38,30 @@ function pick(sp: SearchParams, key: string): string | undefined {
   return Array.isArray(v) ? v[0] : v;
 }
 
-function filterGames(sp: SearchParams): GameCardData[] {
-  let games = [...mockGames];
-
-  const genre = pick(sp, "genre");
-  if (genre) games = games.filter((g) => g.genre === genre);
-
-  const duration = pick(sp, "duration");
-  if (duration) {
-    const max = Number(duration);
-    games = games.filter((g) => g.sessionLengthMin <= max);
-  }
-
-  const players = pick(sp, "players");
-  if (players === "multi") games = games.filter((g) => g.multiplayer);
-  else if (players)
-    games = games.filter(
-      (g) => g.players.min <= Number(players) && g.players.max >= Number(players),
-    );
-
-  const platform = pick(sp, "platform");
-  if (platform === "mobile") games = games.filter((g) => g.mobile);
-  else if (platform === "desktop") games = games.filter((g) => g.desktop);
-
-  const sort = pick(sp, "sort") ?? "popular";
-  switch (sort) {
-    case "newest":
-      games.sort((a, b) => b.publishedAt.localeCompare(a.publishedAt));
-      break;
-    case "score":
-      games.sort((a, b) => b.score - a.score);
-      break;
-    case "random":
-      games.sort(() => Math.random() - 0.5);
-      break;
-    default:
-      games.sort((a, b) => b.plays - a.plays);
-  }
-
-  return games;
+function parseFilters(sp: SearchParams): GameListFilters {
+  const sortRaw = pick(sp, "sort");
+  const playersRaw = pick(sp, "players");
+  return {
+    genre: pick(sp, "genre"),
+    durationMax: pick(sp, "duration") ? Number(pick(sp, "duration")) : undefined,
+    players:
+      playersRaw === "multi"
+        ? "multi"
+        : playersRaw
+          ? Number(playersRaw)
+          : undefined,
+    platform:
+      pick(sp, "platform") === "mobile" || pick(sp, "platform") === "desktop"
+        ? (pick(sp, "platform") as "mobile" | "desktop")
+        : undefined,
+    q: pick(sp, "q"),
+    sort:
+      sortRaw === "newest" || sortRaw === "score" || sortRaw === "random"
+        ? sortRaw
+        : "popular",
+    page: pick(sp, "page") ? Number(pick(sp, "page")) : 1,
+    pageSize: 24,
+  };
 }
 
 /** 构造保留其他参数、替换单个参数的 URL */
@@ -88,7 +73,7 @@ function buildHref(
   const params = new URLSearchParams();
   for (const [k, v] of Object.entries(sp)) {
     const val = Array.isArray(v) ? v[0] : v;
-    if (val && k !== key) params.set(k, val);
+    if (val && k !== key && k !== "page") params.set(k, val);
   }
   if (value) params.set(key, value);
   const qs = params.toString();
@@ -101,8 +86,11 @@ export default async function GamesPage({
   searchParams: Promise<SearchParams>;
 }) {
   const sp = await searchParams;
-  const games = filterGames(sp);
-  const currentSort = pick(sp, "sort") ?? "popular";
+  const filters = parseFilters(sp);
+  const { items: games, total } = await listGames(filters);
+  const currentSort = filters.sort ?? "popular";
+  const totalPages = Math.max(1, Math.ceil(total / (filters.pageSize ?? 24)));
+  const page = filters.page ?? 1;
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-6">
@@ -183,7 +171,9 @@ export default async function GamesPage({
       </div>
 
       {/* 结果 */}
-      <p className="mt-4 text-sm text-muted">共 {games.length} 款游戏</p>
+      <p className="mt-4 text-sm text-muted">
+        共 {total} 款游戏{totalPages > 1 ? ` · 第 ${page}/${totalPages} 页` : ""}
+      </p>
       {games.length > 0 ? (
         <div className="mt-3 grid grid-cols-2 gap-4 sm:grid-cols-4">
           {games.map((g) => (
@@ -195,6 +185,28 @@ export default async function GamesPage({
           没有符合条件的游戏，试试放宽筛选条件
         </div>
       )}
+
+      {/* 分页 */}
+      {totalPages > 1 ? (
+        <nav className="mt-6 flex justify-center gap-2 text-sm">
+          {page > 1 && (
+            <Link
+              href={buildHref(sp, "page", String(page - 1))}
+              className="rounded-full border border-border px-4 py-2 transition-colors hover:border-primary hover:text-primary"
+            >
+              上一页
+            </Link>
+          )}
+          {page < totalPages && (
+            <Link
+              href={buildHref(sp, "page", String(page + 1))}
+              className="rounded-full border border-border px-4 py-2 transition-colors hover:border-primary hover:text-primary"
+            >
+              下一页
+            </Link>
+          )}
+        </nav>
+      ) : null}
     </div>
   );
 }

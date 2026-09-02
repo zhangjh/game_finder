@@ -1,7 +1,17 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 
 import { GameCard } from "@/components/games/game-card";
-import { mockGames } from "@/lib/games/mock-data";
+import {
+  getNewestGames,
+  getTopGames,
+  listGames,
+} from "@/lib/games/queries";
+
+export const metadata: Metadata = {
+  description:
+    "告诉 AI 你现在想怎么玩，它帮你从海量网页游戏中找到最适合你的游戏。",
+};
 
 /**
  * 快捷条件 chips（PRD §21）。M5 接入 AI Finder 后直接映射为预定义 GameIntent，
@@ -17,19 +27,20 @@ const quickFilters = [
 ];
 
 const categories = [
-  { label: "休闲", href: "/games?genre=casual" },
-  { label: "塔防", href: "/games?genre=tower-defense" },
-  { label: "Roguelike", href: "/games?genre=roguelike" },
-  { label: "解谜", href: "/games?genre=puzzle" },
+  { label: "休闲", href: "/games?genre=休闲" },
+  { label: "塔防", href: "/games?genre=塔防" },
+  { label: "Roguelike", href: "/games?genre=Roguelike" },
+  { label: "解谜", href: "/games?genre=解谜" },
   { label: "双人", href: "/games?players=2" },
 ];
 
-const byPlays = [...mockGames].sort((a, b) => b.plays - a.plays);
-const byDate = [...mockGames].sort(
-  (a, b) => b.publishedAt.localeCompare(a.publishedAt),
-);
+export default async function HomePage() {
+  const [today, hot, newest] = await Promise.all([
+    listGames({ sort: "score", pageSize: 4 }),
+    getTopGames(4),
+    getNewestGames(4),
+  ]);
 
-export default function HomePage() {
   return (
     <div className="mx-auto max-w-6xl px-4 py-6">
       {/* ===== AI Game Finder（首页第一核心，PRD §32）===== */}
@@ -74,25 +85,25 @@ export default function HomePage() {
         </ul>
       </section>
 
-      {/* ===== 今日推荐（M5 起由推荐 Pipeline 驱动）===== */}
+      {/* ===== 今日推荐（评分最高，M5 起由推荐 Pipeline 驱动）===== */}
       <GameSection
         title="今日推荐"
-        more={{ label: "更多", href: "/games" }}
-        games={mockGames.slice(0, 4)}
+        more={{ label: "更多", href: "/games?sort=score" }}
+        games={today.items}
       />
 
       {/* ===== 热门游戏 ===== */}
       <GameSection
         title="热门游戏"
         more={{ label: "全部热门", href: "/games?sort=popular" }}
-        games={byPlays.slice(0, 4)}
+        games={hot.items}
       />
 
       {/* ===== 最新游戏 ===== */}
       <GameSection
         title="最新游戏"
         more={{ label: "全部最新", href: "/games?sort=newest" }}
-        games={byDate.slice(0, 4)}
+        games={newest.items}
       />
 
       {/* ===== 游戏分类 ===== */}
@@ -122,7 +133,7 @@ function GameSection({
 }: {
   title: string;
   more: { label: string; href: string };
-  games: typeof mockGames;
+  games: Awaited<ReturnType<typeof listGames>>["items"];
 }) {
   return (
     <section className="mt-10">

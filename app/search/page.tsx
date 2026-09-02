@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 
 import { GameCard } from "@/components/games/game-card";
-import { mockGames } from "@/lib/games/mock-data";
+import { listGames } from "@/lib/games/queries";
 
 export const metadata: Metadata = {
   title: "搜索",
@@ -11,21 +11,16 @@ export const metadata: Metadata = {
 export default async function SearchPage({
   searchParams,
 }: {
-  searchParams: { [key: string]: string | string[] | undefined };
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
   const sp = await searchParams;
   const raw = sp.q;
   const q = (Array.isArray(raw) ? raw[0] : raw)?.trim() ?? "";
 
-  // M1：简单的标题/标签/描述包含匹配；M5 起接入 FTS + AI Intent 双路
-  const results = q
-    ? mockGames.filter((g) =>
-        [g.title, g.titleOriginal, g.description, ...g.tags, g.genre]
-          .join("\n")
-          .toLowerCase()
-          .includes(q.toLowerCase()),
-      )
-    : [];
+  // M2：ILIKE 简单匹配（queries.ts 内部）；M5 起接入 FTS + AI Intent 双路
+  const { items: results, total } = q
+    ? await listGames({ q, pageSize: 24 })
+    : { items: [], total: 0 };
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-6">
@@ -34,7 +29,7 @@ export default async function SearchPage({
           <>
             「{q}」的搜索结果
             <span className="ml-2 text-sm font-normal text-muted">
-              {results.length} 款
+              {total} 款
             </span>
           </>
         ) : (
