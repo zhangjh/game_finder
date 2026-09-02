@@ -104,7 +104,15 @@ game-discovery/
 - "立即玩" → 全屏/内嵌 iframe 加载 `game_url`
 - 加载态、失败态、横竖屏提示
 
-**里程碑验收：** 用 mock 数据可完整浏览首页 → 列表 → 详情 → 启动游戏的闭环。
+### T1.7 [P1] 多语言 i18n（浏览器语种自动切换中英文）
+
+- 建立轻量 i18n 框架（`zh` / `en` 两组 key-value 文案资源 + `useI18n` hook）
+- 进入时根据浏览器 `navigator.language` 自动切到 `zh` / `en`，并记住用户选择（localStorage）
+- 覆盖站点 UI 文案（顶栏 / 底部 / 首页 / 列表筛选 / 详情页 / 搜索 / 游戏启动等）与 SEO metadata 的 `lang` 属性
+- 区分「界面语种」与「游戏内容语种」（`metadata_language` / `game_language`，PRD 第 8 章）：界面切英文不代表把游戏元数据也译为英文，游戏数据的中文化走 M4 的 AI 画像管道
+- 首版仅中英文；默认中文、英文兜底
+
+**里程碑验收：** 换浏览器语种（或改本地偏好）后，界面文案在中文/英文间自动切换；手动选择能被记住。
 
 ---
 
@@ -321,24 +329,25 @@ T2.4 的 AI 管理页接入真实数据：查看画像、人工修正、单游�
 
 ## 任务清单（执行顺序）
 
-- [ ] T0.1 Next.js 项目初始化 + 目录结构
-- [ ] T0.2 Docker Compose PostgreSQL + pgvector
-- [ ] T0.3 Drizzle 接入与迁移工作流
+- [x] T0.1 项目初始化 + 目录结构（已迁移为 Vite/React + Express monorepo）
+- [x] T0.2 Docker Compose PostgreSQL + pgvector
+- [x] T0.3 Drizzle 接入与迁移工作流
 - [ ] T0.4 CI（lint/typecheck/build）
-- [ ] T0.5 代码规范
-- [ ] T1.1 全局布局（移动端优先）
-- [ ] T1.2 游戏卡片组件
-- [ ] T1.3 首页（AI Finder 占位）
-- [ ] T1.4 列表页（筛选/排序，mock）
-- [ ] T1.5 详情页（mock）
-- [ ] T1.6 游戏启动（iframe）
-- [ ] **T3.1 数据源商务确认（Day 2 并行启动申请）**
-- [ ] T2.1 核心数据库 Schema（11 张表）
-- [ ] T2.2 CRUD + 查询层 + Seed 数据
+- [x] T0.5 代码规范
+- [x] T1.1 全局布局（移动端优先）
+- [x] T1.2 游戏卡片组件
+- [x] T1.3 首页（AI Finder 占位）
+- [x] T1.4 列表页（筛选/排序）
+- [x] T1.5 详情页
+- [x] T1.6 游戏启动（iframe，已接真实 GamePix 游戏）
+- [ ] T1.7 多语言 i18n（浏览器语种自动切换中英文）
+- [ ] **T3.1 数据源商务确认（GamePix 已接入；Gamezop 待接）**
+- [x] T2.1 核心数据库 Schema（11 张表）
+- [x] T2.2 CRUD + 查询层 + Seed（不再含 mock：真游戏走 import:gamepix）
 - [ ] T2.3 管理后台（游戏/数据源）
 - [ ] T2.4 后台 AI 管理页（壳）
 - [ ] T3.2 采集器框架
-- [ ] T3.3 GamePix Adapter
+- [ ] T3.3 GamePix Adapter（当前以 import-gamepix.mjs 临时脚本达成数据接入）
 - [ ] T3.4 Gamezop Adapter
 - [ ] T3.5 变更检测与自动下架
 - [ ] T3.6 定时同步 + 健康巡检
