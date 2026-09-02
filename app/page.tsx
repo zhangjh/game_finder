@@ -1,69 +1,142 @@
-import Image from "next/image";
+import Link from "next/link";
 
-export default function Home() {
+import { GameCard } from "@/components/games/game-card";
+import { mockGames } from "@/lib/games/mock-data";
+
+/**
+ * 快捷条件 chips（PRD §21）。M5 接入 AI Finder 后直接映射为预定义 GameIntent，
+ * 不走 LLM（省成本、零延迟）。
+ */
+const quickFilters = [
+  { icon: "⚡", label: "5分钟", href: "/games?duration=5" },
+  { icon: "😌", label: "放松", href: "/games?mood=relaxing" },
+  { icon: "🧠", label: "烧脑", href: "/games?mood=brain_burn" },
+  { icon: "👥", label: "双人", href: "/games?players=2" },
+  { icon: "📱", label: "手机", href: "/games?platform=mobile" },
+  { icon: "🎲", label: "随便来一个", href: "/games?sort=random" },
+];
+
+const categories = [
+  { label: "休闲", href: "/games?genre=casual" },
+  { label: "塔防", href: "/games?genre=tower-defense" },
+  { label: "Roguelike", href: "/games?genre=roguelike" },
+  { label: "解谜", href: "/games?genre=puzzle" },
+  { label: "双人", href: "/games?players=2" },
+];
+
+const byPlays = [...mockGames].sort((a, b) => b.plays - a.plays);
+const byDate = [...mockGames].sort(
+  (a, b) => b.publishedAt.localeCompare(a.publishedAt),
+);
+
+export default function HomePage() {
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert h-5 w-[100px]"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the{" "}
-            <code className="rounded bg-black/[.06] px-1.5 py-0.5 font-mono text-[0.9em] dark:bg-white/[.08]">
-              page.tsx
-            </code>{" "}
-            file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert h-[14px] w-4"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={14}
+    <div className="mx-auto max-w-6xl px-4 py-6">
+      {/* ===== AI Game Finder（首页第一核心，PRD §32）===== */}
+      <section className="rounded-2xl bg-gradient-to-br from-primary/15 via-surface to-surface p-6 sm:p-10">
+        <h1 className="text-center text-2xl font-bold sm:text-3xl">
+          今天想玩什么？
+        </h1>
+        <p className="mt-2 text-center text-sm text-muted sm:text-base">
+          告诉我你的时间和状态，AI 帮你从海量网页游戏里找到最合适的。
+        </p>
+
+        {/* M5 上线前的占位表单：提交后跳转列表页 */}
+        <form action="/games" className="mx-auto mt-6 max-w-2xl">
+          <div className="flex flex-col gap-3 sm:flex-row">
+            <input
+              type="search"
+              name="q"
+              placeholder="我只有10分钟，想玩轻松一点的"
+              className="flex-1 rounded-full border border-border bg-surface px-5 py-3 text-sm outline-none transition-colors focus:border-primary"
             />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
+            <button
+              type="submit"
+              className="rounded-full bg-primary px-6 py-3 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90"
+            >
+              帮我找游戏
+            </button>
+          </div>
+        </form>
+
+        {/* 快捷条件 */}
+        <ul className="mt-4 flex flex-wrap justify-center gap-2">
+          {quickFilters.map((f) => (
+            <li key={f.label}>
+              <Link
+                href={f.href}
+                className="rounded-full border border-border bg-surface px-4 py-1.5 text-sm transition-colors hover:border-primary hover:text-primary"
+              >
+                {f.icon} {f.label}
+              </Link>
+            </li>
+          ))}
+        </ul>
+      </section>
+
+      {/* ===== 今日推荐（M5 起由推荐 Pipeline 驱动）===== */}
+      <GameSection
+        title="今日推荐"
+        more={{ label: "更多", href: "/games" }}
+        games={mockGames.slice(0, 4)}
+      />
+
+      {/* ===== 热门游戏 ===== */}
+      <GameSection
+        title="热门游戏"
+        more={{ label: "全部热门", href: "/games?sort=popular" }}
+        games={byPlays.slice(0, 4)}
+      />
+
+      {/* ===== 最新游戏 ===== */}
+      <GameSection
+        title="最新游戏"
+        more={{ label: "全部最新", href: "/games?sort=newest" }}
+        games={byDate.slice(0, 4)}
+      />
+
+      {/* ===== 游戏分类 ===== */}
+      <section className="mt-10">
+        <h2 className="text-lg font-bold">游戏分类</h2>
+        <ul className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-5">
+          {categories.map((c) => (
+            <li key={c.href}>
+              <Link
+                href={c.href}
+                className="block rounded-xl border border-border bg-surface px-4 py-5 text-center font-medium transition-colors hover:border-primary hover:text-primary"
+              >
+                {c.label}
+              </Link>
+            </li>
+          ))}
+        </ul>
+      </section>
     </div>
+  );
+}
+
+function GameSection({
+  title,
+  more,
+  games,
+}: {
+  title: string;
+  more: { label: string; href: string };
+  games: typeof mockGames;
+}) {
+  return (
+    <section className="mt-10">
+      <div className="flex items-center justify-between">
+        <h2 className="text-lg font-bold">{title}</h2>
+        <Link href={more.href} className="text-sm text-muted hover:text-primary">
+          {more.label} →
+        </Link>
+      </div>
+      <div className="mt-3 grid grid-cols-2 gap-4 sm:grid-cols-4">
+        {games.map((g) => (
+          <GameCard key={g.id} game={g} />
+        ))}
+      </div>
+    </section>
   );
 }
