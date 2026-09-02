@@ -1,6 +1,6 @@
-# 开发环境数据库：PostgreSQL 16 + pgvector
-# 用法：docker compose up -d
-# 数据持久化在命名卷 game_discovery_pgdata
+# 开发/自托管编排：PostgreSQL + pgvector 与 Express API server
+# 用法：docker compose up -d            （构建并启动 server + postgres）
+#      docker compose up -d postgres    （仅起数据库，本地跑 server dev）
 services:
   postgres:
     image: pgvector/pgvector:pg16
@@ -21,6 +21,31 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+
+  server:
+    build:
+      context: ..
+      dockerfile: server/Dockerfile
+    container_name: game_discovery_server
+    # 崩溃自动重启（进程内致命错误经 index.ts 兜底退出后，由本策略重启容器）
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      HOSTNAME: 0.0.0.0
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/game_discovery
+      ALLOWED_ORIGINS: ${ALLOWED_ORIGINS:-}
+    ports:
+      - "3000:3000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "node -e \"fetch('http://127.0.0.1:3000/healthz').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))\""]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
 
 volumes:
   game_discovery_pgdata:

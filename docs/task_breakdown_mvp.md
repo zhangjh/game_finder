@@ -2,7 +2,7 @@
 
 **依据：** `docs/prd_1.0`
 **范围：** V0.1 ~ V0.4（PRD 第 47/48 章，单人开发 7 天节奏）
-**技术栈：** TypeScript + Next.js (App Router) + Drizzle ORM + PostgreSQL + pgvector + OpenAI SDK + Docker + GitHub Actions
+**技术栈：** TypeScript + Express（API server）+ Vite/React（web SPA）+ Drizzle ORM + PostgreSQL + pgvector + OpenAI SDK + Docker + GitHub Actions
 
 ---
 
@@ -305,7 +305,7 @@ T2.4 的 AI 管理页接入真实数据：查看画像、人工修正、单游�
 
 ### T7.3 [P0] 部署
 
-- `Dockerfile`（Next.js standalone）+ docker-compose 生产编排（app + postgres + cron）
+- `Dockerfile`（Express + tsup，Docker restart 守护）+ docker-compose 生产编排（app + postgres + cron）
 - 环境变量与密钥管理；生产域名 + HTTPS
 
 ### T7.4 [P0] 上线检查清单

@@ -1,11 +1,11 @@
 # 部署指南
 
-**架构**：`web/`（Vite+React SPA）→ Cloudflare Pages 主域；`server/`（Next.js API+admin）→ VPS `api` 子域；PostgreSQL + pgvector → VPS（或托管 PG）。
+**架构**：`web/`（Vite+React SPA）→ Cloudflare Pages 主域；`server/`（Express API）→ VPS `api` 子域；PostgreSQL + pgvector → VPS（或托管 PG）。
 
 ```text
 用户浏览器 ──> CF Pages（主域，静态 SPA + ads.txt）
     │  fetch /api/*
-    └──> VPS API（api 子域，Next.js standalone）──> PostgreSQL + pgvector
+    └──> VPS API（api 子域，Express，Docker restart 守护）──> PostgreSQL + pgvector
 ```
 
 ---
@@ -96,10 +96,13 @@ docker run -d --name game-server \
   -p 3000:3000 \
   -e DATABASE_URL=postgresql://postgres:postgres@<db-host>:5432/game_discovery \
   -e ALLOWED_ORIGINS=https://zhangjh.cn \
-  -e ADMIN_PASSWORD=<强密码> \
   --restart unless-stopped \
   game-discovery-server
 ```
+
+> 崩溃自动重启由 Docker `--restart` 策略承担；进程内任何致命错误都会经 `index.ts`
+> 的兜底处理退出进程，从而触发容器重启闭环。
+> 健康检查端点：`GET /healthz` → `200 {"status":"ok"}`。
 
 ### 4. 反向代理 + HTTPS（api 子域）
 

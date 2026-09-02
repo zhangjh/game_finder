@@ -1,36 +1,44 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Game Discovery
 
-## Getting Started
+游戏发现与推荐平台。monorepo（pnpm workspace）双包结构：
 
-First, run the development server:
+| 包 | 栈 | 角色 | 部署 |
+| --- | --- | --- | --- |
+| `web/` | Vite + React SPA | 公开前台 | Cloudflare Pages（主域，含 ads.txt） |
+| `server/` | Express + Drizzle ORM | API 服务（无前端文件） | VPS Docker（restart 守护） |
+| `packages/shared/` | TS | 前后端共享 API 契约类型 | workspace 内联 |
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+架构：
+
+```text
+用户浏览器 ──> CF Pages（静态 SPA + ads.txt）
+    │  fetch /api/*
+    └──> VPS API（Express，Docker restart 守护）──> PostgreSQL + pgvector
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## 本地开发
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+pnpm install
+pnpm dev:server   # http://localhost:3000（需数据库在线）
+pnpm dev:web      # http://localhost:5173
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+web 通过 `VITE_API_BASE_URL` 指向 API（默认 `http://localhost:3000`，覆盖见 `web/.env.local`）。
 
-## Learn More
+## 常用脚本
 
-To learn more about Next.js, take a look at the following resources:
+```bash
+pnpm dev:web       # 前端开发
+pnpm dev:server    # 后端开发（tsx watch）
+pnpm build         # 全部构建
+pnpm build:server  # 后端 tsup 打包到 server/dist
+pnpm typecheck     # 后端类型检查        （@仓库根）
+pnpm db:migrate    # 数据库迁移           （--filter server）
+pnpm db:seed       # 种子数据             （--filter server）
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## 健康检查与部署
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- 健康检查：`GET /healthz` → `200 {"status":"ok"}`
+- 部署细节见 [`docs/deployment.md`](docs/deployment.md)。
