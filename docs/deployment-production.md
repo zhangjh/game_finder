@@ -101,16 +101,25 @@ cd /opt/game-finder/server
 docker compose up -d postgres      # 等 healthcheck 变为 healthy
 ```
 
-然后跑迁移 + 种子（指向 **容器网络内** 的 DB 地址，从宿主机用映射端口也可）：
+然后跑迁移 + 种子 + 导入。postgres **不对宿主机暴露任何端口**，宿主机脚本统一用**一次性 docker run 容器**连 compose 内网（`postgres:5432`）执行，挂载整个仓库复用已装的 node_modules：
 
 ```bash
-# 方式一（推荐）：走 compose 内网，从宿主机执行
-export DATABASE_URL="postgresql://postgres:postgres@127.0.0.1:5432/game_discovery"
-pnpm db:migrate
-pnpm db:seed
+cd /opt/game-finder/server
+docker compose up -d postgres          # 等 healthcheck 变为 healthy
+
+# 一次性容器执行前缀（连内网 postgres，挂载仓库复用 node_modules）
+DR="docker run --rm --network server_default -v /opt/game-finder:/app -w /app/server"
+DB="postgresql://postgres:postgres@postgres:5432/game_discovery"
+
+# 迁移（建表 + 手动补充 SQL）
+$DR -e DATABASE_URL="$DB" node:22 sh -c "npx drizzle-kit migrate && node scripts/apply-manual-sql.mjs"
+# 注册数据源
+$DR -e DATABASE_URL="$DB" node:22 node scripts/seed.mjs
+# 导入 GamePix 真实游戏
+$DR -e DATABASE_URL="$DB" node:22 node scripts/import-gamepix.mjs -- --limit=24
 ```
 
-迁移与种子均**幂等**，可重复执行。
+> 说明：`--network server_default` 是 compose 项目 `server` 的默认网络名，`postgres` 主机名在该网络内可解析；`node:22` 为一次性运行容器（输完即删 `--rm`），不含仓库时不需在此安装任何东西。迁移/种子/导入均**幂等**，可重复执行。
 
 ### 5. 构建并启动完整 stack
 
@@ -238,9 +247,10 @@ docker compose start server
 cd /opt/game-finder
 git pull origin master          # 拉到最新
 pnpm install                    # 若依赖有变
-# 数据库有迁移则先执行
-export DATABASE_URL="postgresql://postgres:postgres@127.0.0.1:5432/game_discovery"
-pnpm db:migrate
+# 数据库有迁移则先执行（一次性容器连内网）
+docker run --rm --network server_default -v /opt/game-finder:/app -w /app/server \
+  -e DATABASE_URL="postgresql://postgres:postgres@postgres:5432/game_discovery" \
+  node:22 sh -c "npx drizzle-kit migrate && node scripts/apply-manual-sql.mjs"
 # 重新构建并滚动重启（server 会因镜像变化重建）
 cd server && docker compose up -d --build
 docker compose ps               # 确认 healthy

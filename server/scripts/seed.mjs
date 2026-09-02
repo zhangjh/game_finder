@@ -9,7 +9,7 @@ import { Client } from "pg";
 
 const url =
   process.env.DATABASE_URL ??
-  "postgresql://postgres:postgres@127.0.0.1:5432/game_discovery";
+  "postgresql://postgres:postgres@postgres:5432/game_discovery";
 
 const SOURCES = [
   { code: "gamepix", name: "GamePix", baseUrl: "https://feeds.gamepix.com" },

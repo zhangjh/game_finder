@@ -18,7 +18,7 @@ export const pool =
   new Pool({
     connectionString:
       process.env.DATABASE_URL ??
-      "postgresql://postgres:postgres@127.0.0.1:5432/game_discovery",
+      "postgresql://postgres:postgres@postgres:5432/game_discovery",
     // Workers/边缘运行时：每个 isolate 限 1 连接，避免耗尽托管 PG 连接数
     max: process.env.NODE_ENV === "production" ? 1 : 10,
     idleTimeoutMillis: 10_000,

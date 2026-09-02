@@ -15,7 +15,7 @@ import { Client } from "pg";
 
 const url =
   process.env.DATABASE_URL ??
-  "postgresql://postgres:postgres@127.0.0.1:5432/game_discovery";
+  "postgresql://postgres:postgres@postgres:5432/game_discovery";
 
 const FEED_BASE = "https://feeds.gamepix.com/v2/json?sid=7E317&pagination=12";
 

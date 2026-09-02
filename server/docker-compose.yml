@@ -10,8 +10,9 @@ services:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
       POSTGRES_DB: game_discovery
-    ports:
-      - "5432:5432"
+    # 数据库只在 compose 内网访问：server 用 hostname `postgres:5432`。
+    # 不对宿主机/公网暴露任何端口，避免与宿主机其他 Postgres（如 verse）冲突、也不暴露 DB。
+    # 宿主机脚本（db:migrate / seed / import）用一次性 docker run 容器连内网执行，见 docs/deployment-production.md。
     volumes:
       - game_discovery_pgdata:/var/lib/postgresql/data
       # 初始化脚本：首次建库时自动执行（按文件名字母序）
