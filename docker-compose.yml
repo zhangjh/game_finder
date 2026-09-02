@@ -1,0 +1,26 @@
+# 开发环境数据库：PostgreSQL 16 + pgvector
+# 用法：docker compose up -d
+# 数据持久化在命名卷 game_discovery_pgdata
+services:
+  postgres:
+    image: pgvector/pgvector:pg16
+    container_name: game_discovery_pg
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: game_discovery
+    ports:
+      - "5432:5432"
+    volumes:
+      - game_discovery_pgdata:/var/lib/postgresql/data
+      # 初始化脚本：首次建库时自动执行（按文件名字母序）
+      - ./drizzle/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d game_discovery"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  game_discovery_pgdata:
