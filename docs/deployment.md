@@ -1,5 +1,7 @@
 # 部署指南
 
+> **生产上线请看**：[生产环境部署文档](deployment-production.md)（2c4g VPS 实战：Caddy/HTTPS、安全加固、备份恢复、升级回滚、监控）。
+
 **架构**：`web/`（Vite+React SPA）→ Cloudflare Pages 主域；`server/`（Express API）→ VPS `api` 子域；PostgreSQL + pgvector → VPS（或托管 PG）。
 
 ```text
