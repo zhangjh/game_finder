@@ -16,15 +16,15 @@
 
 ```bash
 pnpm install
-pnpm dev:server   # http://localhost:3000（需数据库在线，见 server/.env.example）
+pnpm dev:server   # http://localhost:3001（需数据库在线，见 server/.env.example）
 pnpm dev:web      # http://localhost:5173
 ```
 
-web 通过 `VITE_API_BASE_URL` 知道 API 地址（默认 `http://localhost:3000`）。
+web 通过 `VITE_API_BASE_URL` 知道 API 地址（默认 `http://localhost:3001`）。
 在 `web/.env.local` 中覆盖：
 
 ```
-VITE_API_BASE_URL=http://localhost:3000
+VITE_API_BASE_URL=http://localhost:3001
 ```
 
 ---
@@ -95,9 +95,10 @@ DATABASE_URL=postgresql://... pnpm --filter server db:seed
 docker build -f server/Dockerfile -t game-discovery-server .
 
 docker run -d --name game-server \
-  -p 3000:3000 \
+  -p 3001:3001 \
   -e DATABASE_URL=postgresql://postgres:postgres@<db-host>:5432/game_discovery \
   -e ALLOWED_ORIGINS=https://zhangjh.cn \
+  -e PORT=3001 \
   --restart unless-stopped \
   game-discovery-server
 ```
@@ -108,19 +109,26 @@ docker run -d --name game-server \
 
 ### 4. 反向代理 + HTTPS（api 子域）
 
-用你熟悉的 Nginx/Caddy。Caddy 示例（自动 HTTPS）：
+用你熟悉的 Nginx/Caddy。Nginx 示例（配合 certbot 自动 HTTPS，反代到 :3001）：
 
-```caddy
-api.zhangjh.cn {
-    reverse_proxy 127.0.0.1:3000
+```nginx
+server {
+    server_name game-api.zhangjh.cn;
+    listen 443 ssl;
+    # ssl_certificate / ssl_certificate_key（certbot 自动）
+    location / {
+        proxy_pass http://127.0.0.1:3001;
+        proxy_set_header Host $host;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
 }
 ```
 
 ### 5. 验证
 
 ```bash
-curl https://api.zhangjh.cn/api/games          # 返回游戏 JSON
-curl -H "Origin: https://zhangjh.cn" -I https://api.zhangjh.cn/api/games
+curl https://game-api.zhangjh.cn/api/games          # 返回游戏 JSON
+curl -H "Origin: https://zhangjh.cn" -I https://game-api.zhangjh.cn/api/games
 # 响应头应含 access-control-allow-origin: https://zhangjh.cn
 ```
 

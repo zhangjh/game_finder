@@ -7,20 +7,20 @@
 ```text
 用户浏览器
    │  https://zhangjh.cn（主域，Cloudflare Pages SPA + ads.txt）
-   │  fetch https://api.zhangjh.cn/api/*
+   │  fetch https://game-api.zhangjh.cn/api/*
    ▼
-顶级域名 api.zhangjh.cn ──> Caddy（自动 HTTPS，反代到本机 :3000）
-                                │
-                                ▼
-                      Docker：server（Express，restart: unless-stopped）
-                                │
-                                ▼
-                      Docker：postgres（pgvector，restart: unless-stopped）
+顶级域名 game-api.zhangjh.cn ──> Nginx（自动 HTTPS，反代到本机 :3001）
+                                 │
+                                 ▼
+                       Docker：server（Express，restart: unless-stopped）
+                                 │
+                                 ▼
+                       Docker：postgres（pgvector，restart: unless-stopped）
 ```
 
-- **web**：静态 SPA，Cloudflare Pages 托管。构建时把 `VITE_API_BASE_URL=https://api.zhangjh.cn` 注入。
-- **server**：Express API，Docker 容器；镜像为**自包含单文件**（不含 node_modules）。
-- **DB**：PostgreSQL 16 + pgvector，同机 Docker。
+- **web**：静态 SPA，Cloudflare Pages 托管。构建时把 `VITE_API_BASE_URL=https://game-api.zhangjh.cn` 注入。
+- **server**：Express API，Docker 容器；镜像为**自包含单文件**（不含 node_modules）。监听宿主机 `:3001`（避开 VPS 上其他服务占用的 3000）。
+- **DB**：PostgreSQL 16 + pgvector，同机 Docker；只在自己 docker 内网，不对宿主机暴露端口。
 - **守护**：进程内致命错误 → `index.ts` 兜底退出 → Docker `restart` 拉起（闭环）。
 
 ---
@@ -133,64 +133,82 @@ docker compose ps
 ### 6. 冒烟自检（本机）
 
 ```bash
-curl -s localhost:3000/healthz                 # → {"status":"ok"}
-curl -s "localhost:3000/api/games?pageSize=2"  # → 游戏 JSON
+curl -s localhost:3001/healthz                 # → {"status":"ok"}
+curl -s "localhost:3001/api/games?pageSize=2"  # → 游戏 JSON
 ```
 
 ---
 
-## 三、Caddy 反代 + 自动 HTTPS
+## 三、Nginx 反代 + 自动 HTTPS（certbot）
 
-在主域 2c4g VPS 上直接用 Caddy（利用其自动签发/续期证书，替代 certbot）。
+在 VPS 上用 Nginx + Let's Encrypt（certbot）为 `game-api.zhangjh.cn` 签发证书并反代到本机 `:3001`。
 
-### 1. 安装 Caddy
+### 1. 安装 Nginx 与 certbot（Ubuntu/Debian）
 
 ```bash
-sudo apt install -y debian-keyring debian-archive-keyring apt-transport-https curl
-curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/gpg.key' | sudo gpg --dearmor -o /usr/share/keyrings/caddy-stable-archive-keyring.gpg
-curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/debian.deb.txt' | sudo tee /etc/apt/sources.list.d/caddy-stable.list
-sudo apt update && sudo apt install caddy
+sudo apt update
+sudo apt install -y nginx certbot python3-certbot-nginx
 ```
 
-### 2. Caddyfile
+### 2. DNS（Cloudflare 上操作）
 
-```caddy
-api.zhangjh.cn {
-    reverse_proxy 127.0.0.1:3000
+在 Cloudflare 的 `zhangjh.cn` 面板建一条 **A 记录**：
+- 类型：`A`，名称：`game-api`，IPv4：你的 VPS 公网 IP
+- 代理状态：**灰云（仅 DNS）**（不要开橙色云，避免 CF 代理回源冲突）
+- 保存后确认解析：`dig +short game-api.zhangjh.cn` 应返回你的 IP
 
-    # 可选：只暴露 API，拦截非 API 路径
-    @not_api not path /api/* /healthz
-    respond @not_api 404
+### 3. 签发证书（certbot 自动配置 Nginx）
 
-    # 请求体限制（默认足够，可按需调整）
-    request_body { max_size 2MB }
+```bash
+sudo certbot --nginx -d game-api.zhangjh.cn
+# 按提示填邮箱、同意条款；签发成功会自动改好该站点的 ssl 配置并开启 443 重定向
+```
 
-    header {
-        X-Content-Type-Options nosniff
-        X-Frame-Options DENY
-        Referrer-Policy no-referrer
+### 4. 检查 Nginx 反代配置
+
+certbot 会在 `/etc/nginx/sites-available/` 生成 `game-api.zhangjh.cn` 配置。确认其 `server` 块包含反代到 server（若 certbot 生成的只有静态站，则手动补 `location /`）：
+
+```nginx
+server {
+    listen 443 ssl;
+    listen [::]:443 ssl;
+    server_name game-api.zhangjh.cn;
+    # ssl_certificate / ssl_certificate_key 由 certbot 自动填入，这里省略
+    # （若为纯反代，也可把 HTTP_server 的 80 → 443 重定向交给 certbot 处理）
+
+    # 仅暴露 API，拦截其他路径
+    location /api/ {
+        proxy_pass http://127.0.0.1:3001;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+    location = /healthz {
+        proxy_pass http://127.0.0.1:3001;
+        proxy_set_header Host $host;
+    }
+    location / {
+        return 404;
     }
 }
-
-# 仅当你在 VPS 还想顺带托管主域静态站（否则主域交给 CF Pages）：
-# zhangjh.cn { root * /var/www/game-finder; file_server }
 ```
 
 检查并重载：
 
 ```bash
-sudo caddy validate --config /etc/caddy/Caddyfile
-sudo systemctl reload caddy
+sudo nginx -t
+sudo systemctl reload nginx
 ```
 
-> **DNS**：`api.zhangjh.cn` 的 A 记录指向 VPS 公网 IP。若域名在 Cloudflare 托管，为 `api` 子域建一条 **灰色（仅 DNS）** A 记录避免 CF 代理回源冲突；`zhangjh.cn` 主域名继续保持 CF Pages 代理。
+> **DNS 提示**：`game-api` 子域在 Cloudflare 用**灰云（仅 DNS）**避免 CF 代理；`zhangjh.cn` 主域保持 CF Pages 代理。
 
 ### 3. 验证 HTTPS
 
 ```bash
-curl https://api.zhangjh.cn/healthz
-curl https://api.zhangjh.cn/api/games?pageSize=2
-curl -H "Origin: https://zhangjh.cn" -I https://api.zhangjh.cn/api/games
+curl https://game-api.zhangjh.cn/healthz
+curl https://game-api.zhangjh.cn/api/games?pageSize=2
+curl -H "Origin: https://zhangjh.cn" -I https://game-api.zhangjh.cn/api/games
 # 响应应含 access-control-allow-origin: https://zhangjh.cn
 ```
 
@@ -199,12 +217,12 @@ curl -H "Origin: https://zhangjh.cn" -I https://api.zhangjh.cn/api/games
 ## 四、安全加固清单
 
 - [ ] `ALLOWED_ORIGINS` 已设白名单（未设置会放行所有来源）
-- [ ] `3000` 端口**不**对公网开放；仅本机 `127.0.0.1` 经 Caddy 暴露 `443`
-  - 若云厂商安全组放行了 `3000/tcp`，请关闭；`5432` 同样只允许本机内部
+- [ ] `3001` 端口**不**对公网开放；仅本机 `127.0.0.1` 经 Nginx 暴露 `443`
+  - 若云厂商安全组放行了 `3001/tcp`，请关闭；`5432` 同样只允许本机内部
 - [ ] `server/.env` 权限 `600`，不进入版本控制（已在 `.gitignore`）
 - [ ] 设置 `CRON_SECRET`、`ADMIN_PASSWORD` 为随机强口令
 - [ ] 以非 root 用户运行容器（Dockerfile 已用 `USER nodejs`）
-- [ ] Caddy 加安全响应头（见上）、启用 HTTPS（自动）
+- [ ] Nginx + certbot 已配置安全响应头（可选）、启用 HTTPS（自动续期）
 - [ ] 定期 `docker compose pull` 更新 base 镜像（`node`、`pgvector`）并升级
 
 ---
@@ -274,7 +292,7 @@ docker compose up -d server
 
 ## 七、监控与告警（轻量）
 
-- **健康探针**：Caddy 侧可直接轮询 `/healthz`；或加 external health check（UptimeRobot / Cloudflare 健康检查）盯 `https://api.zhangjh.cn/healthz`，异常时报警。
+- **健康探针**：Nginx 侧可直接轮询 `/healthz`；或加 external health check（UptimeRobot / Cloudflare 健康检查）盯 `https://game-api.zhangjh.cn/healthz`，异常时报警。
 - **容器健康**：`docker compose ps` 每列 health；配合 `restart` 策略已能自愈。
 - **日志**：
   ```bash
@@ -287,12 +305,12 @@ docker compose up -d server
 
 ## 八、上线检查清单（生产）
 
-- [ ] `https://api.zhangjh.cn/healthz` → `200 {"status":"ok"}`
-- [ ] `https://api.zhangjh.cn/api/games?pageSize=2` 返回 JSON
+- [ ] `https://game-api.zhangjh.cn/healthz` → `200 {"status":"ok"}`
+- [ ] `https://game-api.zhangjh.cn/api/games?pageSize=2` 返回 JSON
 - [ ] 跨域：`curl -H "Origin: https://zhangjh.cn" -I .../api/games` 含 `access-control-allow-origin: https://zhangjh.cn`
 - [ ] `https://zhangjh.cn/ads.txt` 返回 GamePix 内容
 - [ ] 首页四区块、`/games` 筛选、`/game/{slug}`、搜索均显示真实数据（无 CORS 报错）
-- [ ] `3000`/`5432` 未直接暴露公网，仅 `443` 可达
+- [ ] `3001`/`5432` 未直接暴露公网，仅 `443` 可达
 - [ ] `.env` 权限 600、`ALLOWED_ORIGINS`/`CRON_SECRET`/`ADMIN_PASSWORD` 已设
 - [ ] 每日备份 cron 已生效，且能恢复
 - [ ] 镜像已打稳定 tag（非 `latest`），升级有回滚路径
@@ -304,7 +322,7 @@ docker compose up -d server
 | 症状 | 排查 |
 | --- | --- |
 | `/healthz` 无响应 | `docker compose ps`、`docker logs game_discovery_server`；进程致命错误会退出 → 容器反复重启 |
-| CORS 报错 | 检查 `ALLOWED_ORIGINS` 是否含前端域名、无末尾斜杠；Caddy 是否转发到 `:3000` |
+| CORS 报错 | 检查 `ALLOWED_ORIGINS` 是否含前端域名、无末尾斜杠；Nginx 是否转发到 `:3001` |
 | API 报 500 | `docker logs game_discovery_server`；多为 DB 连接/查询错误，确认 `DATABASE_URL` |
 | 首页空且 `API error` | CF Pages 构建时 `VITE_API_BASE_URL` 未注入，重新部署 |
 | 内存吃紧 | 2c4g 内 postgres + server 各约 150~250MB / 60~100MB；异常则看 `docker stats` 揪出进程 |

@@ -29,7 +29,7 @@ RUN pnpm build
 FROM base AS runner
 WORKDIR /app
 ENV NODE_ENV=production \
-    PORT=3000 \
+    PORT=3001 \
     HOSTNAME=0.0.0.0
 
 COPY --from=builder /app/server/dist ./dist
@@ -40,7 +40,7 @@ RUN addgroup --system --gid 1001 nodejs \
     && chown -R nodejs:nodejs /app
 USER nodejs
 
-EXPOSE 3000
+EXPOSE 3001
 # 崩溃自动重启交给 Docker restart 策略（见 docker-compose.yml）；
 # 进程内任何致命错误都会在 index.ts 的兜底处理中退出进程，从而触发容器重启
 CMD ["node", "dist/index.js"]

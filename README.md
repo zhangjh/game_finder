@@ -20,11 +20,11 @@
 
 ```bash
 pnpm install
-pnpm dev:server   # http://localhost:3000（需数据库在线）
+pnpm dev:server   # http://localhost:3001（需数据库在线）
 pnpm dev:web      # http://localhost:5173
 ```
 
-web 通过 `VITE_API_BASE_URL` 指向 API（默认 `http://localhost:3000`，覆盖见 `web/.env.local`）。
+web 通过 `VITE_API_BASE_URL` 指向 API（默认 `http://localhost:3001`，覆盖见 `web/.env.local`）。
 
 ## 常用脚本
 
