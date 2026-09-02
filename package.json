@@ -12,6 +12,7 @@
     "lint": "pnpm -r lint",
     "db:migrate": "pnpm --filter server db:migrate",
     "db:seed": "pnpm --filter server db:seed",
+    "import:gamepix": "pnpm --filter server import:gamepix",
     "db:studio": "pnpm --filter server db:studio"
   },
   "packageManager": "pnpm@10.15.1"
