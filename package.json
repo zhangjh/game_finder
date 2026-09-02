@@ -8,7 +8,7 @@
     "start": "next start",
     "lint": "eslint",
     "db:generate": "drizzle-kit generate",
-    "db:migrate": "drizzle-kit migrate",
+    "db:migrate": "drizzle-kit migrate && node scripts/apply-manual-sql.mjs",
     "db:studio": "drizzle-kit studio"
   },
   "dependencies": {
