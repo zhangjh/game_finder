@@ -2,18 +2,22 @@
  * 批量 AI 画像分析 job（T4.1~T4.3）。
  *
  * 消费待分析游戏：
- * 1. 调用 LLM 生成结构化画像 + 中文化（analyze-game）
- * 2. 画像落库（覆盖展示字段：title/description/genre/tags/体验属性/设备/语言等）
- * 3. Quality Gate：必填字段完整 + 值域合法 + 缩略图可用 → published；否则 pending
+ * 1. 批量调用 LLM（一次 10 个游戏）生成结构化画像 + 中文化，省 system prompt 重复开销
+ * 2. 批量结果缺失的游戏回退单条调用（带重试）兜底
+ * 3. 画像落库（覆盖展示字段：title/description/genre/tags/体验属性/设备/语言等）
+ * 4. Quality Gate：必填字段完整 + 值域合法 + 缩略图可用 → published；否则 pending
  *
- * 限流：逐条串行，模型并发/速率限制由 LLM 侧处理。
  * 费用：仅分析新增(draft)/变更(published+needsReanalysis)游戏，成本可控。
  */
 import { and, eq, inArray, or } from "drizzle-orm";
 
 import { db } from "@/lib/db";
 import { gameEmbeddings, games } from "@/lib/db/schema";
-import { analyzeGame } from "./analyze-game";
+import {
+  analyzeGame,
+  analyzeGamesBatch,
+  type GameRawData,
+} from "./analyze-game";
 import {
   buildEmbeddingText,
   contentHash,
@@ -22,6 +26,7 @@ import {
   isValidVectorDim,
 } from "./embedding";
 import { getEmbeddingModelId } from "./embedding-client";
+import type { GameProfile } from "./schemas";
 
 export interface AnalyzeStats {
   scanned: number;
@@ -86,12 +91,12 @@ function passesQualityGate(
   );
 }
 
-/** 分析单个待办游戏，返回其画像或失败原因 */
-async function processGame(
-  game: typeof games.$inferSelect,
-  stats: AnalyzeStats,
-): Promise<void> {
-  const result = await analyzeGame({
+/** 批量大小：一次 LLM 调用包含的游戏数（批量省 system prompt 重复开销） */
+const ANALYZE_BATCH_SIZE = 10;
+
+/** DB 行 → analyze 输入结构 */
+function toRawData(game: typeof games.$inferSelect): GameRawData {
+  return {
     id: game.id,
     titleOriginal: game.titleOriginal,
     descriptionOriginal: game.descriptionOriginal,
@@ -100,25 +105,18 @@ async function processGame(
     screenshots: game.screenshots,
     mobile: game.mobile,
     desktop: game.desktop,
-  });
+  };
+}
 
-  stats.analyzed++;
+/** 画像落库：质检 → published / pending，发布后即时生成 embedding */
+async function applyGameProfile(
+  game: typeof games.$inferSelect,
+  profile: GameProfile,
+  stats: AnalyzeStats,
+): Promise<void> {
+  const patch = profileToUpdate(profile);
 
-  if (!result.success || !result.profile) {
-    stats.failed++;
-    await db
-      .update(games)
-      .set({ status: "pending", updatedAt: new Date() })
-      .where(eq(games.id, game.id));
-    console.warn(
-      `[analyze-games] #${game.id} "${game.titleOriginal}" 分析失败: ${result.error ?? "unknown"}`,
-    );
-    return;
-  }
-
-  const patch = profileToUpdate(result.profile);
-
-  if (!passesQualityGate(result.profile, game.thumbnail)) {
+  if (!passesQualityGate(profile, game.thumbnail)) {
     stats.pending++;
     await db
       .update(games)
@@ -136,11 +134,29 @@ async function processGame(
     .set({ ...patch, status: "published", publishedAt: new Date() })
     .where(eq(games.id, game.id));
   console.log(
-    `[analyze-games] #${game.id} "${result.profile.titleZh}" 已发布 (${result.profile.genre}, 难度${result.profile.difficulty})`,
+    `[analyze-games] #${game.id} "${profile.titleZh}" 已发布 (${profile.genre}, 难度${profile.difficulty})`,
   );
 
   // 发布后即时生成 embedding（跟随发布，不设独立定时任务）
-  await embedSingleGame(game, stats);
+  // 用画像更新后的字段（中文标题/简介/标签等）构建 embedding 文本
+  const { subGenre: _sub, ...patchNoUndef } = patch;
+  await embedSingleGame({ ...game, ...patchNoUndef }, stats);
+}
+
+/** 单游戏分析失败：标记 pending 待重试 */
+async function markFailed(
+  game: typeof games.$inferSelect,
+  stats: AnalyzeStats,
+  reason?: string,
+): Promise<void> {
+  stats.failed++;
+  await db
+    .update(games)
+    .set({ status: "pending", updatedAt: new Date() })
+    .where(eq(games.id, game.id));
+  console.warn(
+    `[analyze-games] #${game.id} "${game.titleOriginal}" 分析失败: ${reason ?? "unknown"}`,
+  );
 }
 
 /**
@@ -215,12 +231,12 @@ async function embedSingleGame(
 }
 
 /**
- * 分析一批待处理游戏。
+ * 分析一批待处理游戏（批量：一次 LLM 调用处理 ANALYZE_BATCH_SIZE 个，失败单条回退）。
  * 处理范围：
  * - draft / pending 且未标记 reanalysis（全新或重试）
  * - published 且 needsReanalysis=true（源更新后重新分析）
  */
-export async function runAnalyzeGames(limit = 20): Promise<AnalyzeStats> {
+export async function runAnalyzeGames(limit = 200): Promise<AnalyzeStats> {
   const stats: AnalyzeStats = {
     scanned: 0,
     analyzed: 0,
@@ -250,8 +266,29 @@ export async function runAnalyzeGames(limit = 20): Promise<AnalyzeStats> {
       .limit(limit);
 
     stats.scanned = candidates.length;
-    for (const game of candidates) {
-      await processGame(game, stats);
+
+    // 按 ANALYZE_BATCH_SIZE 分批：批量调用 → 未返回的游戏单条兜底 → 画像落库
+    for (let i = 0; i < candidates.length; i += ANALYZE_BATCH_SIZE) {
+      const chunk = candidates.slice(i, i + ANALYZE_BATCH_SIZE);
+      const profiles = await analyzeGamesBatch(chunk.map(toRawData));
+
+      for (const game of chunk) {
+        stats.analyzed++;
+
+        let profile = profiles.get(game.id);
+        if (!profile) {
+          // 批量结果缺失该游戏 → 单条兜底（带重试）
+          const result = await analyzeGame(toRawData(game));
+          if (result.success && result.profile) {
+            profile = result.profile;
+          } else {
+            await markFailed(game, stats, result.error);
+            continue;
+          }
+        }
+
+        await applyGameProfile(game, profile, stats);
+      }
     }
 
     return stats;

@@ -1,31 +1,37 @@
 import { getAIClient, getModelId } from "./client";
 import { gameProfileSchema, type GameProfile } from "./schemas";
 
-/** genre 中文白名单（PRD §11 + 前台筛选，M3 GENRE_MAP 对齐） */
+/**
+ * genre 中文白名单 —— 与 GamePix 采集器 CATEGORY_ZH（真实数据分布）对齐，
+ * 另补充少量源站没有但无 genre 游戏（约 1/3）AI 推断时可能用到的类型。
+ * 真实分布（13562 条）：街机1325 解谜1100 休闲771 冒险706 动作575 超休闲501
+ * 射击431 平台跳跃338 体育337 三消297 益智235 棋盘223 记忆220 双人210 换装187
+ * 竞速187 放置181 跑酷162 技巧159 策略157 女生134 模拟133 僵尸115 格斗102
+ * 纸牌59 IO对战44 战争21 模拟经营20 塔防1 对战1 Roguelike1；无 genre 4635。
+ */
 const GENRE_WHITELIST = [
-  "塔防", "Roguelike", "解谜", "射击", "动作", "模拟", "策略",
-  "竞速", "体育", "冒险", "卡牌", "音乐", "教育", "休闲", "经营", "对战", "其他",
+  "街机", "解谜", "休闲", "超休闲", "冒险", "动作", "射击", "平台跳跃",
+  "体育", "三消", "益智", "棋盘", "记忆", "双人", "换装", "竞速",
+  "放置", "跑酷", "技巧", "策略", "女生", "模拟", "模拟经营", "僵尸",
+  "格斗", "纸牌", "IO 对战", "战争", "塔防", "Roguelike", "音乐", "教育", "其他",
 ];
 
-/** 英文 genre → 中文映射（兜底模型返回英文时） */
+/** 英文 genre → 中文映射（兜底模型返回英文时，与采集器 CATEGORY_ZH 对齐） */
 const GENRE_MAP: Record<string, string> = {
-  "tower-defense": "塔防", "tower defense": "塔防", "towerdefense": "塔防",
+  action: "动作", adventure: "冒险", arcade: "街机", board: "棋盘", brain: "益智",
+  card: "纸牌", casual: "休闲", clicker: "放置", idle: "放置",
+  "dress-up": "换装", dressup: "换装", farming: "模拟经营", fighting: "格斗",
+  "first-person-shooter": "射击", fps: "射击", shooter: "射击", shooting: "射击",
+  "games-for-girls": "女生", girl: "女生", "hyper-casual": "超休闲",
+  io: "IO 对战", "match-3": "三消", match3: "三消", matching: "三消",
+  memory: "记忆", platformer: "平台跳跃", jump: "平台跳跃",
+  puzzle: "解谜", racing: "竞速", runner: "跑酷",
+  simulation: "模拟", sim: "模拟", skill: "技巧", sports: "体育", sport: "体育",
+  strategy: "策略", "two-player": "双人", war: "战争", zombie: "僵尸",
+  "tower-defense": "塔防", towerdefense: "塔防", towerdefensegame: "塔防", defense: "塔防",
   roguelike: "Roguelike", "rogue-like": "Roguelike",
-  puzzle: "解谜", puzzle1: "解谜",
-  shooting: "射击", shooter: "射击", "fps": "射击",
-  action: "动作", arcade: "休闲",
-  simulation: "模拟", sim: "模拟", building: "经营", farming: "经营", idle: "经营", cooking: "经营",
-  strategy: "策略", defense: "塔防",
-  racing: "竞速",
-  sports: "体育", sport: "体育",
-  adventure: "冒险",
-  card: "卡牌",
-  music: "音乐",
-  education: "教育", educational: "教育",
-  casual: "休闲", "hyper-casual": "休闲", clicker: "休闲", "match-3": "休闲",
-  memory: "休闲", word: "休闲", quiz: "休闲", math: "休闲", girl: "休闲", dressup: "休闲", jump: "休闲", runner: "休闲", skill: "休闲",
-  board: "棋牌",
-  io: "对战", multiplayer: "对战",
+  cooking: "模拟经营", building: "模拟经营", quiz: "益智", math: "益智", word: "益智",
+  music: "音乐", education: "教育", educational: "教育",
   other: "其他",
 };
 
@@ -46,7 +52,7 @@ const LANG_MAP: Record<string, string> = {
 };
 
 /** 从数据库行提取用于 AI 分析的原始字段 */
-interface GameRawData {
+export interface GameRawData {
   id: number;
   titleOriginal: string;
   descriptionOriginal: string;
@@ -63,6 +69,29 @@ export interface AnalyzeResult {
   profile?: GameProfile;
   error?: string;
 }
+
+/** 画像字段的通用规则（单条/批量 prompt 共享） */
+const SYSTEM_RULES = `你是一个游戏元数据分析专家。根据提供的游戏信息，输出结构化 JSON 画像。
+
+规则（严格遵守）：
+1. titleZh：简短有吸引力的中文名（不超过 10 个字）
+2. descriptionZh：2~4 句中文简介，突出玩法卖点
+3. genre：必须从以下中文类型中选且只选一个：${GENRE_WHITELIST.join("/")}。不得用英文。
+4. tags：中文标签数组（2~5 个），反映游戏特色
+5. mechanics：英文 snake_case 核心机制数组，如 ["tower_defense","wave_management"]
+6. 体验属性全部为 1~5 的整数：
+   - difficulty（难度）：1=极简 5=硬核
+   - cognitiveLoad（认知负担）：1=无脑 5=高专注
+   - complexity（复杂度）：1=简单 5=极复杂
+   - pace（节奏）：1=极慢 5=极快
+   - stressLevel（压力）：1=放松 5=紧张
+   - replayability（重玩价值）：1=一次 5=无限
+7. sessionLengthMin/sessionLengthMax：建议单局时长范围（分钟）
+8. mood：心情标签数组，只能从这 8 个英文 snake_case 中选：casual/relaxing/focus/brain_burn/exciting/competitive/nostalgic/chill。不得用中文。
+9. minPlayers/maxPlayers 根据游戏描述判断
+10. coop/competitive/desktop/mobile/tablet 必须是布尔值 true/false
+11. inputMethods：从 mouse/keyboard/touch/gamepad 中选
+12. gameLanguage：游戏本体语言的 2 字母代码（如 "en" "ja" "zh"），不是中文也非英文单词`;
 
 /**
  * 调用 LLM 分析游戏，输出结构化画像 + 中文化。
@@ -81,27 +110,7 @@ export async function analyzeGame(game: GameRawData): Promise<AnalyzeResult> {
   const tags = safeJsonParse(game.tags, []);
   const screenshots = safeJsonParse(game.screenshots ?? "[]", []);
 
-  const systemPrompt = `你是一个游戏元数据分析专家。根据提供的游戏信息，输出结构化 JSON 画像。
-
-规则（严格遵守）：
-1. titleZh：简短有吸引力的中文名（不超过 10 个字）
-2. descriptionZh：2~4 句中文简介，突出玩法卖点
-3. genre：必须从以下中文类型中选且只选一个：塔防/Roguelike/解谜/射击/动作/模拟/策略/竞速/体育/冒险/卡牌/音乐/教育/休闲/经营/对战/其他。不得用英文。
-4. tags：中文标签数组（2~5 个），反映游戏特色
-5. mechanics：英文 snake_case 核心机制数组，如 ["tower_defense","wave_management"]
-6. 体验属性全部为 1~5 的整数：
-   - difficulty（难度）：1=极简 5=硬核
-   - cognitiveLoad（认知负担）：1=无脑 5=高专注
-   - complexity（复杂度）：1=简单 5=极复杂
-   - pace（节奏）：1=极慢 5=极快
-   - stressLevel（压力）：1=放松 5=紧张
-   - replayability（重玩价值）：1=一次 5=无限
-7. sessionLengthMin/sessionLengthMax：建议单局时长范围（分钟）
-8. mood：心情标签数组，只能从这 8 个英文 snake_case 中选：casual/relaxing/focus/brain_burn/exciting/competitive/nostalgic/chill。不得用中文。
-9. minPlayers/maxPlayers 根据游戏描述判断
-10. coop/competitive/desktop/mobile/tablet 必须是布尔值 true/false
-11. inputMethods：从 mouse/keyboard/touch/gamepad 中选
-12. gameLanguage：游戏本体语言的 2 字母代码（如 "en" "ja" "zh"），不是中文也非英文单词
+  const systemPrompt = `${SYSTEM_RULES}
 
 只输出一个合法 JSON 对象，不要 markdown 代码块，不要任何额外文字。`;
 
@@ -154,6 +163,80 @@ export async function analyzeGame(game: GameRawData): Promise<AnalyzeResult> {
   }
 
   return { success: false, error: "Unexpected: exhausted retries" };
+}
+
+/**
+ * 批量分析：一次 LLM 调用分析多个游戏（省 system prompt 重复开销）。
+ * 返回成功通过校验的 profile（key 为游戏 id）；
+ * 批内个别失败/缺失不重试整批，由调用方回退单条 analyzeGame 兜底。
+ */
+export async function analyzeGamesBatch(
+  games: GameRawData[],
+): Promise<Map<number, GameProfile>> {
+  const results = new Map<number, GameProfile>();
+  if (games.length === 0) return results;
+
+  const client = getAIClient();
+  const model = getModelId();
+
+  const systemPrompt = `${SYSTEM_RULES}
+
+输入是多个游戏的信息列表（每个以 "### 游戏 id=<数字>" 开头）。
+输出一个合法 JSON 对象：{"games": [{"id": <对应的游戏id数字>, <其余为上述画像字段>}...]}。
+必须覆盖输入中的每一个游戏，id 不得编造或遗漏。不要 markdown 代码块，不要任何额外文字。`;
+
+  const userMessage = games
+    .map((g) => {
+      const block = buildUserMessage(
+        g,
+        safeJsonParse(g.tags, []),
+        safeJsonParse(g.screenshots ?? "[]", []),
+      );
+      return `### 游戏 id=${g.id}\n${block}`;
+    })
+    .join("\n\n");
+
+  try {
+    const response = await client.chat.completions.create({
+      model,
+      messages: [
+        { role: "system", content: systemPrompt },
+        { role: "user", content: userMessage },
+      ],
+      temperature: 0.3,
+      max_tokens: 16000,
+      response_format: { type: "json_object" },
+    });
+
+    const content = response.choices[0]?.message?.content;
+    if (!content) return results;
+
+    const parsed = JSON.parse(content) as { games?: unknown[] };
+    const list = Array.isArray(parsed.games) ? parsed.games : [];
+
+    for (const entry of list) {
+      if (typeof entry !== "object" || entry === null) continue;
+      const e = entry as Record<string, unknown>;
+      const id = Number(e.id);
+      if (!Number.isInteger(id)) continue;
+
+      const normalized = normalizeProfile(e);
+      const validation =
+        gameProfileSchema.safeParse(normalized).success
+          ? gameProfileSchema.safeParse(normalized)
+          : gameProfileSchema.safeParse(e);
+      if (validation.success) {
+        results.set(id, validation.data);
+      }
+    }
+  } catch (err) {
+    console.warn(
+      `[analyze-batch] 批量调用失败（${games.length} 个游戏将回退单条）:`,
+      err instanceof Error ? err.message : String(err),
+    );
+  }
+
+  return results;
 }
 
 function buildUserMessage(
