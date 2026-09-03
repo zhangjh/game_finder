@@ -172,10 +172,11 @@ export function AdminCronJobsPage() {
                   </button>
                   <button
                     onClick={() => trigger(job)}
-                    disabled={busyId === job.id}
+                    disabled={busyId === job.id || job.running}
                     className="rounded bg-neutral-700 px-3 py-1.5 text-xs hover:bg-neutral-600 disabled:opacity-50"
+                    title={job.running ? "任务正在执行中，请等待完成" : undefined}
                   >
-                    立即执行
+                    {job.running ? "执行中…" : "立即执行"}
                   </button>
                   <button
                     onClick={() => openRuns(job)}

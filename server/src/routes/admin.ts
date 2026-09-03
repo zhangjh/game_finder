@@ -301,12 +301,23 @@ adminRouter.post("/cron-jobs/:id/trigger", async (req, res) => {
     res.status(400).json({ error: "invalid_id" });
     return;
   }
-  const result = await adminTriggerCronJob(id);
-  if (!result) {
-    res.status(404).json({ error: "not_found" });
-    return;
+  try {
+    const result = await adminTriggerCronJob(id);
+    if (!result) {
+      res.status(404).json({ error: "not_found" });
+      return;
+    }
+    res.json(result);
+  } catch (err) {
+    // 已在运行时提前返回 409，前端据此禁用/提示，避免重复点击叠加
+    const code =
+      err instanceof Error ? (err as Error & { code?: string }).code : undefined;
+    if (code === "job_already_running") {
+      res.status(409).json({ error: "job_already_running" });
+      return;
+    }
+    throw err;
   }
-  res.json(result);
 });
 
 /** GET /api/admin/cron-jobs/:id/runs — 最近运行记录 */

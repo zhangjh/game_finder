@@ -201,6 +201,8 @@ export interface AdminCronJob {
   lastRunAt: string | null;
   lastRunStatus: string | null;
   lastRunDurationMs: number | null;
+  running: boolean;
+  runningRunId: number | null;
   createdAt: string;
   updatedAt: string;
 }

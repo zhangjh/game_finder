@@ -3,9 +3,10 @@
  *
  * - 任务配置保存在 cron_jobs 表，管理后台可读启停/编辑/手动触发
  * - 用 node-cron 在进程内维护 ScheduledTask，时钟触发后直接执行任务函数
- *   （不经过 /api/cron HTTP 端点，避免依赖回环 + 减少一层鉴权）
  * - 每次执行把结果写入 cron_job_runs，供管理后台查看运行历史
+ * - 进程内 runningJobs 跟踪正在运行的任务，防止手动/定时重复并发执行
  * - 服务器启动时 initScheduler() 装载；Admin 改配置后 reloadCronJob() 增量应用
+ * - 运行进度直接 console 打到容器日志
  */
 import cron, { type ScheduledTask } from "node-cron";
 
@@ -18,6 +19,9 @@ import { eq, sql } from "drizzle-orm";
 
 /** 已注册的 node-cron 任务：cronJobs.id → ScheduledTask */
 const tasks = new Map<number, ScheduledTask>();
+
+/** 正在运行的任务：cronJobs.id → 当前 runId（进程内防重复标记） */
+const runningJobs = new Map<number, number>();
 
 /** 任务类型 → 执行函数。返回一个统计/结果对象，用于记录。 */
 type JobRunner = (params: Record<string, unknown>) => Promise<Record<string, unknown>>;
@@ -46,7 +50,20 @@ const RUNNERS: Record<string, JobRunner> = {
 
     const results: Record<string, unknown>[] = [];
     for (const adapter of adapters) {
+      console.log(`[scheduler] sync ${adapter.code}: start`);
+      const started = Date.now();
       const stats = await syncSource(adapter, { maxPages, pageDelayMs: 150 });
+      const elapsed = ((Date.now() - started) / 1000).toFixed(1);
+      const err = (stats as unknown as { error?: unknown }).error;
+      if (err) {
+        console.error(`[scheduler] sync ${adapter.code} failed:`, err);
+      } else {
+        console.log(
+          `[scheduler] sync ${adapter.code} done (${elapsed}s): ` +
+            `fetched=${stats.fetched} 新增=${stats.inserted} 更新=${stats.updated} ` +
+            `不变=${stats.unchanged} 下线=${stats.offline}`,
+        );
+      }
       results.push(stats as unknown as Record<string, unknown>);
     }
     return { results };
@@ -64,8 +81,14 @@ const RUNNERS: Record<string, JobRunner> = {
         : typeof params.threshold === "string" && /^\d+$/.test(params.threshold)
           ? Number(params.threshold)
           : undefined;
+    console.log(`[scheduler] health-check: start (limit=${limit ?? 200}, threshold=${threshold ?? 3})`);
     const stats = await runHealthCheck({ limit, offlineThreshold: threshold });
     if (stats.error) throw new Error(stats.error);
+    console.log(
+      `[scheduler] health-check done: 检查=${stats.checked} 正常=${stats.ok} ` +
+        `游戏URL失败=${stats.gameUrlFail} 缩略图失败=${stats.thumbnailFail} ` +
+        `跳过=${stats.skipped} 自动下线=${stats.offlined}`,
+    );
     return stats as unknown as Record<string, unknown>;
   },
   detect_duplicates: async (params) => {
@@ -76,8 +99,13 @@ const RUNNERS: Record<string, JobRunner> = {
             /^\d+(\.\d+)?$/.test(params.threshold)
           ? Number(params.threshold)
           : undefined;
+    console.log(`[scheduler] detect-duplicates: start (threshold=${t ?? 0.85})`);
     const stats = await detectDuplicates({ titleThreshold: t });
     if (stats.error) throw new Error(stats.error);
+    console.log(
+      `[scheduler] detect-duplicates done: slug对=${stats.slugPairs} 标题对=${stats.titlePairs} ` +
+        `新增疑似=${stats.inserted} 待处理总数=${stats.pendingTotal}`,
+    );
     return stats as unknown as Record<string, unknown>;
   },
 };
@@ -136,11 +164,32 @@ export async function seedCronJobsIfEmpty(): Promise<void> {
   );
 }
 
+/** 该 job 是否正在运行（进程内 Map + DB running 记录双判断，防进程重启丢状态） */
+export async function isJobRunning(jobId: number): Promise<boolean> {
+  if (runningJobs.has(jobId)) return true;
+  const rows = await db
+    .select({ id: cronJobRuns.id })
+    .from(cronJobRuns)
+    .where(
+      sql`${cronJobRuns.jobId} = ${jobId} and ${cronJobRuns.status} = 'running' and ${cronJobRuns.finishedAt} is null`,
+    )
+    .limit(1);
+  return rows.length > 0;
+}
+
 /** 执行一次任务（触发来源 trigger: "schedule" | "manual"） */
 export async function runCronJob(
   jobId: number,
   trigger: "schedule" | "manual" = "schedule",
 ): Promise<Record<string, unknown>> {
+  // 防重复：同一任务已在运行（无论定时还是手动触发）时拒绝并发，
+  // 避免 sync 这类耗时长任务被反复点"立即执行"而并发叠加。
+  if (await isJobRunning(jobId)) {
+    const err = new Error("job_already_running") as Error & { code: string };
+    err.code = "job_already_running";
+    throw err;
+  }
+
   const rows = await db
     .select()
     .from(cronJobs)
@@ -170,22 +219,30 @@ export async function runCronJob(
     })
     .returning({ id: cronJobRuns.id });
   const runId = runRow[0].id;
+  runningJobs.set(jobId, runId);
 
   let result: Record<string, unknown> = {};
   let status = "ok";
   let errorMsg: string | null = null;
   const started = Date.now();
   try {
+    console.log(`[scheduler] run ${runId} job ${job.name} (${trigger}) start`);
     result = await runner(params);
     // 检查 runner 结果中是否内嵌 error（如 pipeline "error" 字段）
     const nestedError = String(result.error ?? "") || null;
     if (nestedError) {
       status = "error";
       errorMsg = nestedError;
+      console.error(`[scheduler] run ${runId} job ${job.name} error:`, nestedError);
+    } else {
+      console.log(`[scheduler] run ${runId} job ${job.name} ok`);
     }
   } catch (err) {
     status = "error";
     errorMsg = err instanceof Error ? err.message : String(err);
+    console.error(`[scheduler] run ${runId} job ${job.name} failed:`, err);
+  } finally {
+    runningJobs.delete(jobId);
   }
   const durationMs = Date.now() - started;
 
@@ -211,6 +268,11 @@ export async function runCronJob(
     .where(eq(cronJobs.id, jobId));
 
   return { runId, jobId, status, durationMs };
+}
+
+/** 当前正在运行的任务 id → runId（供管理后台展示"执行中"状态） */
+export function getRunningJobs(): ReadonlyMap<number, number> {
+  return runningJobs;
 }
 
 /** 注册/更新单个任务的调度（新增或 schedule/status 变化时调用） */

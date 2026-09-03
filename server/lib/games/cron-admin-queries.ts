@@ -9,6 +9,8 @@ import type { SQL } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { cronJobRuns, cronJobs } from "@/lib/db/schema";
 import {
+  getRunningJobs,
+  isJobRunning,
   reloadCronJob,
   runCronJob,
   seedCronJobsIfEmpty,
@@ -26,7 +28,15 @@ export interface CronJobUpdate {
 
 export async function adminListCronJobs() {
   await seedCronJobsIfEmpty();
-  return db.select().from(cronJobs).orderBy(desc(cronJobs.id));
+  const rows = await db.select().from(cronJobs).orderBy(desc(cronJobs.id));
+  const running = getRunningJobs();
+  return Promise.all(
+    rows.map(async (j) => ({
+      ...j,
+      running: running.has(j.id) || (await isJobRunning(j.id)),
+      runningRunId: running.get(j.id) ?? null,
+    })),
+  );
 }
 
 export async function adminGetCronJob(id: number) {
@@ -113,7 +123,7 @@ export async function adminDeleteCronJob(id: number) {
   return deleted[0];
 }
 
-/** 手动立即触发（无论 enabled/disabled） */
+/** 手动立即触发（无论 enabled/disabled）；已在运行时抛 job_already_running */
 export async function adminTriggerCronJob(id: number) {
   const job = await adminGetCronJob(id);
   if (!job) return undefined;
