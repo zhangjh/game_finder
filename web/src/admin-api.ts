@@ -184,3 +184,98 @@ export function dismissAdminDuplicate(
 ): Promise<{ id: number }> {
   return adminFetch(`/duplicates/${pairId}/dismiss`, { method: "POST" });
 }
+
+// ===== 定时任务 =====
+
+export type AdminCronJobType = "sync_games" | "health_check" | "detect_duplicates";
+export type AdminCronJobStatus = "enabled" | "disabled";
+
+export interface AdminCronJob {
+  id: number;
+  type: AdminCronJobType;
+  name: string;
+  description: string | null;
+  schedule: string;
+  status: AdminCronJobStatus;
+  params: Record<string, unknown> | null;
+  lastRunAt: string | null;
+  lastRunStatus: string | null;
+  lastRunDurationMs: number | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface AdminCronJobRun {
+  id: number;
+  jobId: number;
+  status: "ok" | "error" | "running";
+  trigger: "schedule" | "manual";
+  result: Record<string, unknown> | null;
+  error: string | null;
+  durationMs: number | null;
+  startedAt: string;
+  finishedAt: string | null;
+}
+
+export function fetchAdminCronJobs(): Promise<{ items: AdminCronJob[] }> {
+  return adminFetch("/cron-jobs");
+}
+
+export function createAdminCronJob(input: {
+  type: AdminCronJobType;
+  name: string;
+  description?: string;
+  schedule: string;
+  status?: AdminCronJobStatus;
+  params?: Record<string, unknown>;
+}): Promise<AdminCronJob> {
+  return adminFetch("/cron-jobs", {
+    method: "POST",
+    body: JSON.stringify(input),
+  });
+}
+
+export function updateAdminCronJob(
+  id: number,
+  input: {
+    name?: string;
+    description?: string | null;
+    schedule?: string;
+    status?: AdminCronJobStatus;
+    params?: Record<string, unknown>;
+  },
+): Promise<AdminCronJob> {
+  return adminFetch(`/cron-jobs/${id}`, {
+    method: "PUT",
+    body: JSON.stringify(input),
+  });
+}
+
+export function setAdminCronJobStatus(
+  id: number,
+  status: AdminCronJobStatus,
+): Promise<AdminCronJob> {
+  return adminFetch(`/cron-jobs/${id}/status`, {
+    method: "POST",
+    body: JSON.stringify({ status }),
+  });
+}
+
+export function triggerAdminCronJob(id: number): Promise<{
+  jobId: number;
+  status: string;
+  durationMs: number;
+}> {
+  return adminFetch(`/cron-jobs/${id}/trigger`, { method: "POST" });
+}
+
+export function fetchAdminCronJobRuns(
+  id: number,
+  limit = 20,
+): Promise<{ items: AdminCronJobRun[] }> {
+  return adminFetch(`/cron-jobs/${id}/runs?limit=${limit}`);
+}
+
+export function deleteAdminCronJob(id: number): Promise<{ ok: boolean }> {
+  return adminFetch(`/cron-jobs/${id}`, { method: "DELETE" });
+}

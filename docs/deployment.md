@@ -100,7 +100,6 @@ docker run -d --name game-server \
   -e ALLOWED_ORIGINS=https://zhangjh.cn \
   -e PORT=3001 \
   -e ADMIN_PASSWORD=<强密码> \
-  -e CRON_SECRET=<随机字符串> \
   -e GAMEPIX_SID=7E317 \
   --restart unless-stopped \
   game-discovery-server
@@ -110,43 +109,30 @@ docker run -d --name game-server \
 > 的兜底处理退出进程，从而触发容器重启闭环。
 > 健康检查端点：`GET /healthz` → `200 {"status":"ok"}`。
 
-### 3.5 定时同步游戏（GamePix feed）
+### 3.5 定时同步游戏 / 健康巡检 / 重复检测（应用内调度）
 
-全量同步入口（POST/GET，CRON_SECRET 鉴权）：
+> **自 3.6 起改为应用内调度**：服务进程启动时自动装载 `cron_jobs` 表中的任务并用
+> `node-cron` 在进程内维护，**不再需要手动配置 VPS crontab**。默认任务在首次启动
+> 且表为空时自动 seed，管理后台（`/admin/cron-jobs`）可启停、编辑计划、手动执行、
+> 查看运行历史。
 
-```bash
-curl -X POST "https://api.zhangjh.cn/api/cron/sync-games?source=gamepix" \
-  -H "x-cron-secret: <CRON_SECRET>"
-```
+默认三个任务：
 
-VPS crontab 每 6 小时一次（PRD §35）：
+| 任务 | 类型 | 计划 | 说明 |
+|------|------|------|------|
+| 游戏源同步 | `sync_games` | 每 6 小时 | 全量拉取 GamePix 等源，入库/更新/下架 |
+| 健康巡检 | `health_check` | 每日 04:00 | 每次 500 条，published 连续失败 ≥3 自动下线 |
+| 重复检测 | `detect_duplicates` | 每日 05:00 | slug + 标题 trigram 相似度 → 人工队列 |
 
-```cron
-0 */6 * * * curl -fsS -X POST "http://127.0.0.1:3001/api/cron/sync-games" -H "x-cron-secret: <CRON_SECRET>" >> /var/log/game-sync.log 2>&1
-```
-
-### 3.6 健康巡检与重复检测（每日）
-
-```cron
-# 游戏可玩性巡检：每次 500 条，最久未检优先轮转；published 连续失败 ≥3 自动下线
-0 4 * * * curl -fsS -X POST "http://127.0.0.1:3001/api/cron/health-check?limit=500" -H "x-cron-secret: <CRON_SECRET>" >> /var/log/game-health.log 2>&1
-
-# 疑似重复检测：slug 规范化 + 标题 trigram 相似度 → suspected_duplicates 人工队列
-0 5 * * * curl -fsS -X POST "http://127.0.0.1:3001/api/cron/detect-duplicates" -H "x-cron-secret: <CRON_SECRET>" >> /var/log/game-health.log 2>&1
-```
-
-说明（全部 cron 接口通用）：
-
-- 鉴权：`x-cron-secret` 头 / `Authorization: Bearer` / `?secret=` 三选一，值 = `CRON_SECRET`
-- 巡检只对 `game_url` 失败累计下线；缩略图失败仅统计（CDN 抖动不该下线可玩的游戏）
-- 非疑似重复的 merge/dismiss 人工操作在管理后台（T2.3）完成
+> `sync_games` 全量同步约 142 页（96/页，约 13.5k 款），首次耗时 ~15 分钟；后续增量
+> 大部分为 unchanged，较快。源中消失的游戏在**全量**同步结束时自动标记 `offline`。
+>
+> 旧版 `/api/cron/*` HTTP 触发端点已移除（改用应用内调度 + 管理后台手动执行）。
 
 同步说明：
 
-- 全量同步约 142 页（96/页，约 13.5k 款），首次耗时 ~15 分钟；后续增量大部分为 unchanged，较快
 - 新游戏入库为 `draft`，需 M4 AI 分析 + Quality Gate 后才会 `published` 上前台
-- 源中消失的游戏在**全量**同步结束时自动标记 `offline`（`maxPages` 截断的测试同步不做下架检测）
-- 测试小批量：URL 加 `&maxPages=2`
+- 测试小批量：管理后台手动触发时，给任务参数加 `maxPages`
 
 ### 4. 反向代理 + HTTPS（api 子域）
 

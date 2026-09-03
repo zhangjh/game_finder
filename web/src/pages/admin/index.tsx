@@ -7,6 +7,7 @@ import { useCallback, useEffect, useState } from "react";
 import { Navigate, Route, Routes, useLocation, useNavigate } from "react-router";
 
 import { adminCheckSession } from "../../admin-api";
+import { AdminCronJobsPage } from "./cron-jobs";
 import { AdminDuplicatesPage } from "./duplicates";
 import { AdminGamesPage } from "./games";
 import { AdminLoginPage } from "./login";
@@ -40,6 +41,7 @@ const NAV = [
   { path: "/admin/games", label: "游戏" },
   { path: "/admin/sources", label: "数据源" },
   { path: "/admin/duplicates", label: "重复处理" },
+  { path: "/admin/cron-jobs", label: "定时任务" },
 ];
 
 function AdminShell({ onLogout }: { onLogout: (authed: boolean) => void }) {
@@ -87,6 +89,7 @@ function AdminShell({ onLogout }: { onLogout: (authed: boolean) => void }) {
           <Route path="games" element={<AdminGamesPage />} />
           <Route path="sources" element={<AdminSourcesPage />} />
           <Route path="duplicates" element={<AdminDuplicatesPage />} />
+          <Route path="cron-jobs" element={<AdminCronJobsPage />} />
           <Route path="*" element={<Navigate to="/admin" replace />} />
         </Routes>
       </main>

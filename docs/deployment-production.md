@@ -75,9 +75,7 @@ cat > .env <<'EOF'
 # 未设置 = 放行所有来源（生产绝不允许）
 ALLOWED_ORIGINS=https://zhangjh.cn
 
-# 定时任务保护密钥（采集/AI 等 cron 通过 ?secret= 调用）
-CRON_SECRET=<生成一个随机强串>
-# 管理后台密码（若启用）
+# 管理后台密码（必填！没有它后台登录永远报"密码错误"）
 ADMIN_PASSWORD=<强密码>
 
 # AI（若启用 M3+/M5 AI 能力；任选 OpenAI 或兼容网关）
@@ -85,12 +83,12 @@ OPENAI_API_KEY=sk-xxx
 # OPENAI_BASE_URL=https://api.openai.com/v1
 EOF
 chmod 600 .env
-
-# 生成随机 CRON_SECRET
-openssl rand -hex 24
 ```
 
-> **安全提示**：`.env` 含密钥，务必 `chmod 600`；compose 默认也会把 `server/.env` 读入容器。生产建议同时把 `DATABASE_URL`、`CRON_SECRET` 用 VPS 密钥管理或 compose 环境变量覆盖，避免明文常驻。
+> **安全提示**：`.env` 含密钥，务必 `chmod 600`。compose 的 `server` 服务已配置
+> `env_file: .env`，会把 `.env` 注入容器（否则容器内读不到 `ADMIN_PASSWORD` 等，
+> 后台登录会永远报"密码错误"）。生产建议同时把 `DATABASE_URL`、`ADMIN_PASSWORD`
+> 用 VPS 密钥管理或 compose `environment` 覆盖，避免明文常驻。
 
 ### 4. 数据库：初始化 Schema 与种子数据
 
@@ -220,7 +218,7 @@ curl -H "Origin: https://zhangjh.cn" -I https://game-api.zhangjh.cn/api/games
 - [ ] `3001` 端口**不**对公网开放；仅本机 `127.0.0.1` 经 Nginx 暴露 `443`
   - 若云厂商安全组放行了 `3001/tcp`，请关闭；`5432` 同样只允许本机内部
 - [ ] `server/.env` 权限 `600`，不进入版本控制（已在 `.gitignore`）
-- [ ] 设置 `CRON_SECRET`、`ADMIN_PASSWORD` 为随机强口令
+- [ ] 设置 `ADMIN_PASSWORD` 为随机强口令
 - [ ] 以非 root 用户运行容器（Dockerfile 已用 `USER nodejs`）
 - [ ] Nginx + certbot 已配置安全响应头（可选）、启用 HTTPS（自动续期）
 - [ ] 定期 `docker compose pull` 更新 base 镜像（`node`、`pgvector`）并升级
@@ -311,7 +309,7 @@ docker compose up -d server
 - [ ] `https://zhangjh.cn/ads.txt` 返回 GamePix 内容
 - [ ] 首页四区块、`/games` 筛选、`/game/{slug}`、搜索均显示真实数据（无 CORS 报错）
 - [ ] `3001`/`5432` 未直接暴露公网，仅 `443` 可达
-- [ ] `.env` 权限 600、`ALLOWED_ORIGINS`/`CRON_SECRET`/`ADMIN_PASSWORD` 已设
+- [ ] `.env` 权限 600、`ALLOWED_ORIGINS`/`ADMIN_PASSWORD` 已设
 - [ ] 每日备份 cron 已生效，且能恢复
 - [ ] 镜像已打稳定 tag（非 `latest`），升级有回滚路径
 

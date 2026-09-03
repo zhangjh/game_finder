@@ -18,6 +18,17 @@ import {
   adminSetGameStatus,
   type AdminGameStatus,
 } from "@/lib/games/admin-queries";
+import {
+  adminCreateCronJob,
+  adminDeleteCronJob,
+  adminListCronJobRuns,
+  adminListCronJobs,
+  adminSetCronJobStatus,
+  adminTriggerCronJob,
+  adminUpdateCronJob,
+  type CronJobType,
+  type CronJobUpdate,
+} from "@/lib/games/cron-admin-queries";
 
 /**
  * /api/admin/* — 管理后台 API（T2.3，PRD §36）。
@@ -157,4 +168,172 @@ adminRouter.post("/duplicates/:id/dismiss", async (req, res) => {
     return;
   }
   res.json(result);
+});
+
+// ===== 定时任务管理（T3.6 应用内调度） =====
+
+const CRON_JOB_TYPES: CronJobType[] = [
+  "sync_games",
+  "health_check",
+  "detect_duplicates",
+];
+const CRON_JOB_STATUSES = ["enabled", "disabled"] as const;
+
+/** GET /api/admin/cron-jobs — 任务列表 */
+adminRouter.get("/cron-jobs", async (_req, res) => {
+  const jobs = await adminListCronJobs();
+  res.json({
+    items: jobs.map((j) => ({
+      ...j,
+      params: j.params as Record<string, unknown> | null,
+    })),
+  });
+});
+
+/** GET /api/admin/cron-jobs/:id — 单个任务 */
+adminRouter.get("/cron-jobs/:id", async (req, res) => {
+  const id = Number(req.params.id);
+  if (!Number.isInteger(id)) {
+    res.status(400).json({ error: "invalid_id" });
+    return;
+  }
+  const job = await adminListCronJobs().then((jobs) =>
+    jobs.find((j) => j.id === id),
+  );
+  if (!job) {
+    res.status(404).json({ error: "not_found" });
+    return;
+  }
+  res.json({ ...job, params: job.params as Record<string, unknown> | null });
+});
+
+/** POST /api/admin/cron-jobs — 新建任务 */
+adminRouter.post("/cron-jobs", async (req, res) => {
+  const body = (req.body ?? {}) as {
+    type?: string;
+    name?: string;
+    description?: string;
+    schedule?: string;
+    status?: string;
+    params?: Record<string, unknown>;
+  };
+  if (
+    !body.type ||
+    !CRON_JOB_TYPES.includes(body.type as CronJobType) ||
+    typeof body.name !== "string" ||
+    typeof body.schedule !== "string"
+  ) {
+    res.status(400).json({ error: "invalid_params" });
+    return;
+  }
+  try {
+    const job = await adminCreateCronJob({
+      type: body.type as CronJobType,
+      name: body.name,
+      description: body.description,
+      schedule: body.schedule,
+      status:
+        body.status === "disabled"
+          ? "disabled"
+          : "enabled",
+      params: body.params,
+    });
+    res.status(201).json(job);
+  } catch (err) {
+    if (err instanceof Error && err.message === "invalid_cron") {
+      res.status(400).json({ error: "invalid_cron" });
+      return;
+    }
+    throw err;
+  }
+});
+
+/** PUT /api/admin/cron-jobs/:id — 更新任务 */
+adminRouter.put("/cron-jobs/:id", async (req, res) => {
+  const id = Number(req.params.id);
+  if (!Number.isInteger(id)) {
+    res.status(400).json({ error: "invalid_id" });
+    return;
+  }
+  const body = (req.body ?? {}) as CronJobUpdate;
+  try {
+    const job = await adminUpdateCronJob(id, body);
+    if (!job) {
+      res.status(404).json({ error: "not_found" });
+      return;
+    }
+    res.json(job);
+  } catch (err) {
+    if (err instanceof Error && err.message === "invalid_cron") {
+      res.status(400).json({ error: "invalid_cron" });
+      return;
+    }
+    throw err;
+  }
+});
+
+/** POST /api/admin/cron-jobs/:id/status — 启停 */
+adminRouter.post("/cron-jobs/:id/status", async (req, res) => {
+  const id = Number(req.params.id);
+  const { status } = (req.body ?? {}) as { status?: string };
+  if (
+    !Number.isInteger(id) ||
+    !CRON_JOB_STATUSES.includes(status as (typeof CRON_JOB_STATUSES)[number])
+  ) {
+    res.status(400).json({ error: "invalid_params" });
+    return;
+  }
+  const job = await adminSetCronJobStatus(
+    id,
+    status as "enabled" | "disabled",
+  );
+  if (!job) {
+    res.status(404).json({ error: "not_found" });
+    return;
+  }
+  res.json(job);
+});
+
+/** POST /api/admin/cron-jobs/:id/trigger — 手动立即执行 */
+adminRouter.post("/cron-jobs/:id/trigger", async (req, res) => {
+  const id = Number(req.params.id);
+  if (!Number.isInteger(id)) {
+    res.status(400).json({ error: "invalid_id" });
+    return;
+  }
+  const result = await adminTriggerCronJob(id);
+  if (!result) {
+    res.status(404).json({ error: "not_found" });
+    return;
+  }
+  res.json(result);
+});
+
+/** GET /api/admin/cron-jobs/:id/runs — 最近运行记录 */
+adminRouter.get("/cron-jobs/:id/runs", async (req, res) => {
+  const id = Number(req.params.id);
+  if (!Number.isInteger(id)) {
+    res.status(400).json({ error: "invalid_id" });
+    return;
+  }
+  const limit =
+    typeof req.query.limit === "string" && /^\d+$/.test(req.query.limit)
+      ? Number(req.query.limit)
+      : 20;
+  res.json({ items: await adminListCronJobRuns(id, limit) });
+});
+
+/** DELETE /api/admin/cron-jobs/:id — 删除任务 */
+adminRouter.delete("/cron-jobs/:id", async (req, res) => {
+  const id = Number(req.params.id);
+  if (!Number.isInteger(id)) {
+    res.status(400).json({ error: "invalid_id" });
+    return;
+  }
+  const result = await adminDeleteCronJob(id);
+  if (!result) {
+    res.status(404).json({ error: "not_found" });
+    return;
+  }
+  res.json({ ok: true });
 });
