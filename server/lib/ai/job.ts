@@ -92,8 +92,9 @@ function passesQualityGate(
   );
 }
 
-/** 批量大小：一次 LLM 调用包含的游戏数（游戏元数据体量小，批量摊薄 system prompt 开销） */
-const ANALYZE_BATCH_SIZE = 20;
+/** 批量大小：一次 LLM 调用包含的游戏数（游戏元数据体量小，批量摊薄 system prompt 开销）。
+ *  20 会让单次响应体过大导致 SDK fetch 超时，从而整批回退单条造成雪崩；调小到 5 更稳。 */
+const ANALYZE_BATCH_SIZE = 5;
 
 /** DB 行 → analyze 输入结构 */
 function toRawData(game: typeof games.$inferSelect): GameRawData {
@@ -307,16 +308,12 @@ export async function runAnalyzeGames(limit = 200): Promise<AnalyzeStats> {
       for (const game of chunkGames) {
         stats.analyzed++;
 
-        let profile = profiles.get(game.id);
+        const profile = profiles.get(game.id);
         if (!profile) {
-          // 批量结果缺失该游戏 → 单条兜底（带重试）
-          const result = await analyzeGame(toRawData(game));
-          if (result.success && result.profile) {
-            profile = result.profile;
-          } else {
-            await markFailed(game, stats, result.error);
-            continue;
-          }
+          // 批量结果缺失该游戏（LLM 未返回/校验失败/整批超时）→ 不做单条重试，
+          // 直接标记失败待下次触发，避免一次大响应炸成多条单调用引发雪崩。
+          await markFailed(game, stats, "批量分析未返回该游戏画像");
+          continue;
         }
 
         const target = await applyGameProfile(game, profile, stats);
