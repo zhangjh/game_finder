@@ -195,21 +195,28 @@ export const DEFAULT_JOBS: {
   },
 ];
 
-/** 幂等写入默认任务（仅在首次启动且表空时 seed） */
+/**
+ * 幂等写入默认任务：按 type 补插缺失的默认 job（不覆盖已有配置）。
+ * 旧库升级场景：cron_jobs 表在 M4 之前初始化，缺少 analyze_games / relation_games，
+ * 表非空导致原来的"仅空表 seed"逻辑永远不会补入新任务。
+ */
 export async function seedCronJobsIfEmpty(): Promise<void> {
-  const [{ count }] = await db
-    .select({ count: sql<number>`count(*)::int` })
-    .from(cronJobs);
-  if ((count ?? 0) > 0) return;
+  const existing = await db.select({ type: cronJobs.type }).from(cronJobs);
+  const existingTypes = new Set(existing.map((r) => r.type));
+  const missing = DEFAULT_JOBS.filter((j) => !existingTypes.has(j.type));
+  if (missing.length === 0) return;
 
   await db.insert(cronJobs).values(
-    DEFAULT_JOBS.map((j) => ({
+    missing.map((j) => ({
       type: j.type,
       name: j.name,
       description: j.description,
       schedule: j.schedule,
       params: j.params as never,
     })),
+  );
+  console.log(
+    `[scheduler] seeded ${missing.length} new cron job(s): ${missing.map((j) => j.type).join(", ")}`,
   );
 }
 
