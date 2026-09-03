@@ -325,6 +325,11 @@ export async function runAnalyzeGames(limit = 200): Promise<AnalyzeStats> {
 
       // 整批统一生成 embedding（一次调用批量，避免逐条串行）
       await embedBatch(embedTargets, stats);
+      console.log(
+        `[analyze-games] chunk ${chunkGames.length} 个处理完成: ` +
+          `累计 scanned=${stats.scanned} analyzed=${stats.analyzed} ` +
+          `published=${stats.published} pending=${stats.pending} failed=${stats.failed}`,
+      );
     };
 
     if (limit > 0) {
