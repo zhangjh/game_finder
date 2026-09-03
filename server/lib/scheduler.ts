@@ -367,10 +367,33 @@ export async function reloadCronJob(jobId: number): Promise<void> {
   tasks.set(jobId, task);
 }
 
-/** 启动：seed 默认任务 → 注册所有 enabled 任务 */
+/**
+ * 清理进程重启残留的 running 记录：
+ * 上次进程退出（部署/重启/崩溃）时未跑完的 run 行仍为 status='running'，
+ * isJobRunning 会据此永久阻塞该任务；启动时统一标记为中断错误。
+ */
+async function cleanupStaleRuns(): Promise<void> {
+  const res = await db
+    .update(cronJobRuns)
+    .set({
+      status: "error",
+      error: "interrupted by restart",
+      finishedAt: new Date(),
+    })
+    .where(
+      sql`${cronJobRuns.status} = 'running' and ${cronJobRuns.finishedAt} is null`,
+    )
+    .returning({ id: cronJobRuns.id });
+  if (res.length > 0) {
+    console.log(`[scheduler] cleaned ${res.length} stale running run(s)`);
+  }
+}
+
+/** 启动：seed 默认任务 → 清理残留 running → 注册所有 enabled 任务 */
 export async function initScheduler(): Promise<void> {
   try {
     await seedCronJobsIfEmpty();
+    await cleanupStaleRuns();
     const rows = await db
       .select()
       .from(cronJobs)
