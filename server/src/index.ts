@@ -1,10 +1,15 @@
 import "dotenv/config";
 
 import { createApp } from "./app";
+import { runMigrations } from "./migrate";
 import { initScheduler, stopScheduler } from "@/lib/scheduler";
 
 const port = Number(process.env.PORT ?? 3001);
 const host = process.env.HOSTNAME ?? "0.0.0.0";
+
+// 启动即迁移（drizzle 主迁移 + manual 补充 SQL，幂等）。
+// 失败退出进程由 Docker restart 重试——schema 与代码永远同步，免手工执行。
+await runMigrations();
 
 const app = createApp();
 

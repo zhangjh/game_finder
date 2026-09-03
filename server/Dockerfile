@@ -33,6 +33,8 @@ ENV NODE_ENV=production \
     HOSTNAME=0.0.0.0
 
 COPY --from=builder /app/server/dist ./dist
+# drizzle 迁移文件（src/migrate.ts 启动时从 cwd/drizzle 读取并自动执行）
+COPY --from=builder /app/server/drizzle ./drizzle
 
 # 非 root 运行
 RUN addgroup --system --gid 1001 nodejs \
