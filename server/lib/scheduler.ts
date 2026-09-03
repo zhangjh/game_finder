@@ -244,7 +244,9 @@ export async function seedCronJobsIfEmpty(): Promise<void> {
       schedule: j.schedule,
       params: j.params as never,
       // defaultEnabled=false（如 analyze_games）默认停用，仅静态留存供手工触发
-      status: j.defaultEnabled === false ? "disabled" : "enabled",
+      status: (j.defaultEnabled === false ? "disabled" : "enabled") as
+        | "enabled"
+        | "disabled",
     })),
   );
   console.log(
