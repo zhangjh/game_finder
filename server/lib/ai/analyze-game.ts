@@ -13,7 +13,7 @@ const GENRE_WHITELIST = [
   "街机", "解谜", "休闲", "超休闲", "冒险", "动作", "射击", "平台跳跃",
   "体育", "三消", "益智", "棋盘", "记忆", "双人", "换装", "竞速",
   "放置", "跑酷", "技巧", "策略", "女生", "模拟", "模拟经营", "僵尸",
-  "格斗", "纸牌", "IO 对战", "战争", "塔防", "Roguelike", "音乐", "教育", "其他",
+  "格斗", "纸牌", "IO 对战", "战争", "塔防", "肉鸽", "音乐", "教育", "其他",
 ];
 
 /** 英文 genre → 中文映射（兜底模型返回英文时，与采集器 CATEGORY_ZH 对齐） */
@@ -29,7 +29,7 @@ const GENRE_MAP: Record<string, string> = {
   simulation: "模拟", sim: "模拟", skill: "技巧", sports: "体育", sport: "体育",
   strategy: "策略", "two-player": "双人", war: "战争", zombie: "僵尸",
   "tower-defense": "塔防", towerdefense: "塔防", towerdefensegame: "塔防", defense: "塔防",
-  roguelike: "Roguelike", "rogue-like": "Roguelike",
+  roguelike: "肉鸽", "rogue-like": "肉鸽",
   cooking: "模拟经营", building: "模拟经营", quiz: "益智", math: "益智", word: "益智",
   music: "音乐", education: "教育", educational: "教育",
   other: "其他",

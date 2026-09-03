@@ -2,7 +2,7 @@
  * 批量 AI 画像分析 job（T4.1~T4.3）。
  *
  * 消费待分析游戏：
- * 1. 批量调用 LLM（一次 10 个游戏）生成结构化画像 + 中文化，省 system prompt 重复开销
+ * 1. 批量调用 LLM（一次 20 个游戏）生成结构化画像 + 中文化，省 system prompt 重复开销
  * 2. 批量结果缺失的游戏回退单条调用（带重试）兜底
  * 3. 画像落库（覆盖展示字段：title/description/genre/tags/体验属性/设备/语言等）
  * 4. Quality Gate：必填字段完整 + 值域合法 + 缩略图可用 → published；否则 pending
@@ -91,8 +91,8 @@ function passesQualityGate(
   );
 }
 
-/** 批量大小：一次 LLM 调用包含的游戏数（批量省 system prompt 重复开销） */
-const ANALYZE_BATCH_SIZE = 10;
+/** 批量大小：一次 LLM 调用包含的游戏数（游戏元数据体量小，批量摊薄 system prompt 开销） */
+const ANALYZE_BATCH_SIZE = 20;
 
 /** DB 行 → analyze 输入结构 */
 function toRawData(game: typeof games.$inferSelect): GameRawData {
