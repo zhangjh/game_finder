@@ -17,6 +17,8 @@ const TYPE_LABEL: Record<AdminCronJobType, string> = {
   sync_games: "游戏源同步",
   health_check: "健康巡检",
   detect_duplicates: "重复检测",
+  analyze_games: "AI 画像分析",
+  relation_games: "相似游戏预计算",
 };
 
 const STATUS_LABEL: Record<string, string> = {
@@ -143,6 +145,11 @@ export function AdminCronJobsPage() {
                     </span>
                   </div>
                   <div className="mt-1 text-xs text-neutral-500">{job.description}</div>
+                  {job.type === "analyze_games" && (
+                    <div className="mt-1 text-xs text-sky-400">
+                      ⓘ 默认无需独立调度：游戏源同步完成后会自动跟随分析，这里保留供手动触发
+                    </div>
+                  )}
                   <div className="mt-1 text-xs text-neutral-500">
                     计划：<code className="text-neutral-300">{job.schedule}</code>
                     {job.lastRunAt && (

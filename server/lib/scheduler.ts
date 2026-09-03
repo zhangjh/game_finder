@@ -68,6 +68,32 @@ const RUNNERS: Record<string, JobRunner> = {
       }
       results.push(stats as unknown as Record<string, unknown>);
     }
+
+    // 同步完成后跟随 AI 画像分析：本轮有任何新增/更新游戏时，
+    // 调用 runAnalyzeGames 分析新入库的 draft 游戏（含 needsReanalysis 重分析）。
+    // 这样去掉 analyze_games 的独立高频调度，画像机会与源同步节奏一致（默认每 6 小时）。
+    const inserted = results.reduce(
+      (s, r) => s + (Number((r as { inserted?: unknown }).inserted) || 0),
+      0,
+    );
+    const updated = results.reduce(
+      (s, r) => s + (Number((r as { updated?: unknown }).updated) || 0),
+      0,
+    );
+    if (inserted + updated > 0) {
+      try {
+        const followStats = await runAnalyzeGames();
+        console.log(
+          `[scheduler] sync→analyze follow-up: scanned=${followStats.scanned} ` +
+            `analyzed=${followStats.analyzed} published=${followStats.published} ` +
+            `pending=${followStats.pending} failed=${followStats.failed} ` +
+            `embedding+=${followStats.embedded}` +
+            (followStats.error ? ` error=${followStats.error}` : ""),
+        );
+      } catch (err) {
+        console.error("[scheduler] sync→analyze follow-up failed:", err);
+      }
+    }
     return { results };
   },
   health_check: async (params) => {
@@ -157,6 +183,8 @@ export const DEFAULT_JOBS: {
   description: string;
   schedule: string;
   params: Record<string, unknown>;
+  /** 默认是否启用调度；false（如 analyze_games）默认停用，仅保留供手动触发 */
+  defaultEnabled?: boolean;
 }[] = [
   {
     type: "sync_games",
@@ -182,9 +210,11 @@ export const DEFAULT_JOBS: {
   {
     type: "analyze_games",
     name: "AI 画像分析",
-    description: "分析 draft 游戏生成中文画像并发布（附 embedding），发布后即时生成向量；重分析 published+needsReanalysis（每 30 分钟）",
-    schedule: "*/30 * * * *",
+    description:
+      "分析 draft 游戏生成中文画像并发布（含 embedding）。默认停用：同步完成后自动跟随运行，仅在库中留存供后台手工触发。",
+    schedule: "0 3 * * *",
     params: { limit: 20 },
+    defaultEnabled: false,
   },
   {
     type: "relation_games",
@@ -213,6 +243,8 @@ export async function seedCronJobsIfEmpty(): Promise<void> {
       description: j.description,
       schedule: j.schedule,
       params: j.params as never,
+      // defaultEnabled=false（如 analyze_games）默认停用，仅静态留存供手工触发
+      status: j.defaultEnabled === false ? "disabled" : "enabled",
     })),
   );
   console.log(

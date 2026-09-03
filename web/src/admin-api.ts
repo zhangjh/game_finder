@@ -187,7 +187,12 @@ export function dismissAdminDuplicate(
 
 // ===== 定时任务 =====
 
-export type AdminCronJobType = "sync_games" | "health_check" | "detect_duplicates";
+export type AdminCronJobType =
+  | "sync_games"
+  | "health_check"
+  | "detect_duplicates"
+  | "analyze_games"
+  | "relation_games";
 export type AdminCronJobStatus = "enabled" | "disabled";
 
 export interface AdminCronJob {
