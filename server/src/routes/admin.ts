@@ -19,6 +19,11 @@ import {
   type AdminGameStatus,
 } from "@/lib/games/admin-queries";
 import {
+  adminReanalyzeGame,
+  adminReembedGame,
+  adminUpdateGameProfile,
+} from "@/lib/games/ai-admin-queries";
+import {
   adminCreateCronJob,
   adminDeleteCronJob,
   adminListCronJobRuns,
@@ -123,6 +128,66 @@ adminRouter.post("/games/:id/status", async (req, res) => {
   res.json(updated);
 });
 
+// ===== 后台 AI 管理（T4.5，PRD §36）=====
+
+/** PUT /api/admin/games/:id/profile — 人工修正 AI 画像 */
+adminRouter.put("/games/:id/profile", async (req, res) => {
+  const id = Number(req.params.id);
+  if (!Number.isInteger(id)) {
+    res.status(400).json({ error: "invalid_id" });
+    return;
+  }
+  const body = (req.body ?? {}) as Record<string, unknown>;
+  try {
+    const updated = await adminUpdateGameProfile(id, body);
+    if (!updated) {
+      res.status(404).json({ error: "not_found" });
+      return;
+    }
+    res.json(updated);
+  } catch (err) {
+    res.status(400).json({ error: err instanceof Error ? err.message : "invalid_profile" });
+  }
+});
+
+/** POST /api/admin/games/:id/reanalyze — 单游戏重新 AI 分析 */
+adminRouter.post("/games/:id/reanalyze", async (req, res) => {
+  const id = Number(req.params.id);
+  if (!Number.isInteger(id)) {
+    res.status(400).json({ error: "invalid_id" });
+    return;
+  }
+  const result = await adminReanalyzeGame(id);
+  if (!result) {
+    res.status(404).json({ error: "not_found" });
+    return;
+  }
+  if (!result.ok) {
+    res.status(502).json({ error: result.error });
+    return;
+  }
+  res.json(result);
+});
+
+/** POST /api/admin/games/:id/reembed — 单游戏重建 Embedding */
+adminRouter.post("/games/:id/reembed", async (req, res) => {
+  const id = Number(req.params.id);
+  if (!Number.isInteger(id)) {
+    res.status(400).json({ error: "invalid_id" });
+    return;
+  }
+  try {
+    const result = await adminReembedGame(id);
+    if (!result) {
+      res.status(404).json({ error: "not_found" });
+      return;
+    }
+    res.json(result);
+  } catch (err) {
+    res.status(502).json({ error: err instanceof Error ? err.message : "embedding_failed" });
+  }
+});
+
 adminRouter.get("/sources", async (_req, res) => {
   res.json(await adminListSources());
 });
@@ -176,6 +241,8 @@ const CRON_JOB_TYPES: CronJobType[] = [
   "sync_games",
   "health_check",
   "detect_duplicates",
+  "analyze_games",
+  "relation_games",
 ];
 const CRON_JOB_STATUSES = ["enabled", "disabled"] as const;
 

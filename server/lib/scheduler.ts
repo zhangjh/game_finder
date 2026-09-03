@@ -12,6 +12,8 @@ import cron, { type ScheduledTask } from "node-cron";
 
 import { db } from "@/lib/db";
 import { cronJobRuns, cronJobs } from "@/lib/db/schema";
+import { runAnalyzeGames } from "@/lib/ai/job";
+import { runRelationJob } from "@/lib/ai/relations-job";
 import { allAdapters, getAdapter, syncSource } from "@/lib/games/collectors";
 import { detectDuplicates } from "@/lib/games/duplicates";
 import { runHealthCheck } from "@/lib/games/health-check";
@@ -108,16 +110,49 @@ const RUNNERS: Record<string, JobRunner> = {
     );
     return stats as unknown as Record<string, unknown>;
   },
+  analyze_games: async (params) => {
+    const limit =
+      typeof params.limit === "number"
+        ? params.limit
+        : typeof params.limit === "string" && /^\d+$/.test(params.limit)
+          ? Number(params.limit)
+          : undefined;
+    console.log(`[scheduler] analyze-games: start (limit=${limit ?? 20})`);
+    const stats = await runAnalyzeGames(limit);
+    if (stats.error) throw new Error(stats.error);
+    console.log(
+      `[scheduler] analyze-games done: 扫描=${stats.scanned} 分析=${stats.analyzed} ` +
+        `发布=${stats.published} 质检不过=${stats.pending} 失败=${stats.failed} ` +
+        `(embedding 新增=${stats.embedded} 跳过=${stats.embedSkipped})`,
+    );
+    return stats as unknown as Record<string, unknown>;
+  },
+  relation_games: async () => {
+    console.log(`[scheduler] relation-games: start`);
+    const stats = await runRelationJob();
+    if (stats.error) throw new Error(stats.error);
+    console.log(
+      `[scheduler] relation-games done: 游戏=${stats.games} 关系=${stats.relationsWritten}`,
+    );
+    return stats as unknown as Record<string, unknown>;
+  },
 };
 
 const DEFAULT_PARAMS: Record<string, Record<string, unknown>> = {
   sync_games: {},
   health_check: { limit: 500 },
   detect_duplicates: {},
+  analyze_games: { limit: 20 },
+  relation_games: {},
 };
 
 export const DEFAULT_JOBS: {
-  type: "sync_games" | "health_check" | "detect_duplicates";
+  type:
+    | "sync_games"
+    | "health_check"
+    | "detect_duplicates"
+    | "analyze_games"
+    | "relation_games";
   name: string;
   description: string;
   schedule: string;
@@ -142,6 +177,20 @@ export const DEFAULT_JOBS: {
     name: "重复检测",
     description: "检测跨源疑似重复游戏，写入人工处理队列（每日 05:00）",
     schedule: "0 5 * * *",
+    params: {},
+  },
+  {
+    type: "analyze_games",
+    name: "AI 画像分析",
+    description: "分析 draft 游戏生成中文画像并发布（附 embedding），发布后即时生成向量；重分析 published+needsReanalysis（每 30 分钟）",
+    schedule: "*/30 * * * *",
+    params: { limit: 20 },
+  },
+  {
+    type: "relation_games",
+    name: "相似游戏预计算",
+    description: "重建已发布游戏 Top-K 相似关系 game_relations（每日 06:00）",
+    schedule: "0 6 * * *",
     params: {},
   },
 ];

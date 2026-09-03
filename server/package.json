@@ -22,7 +22,9 @@
     "drizzle-orm": "^0.45.2",
     "express": "^5.1.0",
     "node-cron": "^4.6.0",
-    "pg": "^8.23.0"
+    "openai": "^7.9.0",
+    "pg": "^8.23.0",
+    "zod": "^4.5.4"
   },
   "devDependencies": {
     "@types/cors": "^2.8.19",

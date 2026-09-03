@@ -16,7 +16,12 @@ import {
   seedCronJobsIfEmpty,
 } from "@/lib/scheduler";
 
-export type CronJobType = "sync_games" | "health_check" | "detect_duplicates";
+export type CronJobType =
+  | "sync_games"
+  | "health_check"
+  | "detect_duplicates"
+  | "analyze_games"
+  | "relation_games";
 
 export interface CronJobUpdate {
   name?: string;

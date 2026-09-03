@@ -352,11 +352,11 @@ T2.4 的 AI 管理页接入真实数据：查看画像、人工修正、单游�
 - [x] T3.5 变更检测与自动下架（随 T3.2 pipeline 实现并实测：unchanged 跳过 / 变更更新+reanalysis / 消失 offline / 复活 draft）
 - [x] T3.6 定时同步 + 健康巡检（应用内 node-cron 调度器 lib/scheduler.ts，管理后台 /admin/cron-jobs 可启停/手动执行；连续失败≥3 自动下线）
 - [x] T3.7 重复游戏 Merge（slug 规范化 + pg_trgm 标题相似度 → suspected_duplicates 人工队列；真实数据检出 143 对，Merge 操作待 T2.3 后台接线）
-- [ ] T4.1 AI 画像分析 + 中文化
-- [ ] T4.2 Embedding 生成（批量 job）
-- [ ] T4.3 Quality Gate
-- [ ] T4.4 相似游戏预计算
-- [ ] T4.5 后台 AI 管理接线
+- [x] T4.1 AI 画像分析 + 中文化（lib/ai/analyze-game.ts + schemas.ts + job.ts；LLM 结构化输出 + zod 校验 + 归一化；实测 3 游戏发布）
+- [x] T4.2 Embedding 生成（lib/ai/embedding.ts + embedding-client.ts；content_hash 增量；**重构：独立 EMBEDDING_BASE_URL/EMBEDDING_API_KEY/EMBEDDING_MODEL，Chat 仍走 DeepSeek、Embedding 用 Qwen text-embedding-v4 @1536 维；embedding 并入 analyze_games 发布后即时生成，取消独立 embedding_games 定时任务**；未配置时优雅跳过）
+- [x] T4.3 Quality Gate（随 analyze job 实现：必填字段 + 值域 + 缩略图 → published，否则 pending；实测通过）
+- [x] T4.4 相似游戏预计算（lib/ai/relations-job.ts：Genre/难度/Pace/认知/时长结构化加权 Top-K → game_relations；实测写入 72 条）
+- [x] T4.5 后台 AI 管理接线（admin API：PUT /games/:id/profile 人工修正、POST /reanalyze 重分析、POST /reembed 重建向量；scheduler 新增 analyze_games/relation_games 定时任务；embedding 随 analyze 即时生成）
 - [ ] T5.1 Intent Parser
 - [ ] T5.2 五路候选召回
 - [ ] T5.3 Hard Filter + Hybrid Ranking
