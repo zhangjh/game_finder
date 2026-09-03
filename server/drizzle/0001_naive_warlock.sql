@@ -1,0 +1,1 @@
+ALTER TABLE "games" ADD COLUMN "needs_reanalysis" boolean DEFAULT false NOT NULL;

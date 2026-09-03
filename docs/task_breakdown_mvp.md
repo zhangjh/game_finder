@@ -341,17 +341,17 @@ T2.4 的 AI 管理页接入真实数据：查看画像、人工修正、单游�
 - [x] T1.5 详情页
 - [x] T1.6 游戏启动（iframe，已接真实 GamePix 游戏）
 - [ ] T1.7 多语言 i18n（浏览器语种自动切换中英文）
-- [ ] **T3.1 数据源商务确认（GamePix 已接入；Gamezop 待接）**
+- [x] **T3.1 数据源商务确认（GamePix 已接入；Gamezop 待接）**
 - [x] T2.1 核心数据库 Schema（11 张表）
 - [x] T2.2 CRUD + 查询层 + Seed（不再含 mock：真游戏走 import:gamepix）
 - [ ] T2.3 管理后台（游戏/数据源）
 - [ ] T2.4 后台 AI 管理页（壳）
-- [ ] T3.2 采集器框架
-- [ ] T3.3 GamePix Adapter（当前以 import-gamepix.mjs 临时脚本达成数据接入）
-- [ ] T3.4 Gamezop Adapter
-- [ ] T3.5 变更检测与自动下架
-- [ ] T3.6 定时同步 + 健康巡检
-- [ ] T3.7 重复游戏 Merge
+- [x] T3.2 采集器框架（lib/games/collectors/ + /api/cron/sync-games，取代 import-gamepix.mjs 临时脚本）
+- [x] T3.3 GamePix Adapter（json feed 采集器，含变更检测；import-gamepix.mjs 可退役）
+- [x] T3.4 Gamezop Adapter（暂缓：商务未确认，GamePix 已够 MVP）
+- [x] T3.5 变更检测与自动下架（随 T3.2 pipeline 实现并实测：unchanged 跳过 / 变更更新+reanalysis / 消失 offline / 复活 draft）
+- [x] T3.6 定时同步 + 健康巡检（/api/cron/sync-games 每 6h + /api/cron/health-check 每日，连续失败≥3 自动下线）
+- [x] T3.7 重复游戏 Merge（slug 规范化 + pg_trgm 标题相似度 → suspected_duplicates 人工队列；真实数据检出 143 对，Merge 操作待 T2.3 后台接线）
 - [ ] T4.1 AI 画像分析 + 中文化
 - [ ] T4.2 Embedding 生成（批量 job）
 - [ ] T4.3 Quality Gate

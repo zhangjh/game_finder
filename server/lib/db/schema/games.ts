@@ -120,8 +120,19 @@ export const games = pgTable(
     profileManuallyEdited: boolean("profile_manually_edited")
       .notNull()
       .default(false),
+    /**
+     * 源数据发生变化，待重新 AI 分析（T3.5 变更检测）。
+     * 已发布(published)的游戏源更新后置 true，M4 分析 job 消费后复位。
+     */
+    needsReanalysis: boolean("needs_reanalysis").notNull().default(false),
     /** 简单流行度计数：M6 前用启动次数近似，GameScore 接管后弱化 */
     playCount: integer("play_count").notNull().default(0),
+
+    /* ===== 健康巡检（T3.6，PRD §34）===== */
+    /** 最近一次巡检时间（每次巡检一批最久未检的） */
+    healthCheckedAt: timestamp("health_checked_at", { withTimezone: true }),
+    /** 连续失败次数；成功清零，达到阈值自动下线 */
+    healthFailCount: smallint("health_fail_count").notNull().default(0),
 
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()

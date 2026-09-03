@@ -4,5 +4,6 @@
  */
 export * from "./sources";
 export * from "./games";
+export * from "./duplicates";
 export * from "./embeddings";
 export * from "./events";

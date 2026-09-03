@@ -8,6 +8,20 @@
       "when": 1788332860723,
       "tag": "0000_core_schema",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1788400837703,
+      "tag": "0001_naive_warlock",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1788403231793,
+      "tag": "0002_moaning_rafael_vega",
+      "breakpoints": true
     }
   ]
 }
