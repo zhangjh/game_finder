@@ -54,8 +54,8 @@ docker --version && docker compose version
 ### 2. 拉取仓库
 
 ```bash
-sudo mkdir -p /opt/game-finder && sudo chown "$USER" /opt/game-finder
-cd /opt/game-finder
+sudo mkdir -p ~/dev/game_finder && sudo chown "$USER" ~/dev/game_finder
+cd ~/dev/game_finder
 git clone <你的仓库地址> .
 pnpm install   # 生成锁文件一致的环境（或仅用于 db:migrate/seed，见下）
 ```
@@ -67,7 +67,7 @@ pnpm install   # 生成锁文件一致的环境（或仅用于 db:migrate/seed�
 在 `server/` 下创建 `.env` 供 compose 读取（compose 的 `server` 服务已引用 `${ALLOWED_ORIGINS:-}` 等）：
 
 ```bash
-cd /opt/game-finder/server
+cd ~/dev/game_finder/server
 cat > .env <<'EOF'
 # 注：compose 的 server 服务已把 DATABASE_URL 硬编码为 @postgres:5432，
 #     因此 DATABASE_URL 无需在此重复（保留可覆盖，但不建议改）。
@@ -95,18 +95,18 @@ chmod 600 .env
 先在 VPS 上把 postgres 起起来（只起 DB）：
 
 ```bash
-cd /opt/game-finder/server
+cd ~/dev/game_finder/server
 docker compose up -d postgres      # 等 healthcheck 变为 healthy
 ```
 
 然后跑迁移 + 种子 + 导入。postgres **不对宿主机暴露任何端口**，宿主机脚本统一用**一次性 docker run 容器**连 compose 内网（`postgres:5432`）执行，挂载整个仓库复用已装的 node_modules：
 
 ```bash
-cd /opt/game-finder/server
+cd ~/dev/game_finder/server
 docker compose up -d postgres          # 等 healthcheck 变为 healthy
 
 # 一次性容器执行前缀（连内网 postgres，挂载仓库复用 node_modules）
-DR="docker run --rm --network server_default -v /opt/game-finder:/app -w /app/server"
+DR="docker run --rm --network server_default -v ~/dev/game_finder:/app -w /app/server"
 DB="postgresql://postgres:postgres@postgres:5432/game_discovery"
 
 # 迁移（建表 + 手动补充 SQL）
@@ -235,20 +235,20 @@ curl -H "Origin: https://zhangjh.cn" -I https://game-api.zhangjh.cn/api/games
 sudo tee /etc/cron.d/gamefinder-backup >/dev/null <<'EOF'
 # 每天 03:00 备份，保留 14 天
 0 3 * * * root  docker exec game_discovery_pg pg_dump -U postgres -d game_discovery \
-  | gzip > /opt/game-finder/backups/game_$(date +\%Y\%m\%d).sql.gz \
-  && find /opt/game-finder/backups -name '*.sql.gz' -mtime +14 -delete
+  | gzip > ~/dev/game_finder/backups/game_$(date +\%Y\%m\%d).sql.gz \
+  && find ~/dev/game_finder/backups -name '*.sql.gz' -mtime +14 -delete
 EOF
-mkdir -p /opt/game-finder/backups
+mkdir -p ~/dev/game_finder/backups
 ```
 
-> 把备份目录 `/opt/game-finder/backups` 再同步到异机/对象存储（如 rclone Borg/backblaze），防止整机故障。
+> 把备份目录 `~/dev/game_finder/backups` 再同步到异机/对象存储（如 rclone Borg/backblaze），防止整机故障。
 
 ### 恢复
 
 ```bash
 # 只起 postgres，停掉可能写入的 server
-cd /opt/game-finder/server && docker compose stop server
-gunzip -c /opt/game-finder/backups/game_20260901.sql.gz \
+cd ~/dev/game_finder/server && docker compose stop server
+gunzip -c ~/dev/game_finder/backups/game_20260901.sql.gz \
   | docker exec -i game_discovery_pg psql -U postgres -d game_discovery
 docker compose start server
 ```
@@ -260,11 +260,11 @@ docker compose start server
 ### 发布新版本（全量）
 
 ```bash
-cd /opt/game-finder
+cd ~/dev/game_finder
 git pull origin master          # 拉到最新
 pnpm install                    # 若依赖有变
 # 数据库有迁移则先执行（一次性容器连内网）
-docker run --rm --network server_default -v /opt/game-finder:/app -w /app/server \
+docker run --rm --network server_default -v ~/dev/game_finder:/app -w /app/server \
   -e DATABASE_URL="postgresql://postgres:postgres@postgres:5432/game_discovery" \
   node:22 sh -c "npx drizzle-kit migrate && node scripts/apply-manual-sql.mjs"
 # 重新构建并滚动重启（server 会因镜像变化重建）
@@ -278,7 +278,7 @@ docker compose ps               # 确认 healthy
 
 ```bash
 docker tag server-server:latest server-server:prev   # 升级前打一次
-cd /opt/game-finder/server
+cd ~/dev/game_finder/server
 # 若新镜像异常：直接用 docker-compose 指定旧镜像
 # 在 docker-compose.yml 给 server 加 image: server-server:prev 后：
 docker compose up -d server
