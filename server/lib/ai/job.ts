@@ -9,7 +9,7 @@
  *
  * 费用：仅分析新增(draft)/变更(published+needsReanalysis)游戏，成本可控。
  */
-import { and, eq, inArray, or } from "drizzle-orm";
+import { and, asc, eq, gt, inArray, or } from "drizzle-orm";
 
 import { db } from "@/lib/db";
 import { gameEmbeddings, games } from "@/lib/db/schema";
@@ -247,32 +247,31 @@ export async function runAnalyzeGames(limit = 200): Promise<AnalyzeStats> {
     embedSkipped: 0,
   };
 
-  try {
-    const candidates = await db
+  // 候选查询。limit>0：一次取 limit 条；limit=0（全量模式）以 id 游标翻页拉完所有候选。
+  const baseCond = or(
+    and(
+      inArray(games.status, ["draft", "pending"]),
+      eq(games.needsReanalysis, false),
+    ),
+    and(
+      eq(games.status, "published"),
+      eq(games.needsReanalysis, true),
+    ),
+  );
+  const fetchCandidates = (limitN: number, afterId?: number) =>
+    db
       .select()
       .from(games)
-      .where(
-        or(
-          and(
-            inArray(games.status, ["draft", "pending"]),
-            eq(games.needsReanalysis, false),
-          ),
-          and(
-            eq(games.status, "published"),
-            eq(games.needsReanalysis, true),
-          ),
-        ),
-      )
-      .limit(limit);
+      .where(afterId === undefined ? baseCond : and(baseCond, gt(games.id, afterId)))
+      .orderBy(asc(games.id))
+      .limit(limitN);
 
-    stats.scanned = candidates.length;
+  try {
+    // 单轮限量执行块（一次调用按 ANALYZE_BATCH_SIZE 再分批）。
+    const runChunk = async (chunkGames: (typeof games.$inferSelect)[]) => {
+      const profiles = await analyzeGamesBatch(chunkGames.map(toRawData));
 
-    // 按 ANALYZE_BATCH_SIZE 分批：批量调用 → 未返回的游戏单条兜底 → 画像落库
-    for (let i = 0; i < candidates.length; i += ANALYZE_BATCH_SIZE) {
-      const chunk = candidates.slice(i, i + ANALYZE_BATCH_SIZE);
-      const profiles = await analyzeGamesBatch(chunk.map(toRawData));
-
-      for (const game of chunk) {
+      for (const game of chunkGames) {
         stats.analyzed++;
 
         let profile = profiles.get(game.id);
@@ -288,6 +287,27 @@ export async function runAnalyzeGames(limit = 200): Promise<AnalyzeStats> {
         }
 
         await applyGameProfile(game, profile, stats);
+      }
+    };
+
+    if (limit > 0) {
+      const candidates = await fetchCandidates(limit);
+      stats.scanned = candidates.length;
+      for (let i = 0; i < candidates.length; i += ANALYZE_BATCH_SIZE) {
+        await runChunk(candidates.slice(i, i + ANALYZE_BATCH_SIZE));
+      }
+    } else {
+      // 全量模式：按 id 游标翻页，一次取 ANALYZE_BATCH_SIZE 条，直到候选掏空。
+      // id 递增且可靠，处理落库（published）不影响后续游标，稳定跑完全部。
+      let afterId: number | undefined;
+      for (;;) {
+        const candidates = await fetchCandidates(ANALYZE_BATCH_SIZE, afterId);
+        if (candidates.length === 0) break;
+        stats.scanned += candidates.length;
+        for (let i = 0; i < candidates.length; i += ANALYZE_BATCH_SIZE) {
+          await runChunk(candidates.slice(i, i + ANALYZE_BATCH_SIZE));
+        }
+        afterId = candidates[candidates.length - 1].id;
       }
     }
 
