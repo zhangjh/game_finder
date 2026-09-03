@@ -16,6 +16,7 @@ import { gameEmbeddings, games } from "@/lib/db/schema";
 import {
   analyzeGame,
   analyzeGamesBatch,
+  QuotaError,
   type GameRawData,
 } from "./analyze-game";
 import {
@@ -352,6 +353,12 @@ export async function runAnalyzeGames(limit = 200): Promise<AnalyzeStats> {
 
     return stats;
   } catch (err) {
+    // 额度受限：终止整个任务并标记，等待人工更换模型后重跑，不再继续消耗 token
+    if (err instanceof QuotaError) {
+      stats.error = `QUOTA_STOPPED: ${err.message}`;
+      console.error("[analyze-games] 额度受限，任务已停止，请检查/更换模型后重跑:", err.message);
+      return stats;
+    }
     stats.error = err instanceof Error ? err.message : String(err);
     console.error("[analyze-games] batch failed:", err);
     return stats;

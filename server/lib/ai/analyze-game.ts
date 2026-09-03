@@ -2,6 +2,39 @@ import { getAIClient, getModelId } from "./client";
 import { gameProfileSchema, type GameProfile } from "./schemas";
 
 /**
+ * 是否「额度受限」类错误（HTTP 429 限流，或错误信息命中额度/配额关键词）。
+ * 额度受限多数是模型账户余额/配额耗尽的配置问题，继续跑只会浪费 token 且无产出，
+ * 应终止当前任务等待人工更换模型后重跑。命中时向外抛 QuotaError 以终止整批。
+ */
+export class QuotaError extends Error {}
+
+const QUOTA_KEYWORDS = [
+  "rate limit", "rate_limit", "requests per", "429",
+  "quota", "insufficient", "exceeded", "balance",
+  "额度", "限额", "配额", "耗尽", "余额不足", "限流",
+];
+
+export function isQuotaError(err: unknown): boolean {
+  if (err instanceof QuotaError) return true;
+  const msg = String(
+    (typeof err === "object" && err && (err as { message?: unknown }).message) ?? err,
+  ).toLowerCase();
+  return QUOTA_KEYWORDS.some((k) => msg.includes(k));
+}
+
+/** 包装额度受限错误：识别到即抛出，由上层 runAnalyzeGames 终止整个任务 */
+export function throwOnQuota(err: unknown): void {
+  if (isQuotaError(err)) {
+    throw err instanceof QuotaError
+      ? err
+      : new QuotaError(
+          "模型额度受限，主动终止本次分析，请人工检查/更换模型后重跑: " +
+            (err instanceof Error ? err.message : String(err)),
+        );
+  }
+}
+
+/**
  * genre 中文白名单 —— 与 GamePix 采集器 CATEGORY_ZH（真实数据分布）对齐，
  * 另补充少量源站没有但无 genre 游戏（约 1/3）AI 推断时可能用到的类型。
  * 真实分布（13562 条）：街机1325 解谜1100 休闲771 冒险706 动作575 超休闲501
@@ -155,6 +188,8 @@ export async function analyzeGame(game: GameRawData): Promise<AnalyzeResult> {
       }
       // 继续重试
     } catch (err: unknown) {
+      // 额度受限 → 终止整个任务
+      throwOnQuota(err);
       const msg = err instanceof Error ? err.message : String(err);
       if (attempt === 2) {
         return { success: false, error: `LLM call failed: ${msg}` };
@@ -230,6 +265,8 @@ export async function analyzeGamesBatch(
       }
     }
   } catch (err) {
+    // 额度受限 → 终止整个任务，不再回退单条（避免雪崩突发大量 token 请求）
+    throwOnQuota(err);
     console.warn(
       `[analyze-batch] 批量调用失败（${games.length} 个游戏将回退单条）:`,
       err instanceof Error ? err.message : String(err),
