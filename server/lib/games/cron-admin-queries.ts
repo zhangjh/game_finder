@@ -9,6 +9,7 @@ import type { SQL } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { cronJobRuns, cronJobs } from "@/lib/db/schema";
 import {
+  cancelRunningRuns,
   getRunningJobs,
   isJobRunning,
   reloadCronJob,
@@ -114,7 +115,11 @@ export async function adminSetCronJobStatus(
     .set({ status, updatedAt: new Date() })
     .where(eq(cronJobs.id, id))
     .returning();
-  if (updated.length > 0) await reloadCronJob(id);
+  if (updated.length > 0) {
+    // 停用时终止正在 running 的执行，避免重新启用后 isJobRunning 永久阻塞
+    if (status === "disabled") await cancelRunningRuns(id);
+    await reloadCronJob(id);
+  }
   return updated[0];
 }
 
@@ -124,7 +129,10 @@ export async function adminDeleteCronJob(id: number) {
     .delete(cronJobs)
     .where(eq(cronJobs.id, id))
     .returning({ id: cronJobs.id });
-  if (deleted.length > 0) await reloadCronJob(id);
+  if (deleted.length > 0) {
+    await cancelRunningRuns(id);
+    await reloadCronJob(id);
+  }
   return deleted[0];
 }
 

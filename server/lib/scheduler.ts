@@ -233,6 +233,25 @@ export async function isJobRunning(jobId: number): Promise<boolean> {
   return rows.length > 0;
 }
 
+/**
+ * 终止某个任务正在 running 的执行：在管理后台停用/删除任务时调用，
+ * 把 DB 中残留的 running 记录标记为被取消，并清掉进程内 Mark。
+ * 否则 isJobRunning 会永久阻塞该任务，重新启用后一触发就报 job_already_running。
+ */
+export async function cancelRunningRuns(jobId: number): Promise<void> {
+  runningJobs.delete(jobId);
+  await db
+    .update(cronJobRuns)
+    .set({
+      status: "error",
+      error: "cancelled by admin",
+      finishedAt: new Date(),
+    })
+    .where(
+      sql`${cronJobRuns.jobId} = ${jobId} and ${cronJobRuns.status} = 'running' and ${cronJobRuns.finishedAt} is null`,
+    );
+}
+
 /** 执行一次任务（触发来源 trigger: "schedule" | "manual"） */
 export async function runCronJob(
   jobId: number,
