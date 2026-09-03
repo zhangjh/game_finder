@@ -35,7 +35,14 @@ const RUNNERS: Record<string, JobRunner> = {
     const adapters = sourceParam
       ? [getAdapter(sourceParam)].filter((a) => a !== null)
       : allAdapters();
-    if (adapters.length === 0) throw new Error("unknown_source");
+    if (adapters.length === 0) {
+      // 把"配置缺失"的真实原因暴露出来，避免误导性的 unknown_source。
+      // 未指定 source 时默认按 gamepix 提示，便于运营定位（如 GAMEPIX_SID 未设置）。
+      const hint = sourceParam
+        ? `未知数据源: ${sourceParam}`
+        : `没有可用的数据源 adapter（可能是 GAMEPIX_SID 等环境变量未配置，或全部 adapter 创建失败）`;
+      throw new Error(`unknown_source — ${hint}`);
+    }
 
     const results: Record<string, unknown>[] = [];
     for (const adapter of adapters) {
