@@ -26,6 +26,8 @@ const options: CorsOptions = {
   },
   methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization"],
+  // 管理后台 cookie 会话需要 credentials（SPA 主域 ↔ api 子域跨站）
+  credentials: true,
   maxAge: 86400,
 };
 

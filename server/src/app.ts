@@ -1,6 +1,8 @@
 import express from "express";
 
 import { corsApi } from "./middleware/cors";
+import { adminRouter } from "./routes/admin";
+import { cronRouter } from "./routes/cron";
 import { gameBySlugRouter } from "./routes/gameBySlug";
 import { gameSimilarRouter } from "./routes/gameSimilar";
 import { gamesRouter } from "./routes/games";
@@ -21,6 +23,10 @@ export function createApp() {
   api.use("/games", gamesRouter);
   api.use("/games", gameBySlugRouter);
   api.use("/games", gameSimilarRouter);
+  // 定时任务入口（CRON_SECRET 鉴权，见 routes/cron.ts）
+  api.use("/cron", cronRouter);
+  // 管理后台 API（ADMIN_PASSWORD cookie 会话，见 routes/admin.ts）
+  api.use("/admin", adminRouter);
   app.use("/api", api);
 
   // 未匹配 → 404
