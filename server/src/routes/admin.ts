@@ -34,6 +34,13 @@ import {
   type CronJobType,
   type CronJobUpdate,
 } from "@/lib/games/cron-admin-queries";
+import {
+  getAnalyticsOverview,
+  getDailyActivity,
+  getEventBreakdown,
+  getTopGames,
+  getTopQueries,
+} from "@/lib/games/analytics-queries";
 
 /**
  * /api/admin/* — 管理后台 API（T2.3，PRD §36）。
@@ -243,6 +250,7 @@ const CRON_JOB_TYPES: CronJobType[] = [
   "detect_duplicates",
   "analyze_games",
   "relation_games",
+  "compute_scores",
 ];
 const CRON_JOB_STATUSES = ["enabled", "disabled"] as const;
 
@@ -414,4 +422,25 @@ adminRouter.delete("/cron-jobs/:id", async (req, res) => {
     return;
   }
   res.json({ ok: true });
+});
+
+// ===== 数据看板（T6.4，PRD §52/§53）=====
+
+/** GET /api/admin/analytics — 核心指标概览 */
+adminRouter.get("/analytics", async (_req, res) => {
+  const [overview, eventBreakdown, topGames, topQueries, dailyActivity] =
+    await Promise.all([
+      getAnalyticsOverview(),
+      getEventBreakdown(),
+      getTopGames(),
+      getTopQueries(),
+      getDailyActivity(),
+    ]);
+  res.json({
+    overview,
+    eventBreakdown,
+    topGames,
+    topQueries,
+    dailyActivity,
+  });
 });

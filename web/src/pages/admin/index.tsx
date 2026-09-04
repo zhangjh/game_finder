@@ -11,8 +11,9 @@ import { AdminCronJobsPage } from "./cron-jobs";
 import { AdminDuplicatesPage } from "./duplicates";
 import { AdminGamesPage } from "./games";
 import { AdminLoginPage } from "./login";
-import { AdminSourcesPage } from "./sources";
 import { AdminOverviewPage } from "./overview";
+import { AdminSourcesPage } from "./sources";
+import { AdminAnalyticsPage } from "./analytics";
 
 export function AdminPage() {
   const [authed, setAuthed] = useState<boolean | null>(null);
@@ -42,6 +43,7 @@ const NAV = [
   { path: "/admin/sources", label: "数据源" },
   { path: "/admin/duplicates", label: "重复处理" },
   { path: "/admin/cron-jobs", label: "定时任务" },
+  { path: "/admin/analytics", label: "数据看板" },
 ];
 
 function AdminShell({ onLogout }: { onLogout: (authed: boolean) => void }) {
@@ -90,6 +92,7 @@ function AdminShell({ onLogout }: { onLogout: (authed: boolean) => void }) {
           <Route path="sources" element={<AdminSourcesPage />} />
           <Route path="duplicates" element={<AdminDuplicatesPage />} />
           <Route path="cron-jobs" element={<AdminCronJobsPage />} />
+          <Route path="analytics" element={<AdminAnalyticsPage />} />
           <Route path="*" element={<Navigate to="/admin" replace />} />
         </Routes>
       </main>

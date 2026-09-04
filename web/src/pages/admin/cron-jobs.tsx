@@ -19,6 +19,7 @@ const TYPE_LABEL: Record<AdminCronJobType, string> = {
   detect_duplicates: "重复检测",
   analyze_games: "AI 画像分析",
   relation_games: "相似游戏预计算",
+  compute_scores: "GameScore 计算",
 };
 
 const STATUS_LABEL: Record<string, string> = {

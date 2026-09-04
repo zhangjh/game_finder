@@ -1,3 +1,6 @@
+import { useEffect, useRef } from "react";
+
+import { trackEvent } from "../analytics/track";
 import { QUICK_CONDITIONS, type RecommendResponse } from "@game-finder/shared";
 
 import { GameCard } from "./game-card";
@@ -5,8 +8,22 @@ import { GameCard } from "./game-card";
 /**
  * AI Finder 推荐结果区（T5.5，PRD §23/§44）：
  * 3~5 款卡片 + 每款可解释理由 + 解析状态提示（降级引导）。
+ * M6：recommendation_impression + recommendation_click 埋点。
  */
 export function RecommendResults({ result }: { result: RecommendResponse }) {
+  const impressionSentRef = useRef(false);
+
+  // 推荐结果展示时发送 recommendation_impression（仅一次）
+  useEffect(() => {
+    if (result.items.length > 0 && !impressionSentRef.current) {
+      impressionSentRef.current = true;
+      trackEvent({
+        eventType: "recommendation_impression",
+        context: { requestId: result.requestId },
+      });
+    }
+  }, [result.requestId, result.items.length]);
+
   if (result.items.length === 0) {
     return (
       <div className="mt-8 rounded-xl border border-dashed border-border p-8 text-center text-muted">
@@ -52,7 +69,10 @@ export function RecommendResults({ result }: { result: RecommendResponse }) {
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {result.items.map((item, i) => (
           <div key={item.game.id} className="flex flex-col gap-2">
-            <GameCard game={item.game} />
+            <GameCard
+              game={item.game}
+              context={{ requestId: result.requestId, rank: i + 1 }}
+            />
             <p className="rounded-lg bg-primary/5 px-3 py-2 text-xs leading-relaxed text-muted">
               <span className="mr-1 font-semibold text-primary">#{i + 1}</span>
               {item.reason}

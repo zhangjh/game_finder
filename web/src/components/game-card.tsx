@@ -1,5 +1,7 @@
+import { useEffect, useRef } from "react";
 import { Link } from "react-router";
 
+import { trackEvent } from "../analytics/track";
 import {
   parseJsonArray,
   ratingLabel,
@@ -7,14 +9,69 @@ import {
   type GameListItem,
 } from "@game-finder/shared";
 
-/** 游戏卡片（PRD §23）：全站复用原子组件 */
-export function GameCard({ game }: { game: GameListItem }) {
+/**
+ * 游戏卡片（PRD §23）：全站复用原子组件。
+ * M6：IntersectionObserver 驱动 game_impression；click 上报 game_click。
+ */
+export function GameCard({
+  game,
+  context,
+}: {
+  game: GameListItem;
+  /** 可选推荐上下文（recommendation_impression / click 时传入） */
+  context?: { requestId?: number; rank?: number };
+}) {
   const tags = parseJsonArray(game.tags);
   const score = game.totalScore;
+  const cardRef = useRef<HTMLAnchorElement>(null);
+
+  // 用 ref 保存 context，避免父组件每次 render 传入新对象导致 observer 反复重建、
+  // 从而重复触发 impression。
+  const contextRef = useRef(context);
+  useEffect(() => {
+    contextRef.current = context;
+  }, [context]);
+
+  // IntersectionObserver：卡片进入视口 50% 持续 1s → game_impression
+  useEffect(() => {
+    const el = cardRef.current;
+    if (!el) return;
+
+    let timer: ReturnType<typeof setTimeout> | null = null;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          timer = setTimeout(() => {
+            trackEvent({
+              eventType: "game_impression",
+              gameId: game.id,
+              context: contextRef.current,
+            });
+          }, 1000);
+        } else if (timer) {
+          clearTimeout(timer);
+          timer = null;
+        }
+      },
+      { threshold: 0.5 },
+    );
+    observer.observe(el);
+
+    return () => {
+      observer.disconnect();
+      if (timer) clearTimeout(timer);
+    };
+  }, [game.id]);
+
+  const handleClick = () => {
+    trackEvent({ eventType: "game_click", gameId: game.id, context });
+  };
 
   return (
     <Link
+      ref={cardRef}
       to={`/game/${game.slug}`}
+      onClick={handleClick}
       className="group flex flex-col overflow-hidden rounded-xl border border-border bg-surface transition-all hover:-translate-y-0.5 hover:shadow-lg"
     >
       <div className="relative aspect-[16/10] overflow-hidden bg-background">

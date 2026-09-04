@@ -2,6 +2,7 @@ import express from "express";
 
 import { corsApi } from "./middleware/cors";
 import { adminRouter } from "./routes/admin";
+import { eventsRouter } from "./routes/events";
 import { gameBySlugRouter } from "./routes/gameBySlug";
 import { gameSimilarRouter } from "./routes/gameSimilar";
 import { gamesRouter } from "./routes/games";
@@ -24,6 +25,7 @@ export function createApp() {
   api.use("/games", gameBySlugRouter);
   api.use("/games", gameSimilarRouter);
   api.use("/recommend", recommendRouter);
+  api.use("/events", eventsRouter);
   // 管理后台 API（ADMIN_PASSWORD cookie 会话，见 routes/admin.ts）
   api.use("/admin", adminRouter);
   app.use("/api", api);

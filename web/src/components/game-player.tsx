@@ -1,14 +1,18 @@
 import { useEffect, useRef, useState } from "react";
 
+import { trackEvent } from "../analytics/track";
+
 /**
  * 游戏启动区（PRD §31）：点击后加载 iframe，含失败重试态。
- * M6 将在此挂 behavior 埋点（start / 30s / 2min / 5min / exit）。
+ * M6：挂 behavior 埋点（start / 30s / 2min / 5min / exit）。
  */
 export function GamePlayer({
+  gameId,
   gameUrl,
   title,
   portrait,
 }: {
+  gameId: number;
   gameUrl: string;
   title: string;
   portrait: boolean;
@@ -17,15 +21,58 @@ export function GamePlayer({
   const [failed, setFailed] = useState(false);
   const iframeRef = useRef<HTMLIFrameElement>(null);
 
+  // 会话计时器引用
+  const startRef = useRef<number>(0);
+  const timersRef = useRef<ReturnType<typeof setTimeout>[]>([]);
+  // 本次页面已开始的会话数（>1 视为重玩）
+  const sessionCountRef = useRef(0);
+
+  const clearTimers = () => {
+    for (const t of timersRef.current) clearTimeout(t);
+    timersRef.current = [];
+  };
+
   const start = () => {
     setFailed(false);
     setPlaying(true);
+    startRef.current = Date.now();
+    sessionCountRef.current += 1;
+
+    // 再次开始（同一页面已玩过）→ 同时上报 replay
+    trackEvent({ eventType: "game_start", gameId });
+    if (sessionCountRef.current > 1) {
+      trackEvent({ eventType: "game_replay", gameId });
+    }
+
+    // 30s / 2min / 5min 里程碑事件
+    timersRef.current = [
+      setTimeout(() => trackEvent({ eventType: "game_30s", gameId }), 30_000),
+      setTimeout(() => trackEvent({ eventType: "game_2min", gameId }), 120_000),
+      setTimeout(() => trackEvent({ eventType: "game_5min", gameId }), 300_000),
+    ];
   };
+
+  // 退出时上报 game_exit（含会话时长）
+  useEffect(() => {
+    if (!playing) return;
+
+    const handleExit = () => {
+      clearTimers();
+      const sessionSeconds = (Date.now() - startRef.current) / 1000;
+      trackEvent({ eventType: "game_exit", gameId, sessionSeconds });
+    };
+
+    // 页面离开兜底
+    window.addEventListener("beforeunload", handleExit);
+    return () => {
+      window.removeEventListener("beforeunload", handleExit);
+      handleExit();
+    };
+  }, [playing, gameId]);
 
   useEffect(() => {
     if (!playing) return;
     const t = setTimeout(() => {
-      // 真实源上线后的加载超时兜底（M3 接真源后校准）
       if (iframeRef.current && !iframeRef.current.contentWindow) {
         setFailed(true);
         setPlaying(false);

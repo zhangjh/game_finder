@@ -357,17 +357,17 @@ T2.4 的 AI 管理页接入真实数据：查看画像、人工修正、单游�
 - [x] T4.3 Quality Gate（随 analyze job 实现：必填字段 + 值域 + 缩略图 → published，否则 pending；实测通过）
 - [x] T4.4 相似游戏预计算（lib/ai/relations-job.ts：Genre/难度/Pace/认知/时长结构化加权 Top-K → game_relations；实测写入 72 条）
 - [x] T4.5 后台 AI 管理接线（admin API：PUT /games/:id/profile 人工修正、POST /reanalyze 重分析、POST /reembed 重建向量；scheduler 新增 analyze_games/relation_games 定时任务；embedding 随 analyze 即时生成）
-- [ ] T5.1 Intent Parser
-- [ ] T5.2 五路候选召回
-- [ ] T5.3 Hard Filter + Hybrid Ranking
-- [ ] T5.4 推荐理由生成
-- [ ] T5.5 推荐 API + 首页 AI Finder UI
-- [ ] T5.6 AI 搜索接入
-- [ ] T5.7 E2E Case 1~3 自动化测试
-- [ ] T6.1 匿名用户 ID
-- [ ] T6.2 全量前端埋点
-- [ ] T6.3 GameScore v0 计算 job
-- [ ] T6.4 指标看板
+- [x] T5.1 Intent Parser
+- [x] T5.2 五路候选召回
+- [x] T5.3 Hard Filter + Hybrid Ranking
+- [x] T5.4 推荐理由生成
+- [x] T5.5 推荐 API + 首页 AI Finder UI
+- [x] T5.6 AI 搜索接入
+- [x] T5.7 E2E Case 1~3 自动化测试
+- [x] T6.1 匿名用户 ID
+- [x] T6.2 全量前端埋点
+- [x] T6.3 GameScore v0 计算 job
+- [x] T6.4 指标看板
 - [ ] T7.1 Metadata / Sitemap / Robots / JSON-LD
 - [ ] T7.2 SEO Landing Pages（8 个）
 - [ ] T7.3 Docker 部署

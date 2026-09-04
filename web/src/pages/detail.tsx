@@ -101,6 +101,7 @@ export function DetailPage() {
 
       <div className="mt-4">
         <GamePlayer
+          gameId={game.id}
           gameUrl={game.gameUrl}
           title={game.title}
           portrait={game.portrait}

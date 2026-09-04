@@ -22,7 +22,8 @@ export type CronJobType =
   | "health_check"
   | "detect_duplicates"
   | "analyze_games"
-  | "relation_games";
+  | "relation_games"
+  | "compute_scores";
 
 export interface CronJobUpdate {
   name?: string;

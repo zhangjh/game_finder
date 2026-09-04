@@ -192,7 +192,8 @@ export type AdminCronJobType =
   | "health_check"
   | "detect_duplicates"
   | "analyze_games"
-  | "relation_games";
+  | "relation_games"
+  | "compute_scores";
 export type AdminCronJobStatus = "enabled" | "disabled";
 
 export interface AdminCronJob {
@@ -285,4 +286,57 @@ export function fetchAdminCronJobRuns(
 
 export function deleteAdminCronJob(id: number): Promise<{ ok: boolean }> {
   return adminFetch(`/cron-jobs/${id}`, { method: "DELETE" });
+}
+
+// ===== 数据看板（T6.4）=====
+
+export interface AdminAnalyticsEvent {
+  eventType: string;
+  count: number;
+}
+
+export interface AdminAnalyticsTopGame {
+  id: number;
+  title: string;
+  slug: string;
+  thumbnail: string | null;
+  totalScore: number | null;
+  playCount: number;
+  startCount: number;
+  avgSessionSec: number | null;
+}
+
+export interface AdminAnalyticsTopQuery {
+  rawInput: string;
+  count: number;
+  avgResultCount: number;
+}
+
+export interface AdminAnalyticsDailyActivity {
+  date: string;
+  events: number;
+  starts: number;
+  uniqueUsers: number;
+}
+
+export interface AdminAnalytics {
+  overview: {
+    totalEvents: number;
+    uniqueUsers: number;
+    totalStarts: number;
+    totalRecommendations: number;
+    recommendationSuccesses: number;
+    successRate: number;
+    recommendCTR: number;
+    launchRate: number;
+    replayRate: number;
+  };
+  eventBreakdown: AdminAnalyticsEvent[];
+  topGames: AdminAnalyticsTopGame[];
+  topQueries: AdminAnalyticsTopQuery[];
+  dailyActivity: AdminAnalyticsDailyActivity[];
+}
+
+export function fetchAdminAnalytics(): Promise<AdminAnalytics> {
+  return adminFetch("/analytics");
 }

@@ -14,6 +14,7 @@ import { db } from "@/lib/db";
 import { cronJobRuns, cronJobs } from "@/lib/db/schema";
 import { runAnalyzeGames } from "@/lib/ai/job";
 import { runRelationJob } from "@/lib/ai/relations-job";
+import { computeScores } from "@/lib/analytics/compute-scores";
 import { allAdapters, getAdapter, syncSource } from "@/lib/games/collectors";
 import { detectDuplicates } from "@/lib/games/duplicates";
 import { runHealthCheck } from "@/lib/games/health-check";
@@ -162,6 +163,15 @@ const RUNNERS: Record<string, JobRunner> = {
     );
     return stats as unknown as Record<string, unknown>;
   },
+  compute_scores: async () => {
+    console.log(`[scheduler] compute-scores: start`);
+    const stats = await computeScores();
+    if (stats.error) throw new Error(stats.error);
+    console.log(
+      `[scheduler] compute-scores done: 计算=${stats.computed} 跳过=${stats.skipped}`,
+    );
+    return stats as unknown as Record<string, unknown>;
+  },
 };
 
 const DEFAULT_PARAMS: Record<string, Record<string, unknown>> = {
@@ -178,7 +188,8 @@ export const DEFAULT_JOBS: {
     | "health_check"
     | "detect_duplicates"
     | "analyze_games"
-    | "relation_games";
+    | "relation_games"
+    | "compute_scores";
   name: string;
   description: string;
   schedule: string;
@@ -221,6 +232,13 @@ export const DEFAULT_JOBS: {
     name: "相似游戏预计算",
     description: "重建已发布游戏 Top-K 相似关系 game_relations（每日 06:00）",
     schedule: "0 6 * * *",
+    params: {},
+  },
+  {
+    type: "compute_scores",
+    name: "GameScore 计算",
+    description: "按权重 30/20/20/15/10/5 计算已发布游戏总分 game_scores（每日 02:00）",
+    schedule: "0 2 * * *",
     params: {},
   },
 ];
