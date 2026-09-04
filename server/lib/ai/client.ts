@@ -29,3 +29,14 @@ export function getModelId(): string {
   if (!model) throw new Error("Missing MODEL_ID in environment variables");
   return model;
 }
+
+/**
+ * 通义千问思考模型「关闭思考」参数（spread 进请求体）。
+ * reasoning token 按输出计费（单价更高），元数据提取/意图解析类任务
+ * 关闭思考可省约 40% 成本。仅通义（dashscope）网关需要；其他 OpenAI
+ * 兼容网关可能拒绝未知参数，故按 base URL 判断是否附加。
+ */
+export function noThinkingParams(): Record<string, unknown> {
+  const base = process.env.AI_BASE_URL ?? "";
+  return base.includes("dashscope") ? { enable_thinking: false } : {};
+}

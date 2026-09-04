@@ -1,4 +1,4 @@
-import { getAIClient, getModelId } from "./client";
+import { getAIClient, getModelId, noThinkingParams } from "./client";
 import { gameProfileSchema, type GameProfile } from "./schemas";
 
 /**
@@ -161,6 +161,7 @@ export async function analyzeGame(game: GameRawData): Promise<AnalyzeResult> {
         temperature: 0.3,
         max_tokens: 4000,
         response_format: { type: "json_object" },
+        ...noThinkingParams(),
       });
 
       const content = response.choices[0]?.message?.content;
@@ -241,6 +242,7 @@ export async function analyzeGamesBatch(
       temperature: 0.3,
       max_tokens: 16000,
       response_format: { type: "json_object" },
+      ...noThinkingParams(),
     });
 
     const content = response.choices[0]?.message?.content;

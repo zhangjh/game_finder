@@ -240,7 +240,10 @@ export async function syncSource(
             landscape: rec.landscape,
             mobile: rec.mobile,
             desktop: rec.desktop,
-            ...(needsReanalysis ? { needsReanalysis: true } : {}),
+            // 源数据已变化（如补上了缩略图），给足重新分析的机会：重置失败计数
+            ...(needsReanalysis
+              ? { needsReanalysis: true, analysisFailCount: 0 }
+              : {}),
             updatedAt: new Date(),
           })
           .where(eq(games.id, prev.id));

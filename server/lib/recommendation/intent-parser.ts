@@ -12,7 +12,7 @@ import { and, desc, eq, ilike, or, sql } from "drizzle-orm";
 
 import { db } from "@/lib/db";
 import { games } from "@/lib/db/schema";
-import { getAIClient, getModelId } from "@/lib/ai/client";
+import { getAIClient, getModelId, noThinkingParams } from "@/lib/ai/client";
 import { isQuotaError } from "@/lib/ai/analyze-game";
 import { GENRE_WHITELIST, MOOD_WHITELIST } from "@/lib/ai/analyze-game";
 import { QUICK_CONDITIONS, type GameIntent } from "@game-finder/shared";
@@ -213,6 +213,7 @@ export async function parseIntent(input: string): Promise<ParsedIntent> {
         temperature: 0.1,
         max_tokens: 2000,
         response_format: { type: "json_object" },
+        ...noThinkingParams(),
       });
 
       const content = response.choices[0]?.message?.content;

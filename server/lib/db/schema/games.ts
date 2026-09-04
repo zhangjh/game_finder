@@ -125,6 +125,12 @@ export const games = pgTable(
      * 已发布(published)的游戏源更新后置 true，M4 分析 job 消费后复位。
      */
     needsReanalysis: boolean("needs_reanalysis").notNull().default(false),
+    /**
+     * AI 分析连续失败次数（LLM 失败或质检不过）。
+     * 达到 ANALYZE_MAX_FAILS 后退出分析候选池，防止不可修复的游戏
+     * （如缩略图缺失的质检失败）被每轮任务无限重分析烧 token。
+     */
+    analysisFailCount: smallint("analysis_fail_count").notNull().default(0),
     /** 简单流行度计数：M6 前用启动次数近似，GameScore 接管后弱化 */
     playCount: integer("play_count").notNull().default(0),
 

@@ -9,7 +9,7 @@
  *
  * 费用：仅分析新增(draft)/变更(published+needsReanalysis)游戏，成本可控。
  */
-import { and, asc, eq, gt, inArray, or } from "drizzle-orm";
+import { and, asc, eq, gt, inArray, lt, or } from "drizzle-orm";
 
 import { db } from "@/lib/db";
 import { gameEmbeddings, games } from "@/lib/db/schema";
@@ -97,6 +97,10 @@ function passesQualityGate(
  *  20 会让单次响应体过大导致 SDK fetch 超时，从而整批回退单条造成雪崩；调小到 5 更稳。 */
 const ANALYZE_BATCH_SIZE = 5;
 
+/** 单款游戏分析失败重试上限：达到后退出候选池不再消耗 token。
+ *  不可修复的失败（如缩略图缺失导致质检不过）重试无意义，只会在每轮任务里无限烧钱。 */
+const ANALYZE_MAX_FAILS = 3;
+
 /** DB 行 → analyze 输入结构 */
 function toRawData(game: typeof games.$inferSelect): GameRawData {
   return {
@@ -128,12 +132,17 @@ async function applyGameProfile(
 
   if (!passesQualityGate(profile, game.thumbnail)) {
     stats.pending++;
+    // 质检不过（多为源数据缺陷如缩略图缺失）计入失败次数，达到上限退出候选池
     await db
       .update(games)
-      .set({ ...patch, status: "pending" })
+      .set({
+        ...patch,
+        status: "pending",
+        analysisFailCount: game.analysisFailCount + 1,
+      })
       .where(eq(games.id, game.id));
     console.warn(
-      `[analyze-games] #${game.id} "${game.titleOriginal}" 质检不过 → pending`,
+      `[analyze-games] #${game.id} "${game.titleOriginal}" 质检不过 → pending (${game.analysisFailCount + 1}/${ANALYZE_MAX_FAILS})`,
     );
     return null;
   }
@@ -141,7 +150,12 @@ async function applyGameProfile(
   stats.published++;
   await db
     .update(games)
-    .set({ ...patch, status: "published", publishedAt: new Date() })
+    .set({
+      ...patch,
+      status: "published",
+      publishedAt: new Date(),
+      analysisFailCount: 0,
+    })
     .where(eq(games.id, game.id));
   console.log(
     `[analyze-games] #${game.id} "${profile.titleZh}" 已发布 (${profile.genre}, 难度${profile.difficulty})`,
@@ -167,7 +181,7 @@ async function applyGameProfile(
   return { gameId: game.id, title: profile.titleZh, source };
 }
 
-// 单游戏分析失败：标记 pending 待重试
+// 单游戏分析失败：标记 pending 计入失败次数；达到上限不再进入候选池
 async function markFailed(
   game: typeof games.$inferSelect,
   stats: AnalyzeStats,
@@ -176,10 +190,14 @@ async function markFailed(
   stats.failed++;
   await db
     .update(games)
-    .set({ status: "pending", updatedAt: new Date() })
+    .set({
+      status: "pending",
+      analysisFailCount: game.analysisFailCount + 1,
+      updatedAt: new Date(),
+    })
     .where(eq(games.id, game.id));
   console.warn(
-    `[analyze-games] #${game.id} "${game.titleOriginal}" 分析失败: ${reason ?? "unknown"}`,
+    `[analyze-games] #${game.id} "${game.titleOriginal}" 分析失败 (${game.analysisFailCount + 1}/${ANALYZE_MAX_FAILS}): ${reason ?? "unknown"}`,
   );
 }
 
@@ -282,14 +300,19 @@ export async function runAnalyzeGames(limit = 200): Promise<AnalyzeStats> {
   };
 
   // 候选查询。limit>0：一次取 limit 条；limit=0（全量模式）以 id 游标翻页拉完所有候选。
-  const baseCond = or(
-    and(
-      inArray(games.status, ["draft", "pending"]),
-      eq(games.needsReanalysis, false),
-    ),
-    and(
-      eq(games.status, "published"),
-      eq(games.needsReanalysis, true),
+  // 排除失败达到上限的游戏（analysisFailCount >= ANALYZE_MAX_FAILS），
+  // 防止不可修复的游戏每轮被重复分析无限消耗 token。
+  const baseCond = and(
+    lt(games.analysisFailCount, ANALYZE_MAX_FAILS),
+    or(
+      and(
+        inArray(games.status, ["draft", "pending"]),
+        eq(games.needsReanalysis, false),
+      ),
+      and(
+        eq(games.status, "published"),
+        eq(games.needsReanalysis, true),
+      ),
     ),
   );
   const fetchCandidates = (limitN: number, afterId?: number) =>

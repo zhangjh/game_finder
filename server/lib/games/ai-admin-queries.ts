@@ -138,6 +138,7 @@ export async function adminReanalyzeGame(id: number) {
       status: "published",
       publishedAt: new Date(),
       needsReanalysis: false,
+      analysisFailCount: 0,
       updatedAt: new Date(),
     })
     .where(eq(games.id, id));
