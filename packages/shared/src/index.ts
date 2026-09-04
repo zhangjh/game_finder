@@ -112,3 +112,6 @@ export function parseJsonArray(raw: string): string[] {
     return [];
   }
 }
+
+/** AI Game Finder 推荐契约（M5） */
+export * from "./recommendation";

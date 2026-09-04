@@ -13,6 +13,7 @@
     "db:migrate": "drizzle-kit migrate && node --import tsx scripts/apply-manual-sql.mjs",
     "db:seed": "node --import tsx scripts/seed.mjs",
     "import:gamepix": "node scripts/import-gamepix.mjs",
+    "test:e2e": "node scripts/test-recommend-e2e.mjs",
     "db:studio": "drizzle-kit studio"
   },
   "dependencies": {

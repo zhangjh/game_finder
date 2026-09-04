@@ -42,7 +42,7 @@ export function throwOnQuota(err: unknown): void {
  * 竞速187 放置181 跑酷162 技巧159 策略157 女生134 模拟133 僵尸115 格斗102
  * 纸牌59 IO对战44 战争21 模拟经营20 塔防1 对战1 Roguelike1；无 genre 4635。
  */
-const GENRE_WHITELIST = [
+export const GENRE_WHITELIST = [
   "街机", "解谜", "休闲", "超休闲", "冒险", "动作", "射击", "平台跳跃",
   "体育", "三消", "益智", "棋盘", "记忆", "双人", "换装", "竞速",
   "放置", "跑酷", "技巧", "策略", "女生", "模拟", "模拟经营", "僵尸",
@@ -69,7 +69,7 @@ const GENRE_MAP: Record<string, string> = {
 };
 
 /** mood 英文白名单 */
-const MOOD_WHITELIST = ["casual", "relaxing", "focus", "brain_burn", "exciting", "competitive", "nostalgic", "chill"];
+export const MOOD_WHITELIST = ["casual", "relaxing", "focus", "brain_burn", "exciting", "competitive", "nostalgic", "chill"];
 const MOOD_MAP: Record<string, string> = {
   "轻松": "relaxing", "放松": "relaxing", "休闲": "casual", "益智": "focus",
   "烧脑": "brain_burn", "刺激": "exciting", "紧张": "exciting", "竞技": "competitive",

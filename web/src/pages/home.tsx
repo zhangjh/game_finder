@@ -1,17 +1,19 @@
 import { useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router";
+import { Link } from "react-router";
 
-import { fetchGames } from "../api";
+import { fetchGames, fetchRecommendation } from "../api";
 import { GameCard } from "../components/game-card";
-import type { GameListItem } from "@game-finder/shared";
+import { RecommendResults } from "../components/recommend-results";
+import type { GameListItem, RecommendResponse } from "@game-finder/shared";
 
+/** 快捷 chips（PRD §20.1）：预定义 intent 走 API，不走 LLM */
 const QUICK_FILTERS = [
-  { icon: "⚡", label: "5分钟", href: "/games?duration=5" },
-  { icon: "😌", label: "放松", href: "/games?mood=relaxing" },
-  { icon: "🧠", label: "烧脑", href: "/games?mood=brain_burn" },
-  { icon: "👥", label: "双人", href: "/games?players=2" },
-  { icon: "📱", label: "手机", href: "/games?platform=mobile" },
-  { icon: "🎲", label: "随便来一个", href: "/games?sort=random" },
+  { id: "5min", icon: "⚡", label: "5分钟" },
+  { id: "relax", icon: "😌", label: "放松" },
+  { id: "brain", icon: "🧠", label: "烧脑" },
+  { id: "2p", icon: "👥", label: "双人" },
+  { id: "mobile", icon: "📱", label: "手机" },
+  { id: "random", icon: "🎲", label: "随便来一个" },
 ];
 
 const CATEGORIES = [
@@ -23,11 +25,16 @@ const CATEGORIES = [
 ];
 
 export function HomePage() {
-  const navigate = useNavigate();
   const [today, setToday] = useState<GameListItem[]>([]);
   const [hot, setHot] = useState<GameListItem[]>([]);
   const [newest, setNewest] = useState<GameListItem[]>([]);
   const [error, setError] = useState<string | null>(null);
+
+  /* ===== AI Finder 状态（M5，PRD §20）===== */
+  const [query, setQuery] = useState("");
+  const [recommending, setRecommending] = useState(false);
+  const [recommendError, setRecommendError] = useState<string | null>(null);
+  const [result, setResult] = useState<RecommendResponse | null>(null);
 
   useEffect(() => {
     Promise.all([
@@ -45,9 +52,31 @@ export function HomePage() {
       );
   }, []);
 
+  /** 统一推荐入口：自然语言 / 快捷条件 */
+  async function runRecommend(body: { input?: string; quick?: string }) {
+    setRecommending(true);
+    setRecommendError(null);
+    // 已有结果时清掉旧结果，避免闪烁错位
+    setResult(null);
+    try {
+      const res = await fetchRecommendation(body);
+      setResult(res);
+      // 滚动到结果区
+      requestAnimationFrame(() => {
+        document
+          .getElementById("finder-result")
+          ?.scrollIntoView({ behavior: "smooth", block: "start" });
+      });
+    } catch (e: unknown) {
+      setRecommendError(e instanceof Error ? e.message : "推荐失败");
+    } finally {
+      setRecommending(false);
+    }
+  }
+
   return (
     <div className="mx-auto max-w-6xl px-4 py-6">
-      {/* ===== AI Game Finder（首页第一核心，PRD §32）===== */}
+      {/* ===== AI Game Finder（首页第一核心，PRD §20/§32）===== */}
       <section className="rounded-2xl bg-gradient-to-br from-primary/15 via-surface to-surface p-6 sm:p-10">
         <h1 className="text-center text-2xl font-bold sm:text-3xl">
           今天想玩什么？
@@ -56,43 +85,59 @@ export function HomePage() {
           告诉我你的时间和状态，AI 帮你从海量网页游戏里找到最合适的。
         </p>
 
-        {/* M5 上线前的占位表单：提交后跳转列表页 */}
         <form
           className="mx-auto mt-6 flex max-w-2xl flex-col gap-3 sm:flex-row"
           onSubmit={(e) => {
             e.preventDefault();
-            const q = new FormData(e.currentTarget).get("q");
-            if (typeof q === "string" && q.trim()) {
-              navigate(`/search?q=${encodeURIComponent(q.trim())}`);
-            }
+            const q = query.trim();
+            if (q) void runRecommend({ input: q });
           }}
         >
           <input
-            name="q"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
             type="search"
             placeholder="我只有10分钟，想玩轻松一点的"
             className="flex-1 rounded-full border border-border bg-surface px-5 py-3 text-sm outline-none transition-colors focus:border-primary"
           />
           <button
             type="submit"
-            className="rounded-full bg-primary px-6 py-3 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90"
+            disabled={recommending || !query.trim()}
+            className="rounded-full bg-primary px-6 py-3 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
           >
-            帮我找游戏
+            {recommending ? "AI 挑选中…" : "帮我找游戏"}
           </button>
         </form>
 
         <ul className="mt-4 flex flex-wrap justify-center gap-2">
           {QUICK_FILTERS.map((f) => (
-            <li key={f.label}>
-              <Link
-                to={f.href}
-                className="rounded-full border border-border bg-surface px-4 py-1.5 text-sm transition-colors hover:border-primary hover:text-primary"
+            <li key={f.id}>
+              <button
+                type="button"
+                disabled={recommending}
+                onClick={() => void runRecommend({ quick: f.id })}
+                className="rounded-full border border-border bg-surface px-4 py-1.5 text-sm transition-colors hover:border-primary hover:text-primary disabled:opacity-50"
               >
                 {f.icon} {f.label}
-              </Link>
+              </button>
             </li>
           ))}
         </ul>
+
+        {/* 推荐结果 / 加载 / 错误 */}
+        <div id="finder-result">
+          {recommending && (
+            <div className="mt-8 animate-pulse rounded-xl border border-dashed border-border p-8 text-center text-muted">
+              正在理解你的需求并挑选游戏…
+            </div>
+          )}
+          {recommendError && (
+            <div className="mt-8 rounded-xl border border-dashed border-red-300 p-6 text-center text-sm text-red-500">
+              {recommendError}，请稍后再试
+            </div>
+          )}
+          {result && !recommending && <RecommendResults result={result} />}
+        </div>
       </section>
 
       {error ? (

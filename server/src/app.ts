@@ -6,6 +6,7 @@ import { gameBySlugRouter } from "./routes/gameBySlug";
 import { gameSimilarRouter } from "./routes/gameSimilar";
 import { gamesRouter } from "./routes/games";
 import { healthRouter } from "./routes/health";
+import { recommendRouter } from "./routes/recommend";
 
 export function createApp() {
   const app = express();
@@ -22,6 +23,7 @@ export function createApp() {
   api.use("/games", gamesRouter);
   api.use("/games", gameBySlugRouter);
   api.use("/games", gameSimilarRouter);
+  api.use("/recommend", recommendRouter);
   // 管理后台 API（ADMIN_PASSWORD cookie 会话，见 routes/admin.ts）
   api.use("/admin", adminRouter);
   app.use("/api", api);

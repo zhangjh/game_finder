@@ -8,6 +8,8 @@ import type {
   GameDetail,
   GameListItem,
   GameListResponse,
+  RecommendRequestBody,
+  RecommendResponse,
 } from "@game-finder/shared";
 
 const BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:3000";
@@ -57,4 +59,22 @@ export async function fetchSimilarGames(
   if (!res.ok) throw new Error(`API error: ${res.status}`);
   const data = (await res.json()) as { items: GameListItem[] };
   return data.items;
+}
+
+/** AI Game Finder 推荐（自然语言 / 快捷条件） */
+export async function fetchRecommendation(
+  body: RecommendRequestBody,
+): Promise<RecommendResponse> {
+  const res = await fetch(`${BASE_URL}/api/recommend`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+  if (!res.ok) {
+    const data = (await res.json().catch(() => null)) as {
+      message?: string;
+    } | null;
+    throw new Error(data?.message ?? `API error: ${res.status}`);
+  }
+  return res.json();
 }
