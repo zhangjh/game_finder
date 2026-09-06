@@ -21,6 +21,11 @@ export function GamePlayer({
   const [failed, setFailed] = useState(false);
   const iframeRef = useRef<HTMLIFrameElement>(null);
 
+  // 移动端若沿用 16:9 会让 iframe 高度过矮：游戏源（GamePix）的
+  // 开始按钮被压缩到点不动、Cookie 提示条直接盖在按钮上（实测）。
+  // 按游戏方向给更高的比例，sm 及以上维持 16:9。
+  const frameAspect = portrait ? "aspect-[9/16] sm:aspect-video" : "aspect-[4/3] sm:aspect-video";
+
   // 会话计时器引用
   const startRef = useRef<number>(0);
   const timersRef = useRef<ReturnType<typeof setTimeout>[]>([]);
@@ -83,7 +88,7 @@ export function GamePlayer({
 
   if (!playing && !failed) {
     return (
-      <div className="flex aspect-video w-full flex-col items-center justify-center gap-4 rounded-xl border border-border bg-surface">
+      <div className={`flex ${frameAspect} w-full flex-col items-center justify-center gap-4 rounded-xl border border-border bg-surface`}>
         <p className="text-sm text-muted">
           {portrait ? "建议竖屏体验" : "建议横屏 / 桌面体验"}
         </p>
@@ -100,7 +105,7 @@ export function GamePlayer({
 
   if (failed) {
     return (
-      <div className="flex aspect-video w-full flex-col items-center justify-center gap-3 rounded-xl border border-border bg-surface text-center">
+      <div className={`flex ${frameAspect} w-full flex-col items-center justify-center gap-3 rounded-xl border border-border bg-surface text-center`}>
         <p className="font-medium">游戏加载失败</p>
         <p className="text-sm text-muted">可能是网络波动或游戏源暂时不可用</p>
         <button
@@ -115,7 +120,7 @@ export function GamePlayer({
   }
 
   return (
-    <div className="relative aspect-video w-full overflow-hidden rounded-xl border border-border bg-black">
+    <div className={`relative ${frameAspect} w-full overflow-hidden rounded-xl border border-border bg-black`}>
       <iframe
         ref={iframeRef}
         src={gameUrl}
