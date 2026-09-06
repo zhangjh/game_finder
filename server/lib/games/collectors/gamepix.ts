@@ -118,9 +118,10 @@ function normalizeItem(raw: RawGamePixItem): NormalizedGameRecord | null {
     sourceUpdatedAt: asDate(raw.date_modified),
     portrait: orientation !== "landscape",
     landscape: orientation !== "portrait",
-    // GamePix 全部是 HTML5 网页游戏：浏览器即玩，桌面/移动端均可打开
-    mobile: true,
-    desktop: true,
+    // GamePix 全是 HTML5 网页游戏，浏览器即玩；设备筛选单靠"能否运行"无法区分，
+    // 用源站横竖屏标识推断推荐设备：竖屏(portrait)→手机、横屏(landscape)→电脑、all→双端皆宜
+    mobile: orientation !== "landscape",
+    desktop: orientation !== "portrait",
   };
 }
 

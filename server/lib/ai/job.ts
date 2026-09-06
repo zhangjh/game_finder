@@ -65,8 +65,6 @@ export function profileToUpdate(
     maxPlayers: profile.maxPlayers,
     coop: profile.coop,
     competitive: profile.competitive,
-    desktop: profile.desktop,
-    mobile: profile.mobile,
     tablet: profile.tablet,
     inputMethods: JSON.stringify(profile.inputMethods),
     mood: JSON.stringify(profile.mood),
