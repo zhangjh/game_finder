@@ -21,6 +21,17 @@ function setCookie(name: string, value: string, days: number): void {
   document.cookie = `${name}=${encodeURIComponent(value)}; expires=${expires}; path=/; SameSite=Lax`;
 }
 
+function createUuid(): string {
+  return typeof crypto !== "undefined" && typeof crypto.randomUUID === "function"
+    ? crypto.randomUUID()
+    : // 降级：Math.random 拼接（非加密安全，仅做匿名统计/存档标识）
+      `xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx`.replace(/[xy]/g, (c) => {
+        const r = (Math.random() * 16) | 0;
+        const v = c === "x" ? r : (r & 0x3) | 0x8;
+        return v.toString(16);
+      });
+}
+
 /**
  * 获取或创建匿名用户 ID。
  * 首次访问生成 crypto.randomUUID() 并写入 Cookie；
@@ -29,17 +40,21 @@ function setCookie(name: string, value: string, days: number): void {
 export function getUserId(): string {
   const existing = parseCookie(COOKIE_NAME);
   if (existing) return existing;
-
-  const id =
-    typeof crypto !== "undefined" && typeof crypto.randomUUID === "function"
-      ? crypto.randomUUID()
-      : // 降级：Math.random 拼接（非加密安全，仅做匿名统计）
-        `xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx`.replace(/[xy]/g, (c) => {
-          const r = (Math.random() * 16) | 0;
-          const v = c === "x" ? r : (r & 0x3) | 0x8;
-          return v.toString(16);
-        });
-
+  const id = createUuid();
   setCookie(COOKIE_NAME, id, COOKIE_DAYS);
   return id;
+}
+
+/**
+ * 仅当 `_gf_uid` Cookie 能持久化时返回其值，否则返回 null
+ * （浏览器禁用 Cookie / 无存储时的续玩降级探测）。
+ * 与 getUserId 不同：不会每次调用都生成新的 UUID。
+ */
+export function getPersistedUserId(): string | null {
+  const existing = parseCookie(COOKIE_NAME);
+  if (existing) return existing;
+  const id = createUuid();
+  setCookie(COOKIE_NAME, id, COOKIE_DAYS);
+  const persisted = parseCookie(COOKIE_NAME);
+  return persisted === id ? id : null;
 }

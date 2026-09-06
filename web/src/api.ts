@@ -8,9 +8,13 @@ import type {
   GameDetail,
   GameListItem,
   GameListResponse,
+  GameSavePutResponse,
+  GameSaveResponse,
   RecommendRequestBody,
   RecommendResponse,
 } from "@game-finder/shared";
+
+import { getPersistedUserId } from "./analytics/user-id";
 
 const BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:3000";
 
@@ -76,5 +80,83 @@ export async function fetchRecommendation(
     } | null;
     throw new Error(data?.message ?? `API error: ${res.status}`);
   }
+  return res.json();
+}
+
+/* ===== 游戏续玩存档（M6.5）===== */
+
+/** 是否为 GamePix 嵌入地址（externalSave 仅对该源生效） */
+export function isGamePixEmbed(url: string): boolean {
+  try {
+    const h = new URL(url).hostname;
+    return h === "gamepix.com" || h.endsWith(".gamepix.com");
+  } catch {
+    return false;
+  }
+}
+
+/** 在 GamePix embed URL 上追加 externalSave=true（幂等） */
+export function withExternalSave(url: string): string {
+  try {
+    const u = new URL(url);
+    if (
+      (u.hostname === "gamepix.com" || u.hostname.endsWith(".gamepix.com")) &&
+      u.searchParams.get("externalSave") !== "true"
+    ) {
+      u.searchParams.set("externalSave", "true");
+      return u.toString();
+    }
+  } catch {
+    /* 非法 URL 原样返回 */
+  }
+  return url;
+}
+
+/** 匿名 uid；Cookie 不可用（无存储/禁 cookie）时返回 null */
+export function getSaveUserId(): string | null {
+  return getPersistedUserId();
+}
+
+/**
+ * 读取某游戏存档。无存档 / 无法识别身份时返回 { data:null, saved:false }。
+ */
+export async function fetchGameSave(
+  slug: string,
+): Promise<GameSaveResponse> {
+  const uid = getSaveUserId();
+  const res = await fetch(`${BASE_URL}/api/games/${slug}/save`, {
+    headers: uid ? { "x-user-id": uid } : {},
+  });
+  if (!res.ok) throw new Error(`API error: ${res.status}`);
+  return res.json();
+}
+
+/** 覆盖写入某游戏存档；返回是否真正落库（无身份时为 false） */
+export async function putGameSave(
+  slug: string,
+  data: string,
+): Promise<GameSavePutResponse> {
+  const uid = getSaveUserId();
+  if (!uid) return { saved: false };
+  const res = await fetch(`${BASE_URL}/api/games/${slug}/save`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json", "x-user-id": uid },
+    body: JSON.stringify({ data }),
+  });
+  if (!res.ok) throw new Error(`API error: ${res.status}`);
+  return res.json();
+}
+
+/** 删除某游戏存档（「重新开始」清档）；无身份时为 false */
+export async function clearGameSave(
+  slug: string,
+): Promise<GameSavePutResponse> {
+  const uid = getSaveUserId();
+  if (!uid) return { saved: false };
+  const res = await fetch(`${BASE_URL}/api/games/${slug}/save`, {
+    method: "DELETE",
+    headers: { "x-user-id": uid },
+  });
+  if (!res.ok) throw new Error(`API error: ${res.status}`);
   return res.json();
 }

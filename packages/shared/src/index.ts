@@ -117,3 +117,24 @@ export function parseJsonArray(raw: string): string[] {
 
 /** AI Game Finder 推荐契约（M5） */
 export * from "./recommendation";
+
+/**
+ * 游戏续玩存档 API 契约（M6.5）。
+ * data 为 GamePix externalSave 存档原始字符串（player localStorage[namespace]
+ * 的 JSON.stringify 值）；无存档时为 null。
+ */
+export interface GameSaveResponse {
+  data: string | null;
+  updatedAt: string | null;
+  /** 是否有存档（无存档 / 无法识别身份时为 false） */
+  saved: boolean;
+}
+
+/** PUT /api/games/:slug/save 请求体 */
+export interface GameSavePutBody {
+  data: string;
+}
+
+export interface GameSavePutResponse {
+  saved: boolean;
+}
