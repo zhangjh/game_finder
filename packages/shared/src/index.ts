@@ -39,6 +39,8 @@ export interface GameDetail {
   description: string;
   descriptionZh: string;
   thumbnail: string | null;
+  /** JSON 数组字符串（Web 用 parseJsonArray 解析；游戏画面/封面 URL 列表） */
+  screenshots: string;
   gameUrl: string;
   genre: string | null;
   subGenre: string | null;

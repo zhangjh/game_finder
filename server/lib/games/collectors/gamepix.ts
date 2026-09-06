@@ -90,6 +90,22 @@ const asDateOnly = (v: unknown): string | null => {
   return d ? d.toISOString().slice(0, 10) : null;
 };
 
+/** 把 GamePix CDN 缩略图升级为高清封面（banner_image 是 ?w=320 的小图） */
+function upgradeCoverUrl(thumbnail: string | null): string | null {
+  if (!thumbnail) return null;
+  try {
+    const u = new URL(thumbnail);
+    if (u.hostname === "img.gamepix.com") {
+      u.searchParams.set("w", "1200");
+      u.searchParams.set("ar", "16:10");
+      return u.toString();
+    }
+  } catch {
+    /* 非法 URL 原样返回 */
+  }
+  return thumbnail;
+}
+
 function normalizeItem(raw: RawGamePixItem): NormalizedGameRecord | null {
   const sourceGameId = asString(raw.id);
   const title = asString(raw.title);
@@ -110,6 +126,9 @@ function normalizeItem(raw: RawGamePixItem): NormalizedGameRecord | null {
     descriptionOriginal: asString(raw.description) ?? "",
     // banner 320px 比 icon 105px 清晰，作为卡片缩略图
     thumbnail: asString(raw.banner_image) ?? asString(raw.image),
+    screenshots: [upgradeCoverUrl(asString(raw.banner_image) ?? asString(raw.image))].filter(
+      (u): u is string => u != null,
+    ),
     gameUrl,
     category,
     genre: category ? (CATEGORY_ZH[category] ?? null) : null,

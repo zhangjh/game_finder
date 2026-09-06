@@ -119,6 +119,33 @@ export async function listGames(
   return { items, total: count };
 }
 
+/** 解析 games.screenshots（JSON 数组字符串），非法格式回退 [] */
+function parseScreenshots(raw: string | null): string[] {
+  if (!raw) return [];
+  try {
+    const v: unknown = JSON.parse(raw);
+    return Array.isArray(v) ? v.map(String).filter(Boolean) : [];
+  } catch {
+    return [];
+  }
+}
+
+/** 把 GamePix CDN 缩略图升级为高清封面，作为截图兜底源 */
+function upgradeThumbnail(thumbnail: string | null): string | null {
+  if (!thumbnail) return null;
+  try {
+    const u = new URL(thumbnail);
+    if (u.hostname === "img.gamepix.com") {
+      u.searchParams.set("w", "1200");
+      u.searchParams.set("ar", "16:10");
+      return u.toString();
+    }
+  } catch {
+    /* 非法 URL 原样返回 */
+  }
+  return thumbnail;
+}
+
 export async function getGameBySlug(slug: string) {
   const rows = await db
     .select({
@@ -133,8 +160,16 @@ export async function getGameBySlug(slug: string) {
   const row = rows[0];
   if (!row) return undefined;
 
+  // 截图没采集过的老数据回退到高清封面，保证详情页有画面
+  const storedScreenshots = parseScreenshots(row.game.screenshots);
+  const screenshots =
+    storedScreenshots.length > 0
+      ? storedScreenshots
+      : [upgradeThumbnail(row.game.thumbnail)].filter((u): u is string => u != null);
+
   return {
     ...row.game,
+    screenshots: JSON.stringify(screenshots),
     totalScore: row.totalScore,
   };
 }

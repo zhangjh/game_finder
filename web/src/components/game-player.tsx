@@ -11,11 +11,14 @@ export function GamePlayer({
   gameUrl,
   title,
   portrait,
+  poster,
 }: {
   gameId: number;
   gameUrl: string;
   title: string;
   portrait: boolean;
+  /** 未开始前的封面/截图，铺满整个游戏区 */
+  poster?: string | null;
 }) {
   const [playing, setPlaying] = useState(false);
   const [failed, setFailed] = useState(false);
@@ -107,17 +110,31 @@ export function GamePlayer({
 
   if (!playing && !failed) {
     return (
-      <div className={`flex ${frameAspect} w-full flex-col items-center justify-center gap-4 rounded-xl border border-border bg-surface`}>
-        <p className="text-sm text-muted">
-          {portrait ? "建议竖屏体验" : "建议横屏 / 桌面体验"}
-        </p>
-        <button
-          type="button"
-          onClick={start}
-          className="rounded-full bg-primary px-8 py-3 font-medium text-primary-foreground transition-opacity hover:opacity-90"
-        >
-          ▶ 开始游戏
-        </button>
+      <div className={`relative ${frameAspect} w-full overflow-hidden rounded-xl border border-border bg-surface`}>
+        {poster ? (
+          <>
+            <img
+              src={poster}
+              alt={title}
+              className="absolute inset-0 h-full w-full object-cover"
+            />
+            <div className="absolute inset-0 bg-black/35" />
+          </>
+        ) : null}
+        <div className="absolute inset-0 flex flex-col items-center justify-center gap-4">
+          <p
+            className={`text-sm drop-shadow ${poster ? "text-white/90" : "text-muted"}`}
+          >
+            {portrait ? "建议竖屏体验" : "建议横屏 / 桌面体验"}
+          </p>
+          <button
+            type="button"
+            onClick={start}
+            className="rounded-full bg-primary px-8 py-3 font-medium text-primary-foreground shadow-lg transition-opacity hover:opacity-90"
+          >
+            ▶ 开始游戏
+          </button>
+        </div>
       </div>
     );
   }

@@ -20,6 +20,8 @@ export interface NormalizedGameRecord {
   /** 源站原始描述，可能为空 */
   descriptionOriginal: string;
   thumbnail: string | null;
+  /** 游戏画面/截图 URL 列表（源站提供的最高清封面图） */
+  screenshots?: string[];
   /** 可嵌入 iframe 的游戏地址 */
   gameUrl: string;
   /** 源站分类（英文原文），进 tags；中文 genre 由映射或 AI 生成 */

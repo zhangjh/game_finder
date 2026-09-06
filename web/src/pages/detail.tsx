@@ -85,6 +85,8 @@ export function DetailPage() {
     game.mobile ? "手机、电脑都能玩" : "适合电脑端游玩",
   ];
 
+  const screenshots = parseJsonArray(game.screenshots);
+
   return (
     <div className="mx-auto max-w-4xl px-4 py-6">
       <div className="flex flex-wrap items-end justify-between gap-2">
@@ -105,6 +107,7 @@ export function DetailPage() {
           gameUrl={game.gameUrl}
           title={game.title}
           portrait={game.portrait}
+          poster={screenshots[0] ?? game.thumbnail}
         />
       </div>
 
@@ -112,6 +115,30 @@ export function DetailPage() {
         <h2 className="text-lg font-bold">简介</h2>
         <p className="mt-2 leading-relaxed text-muted">{game.description}</p>
       </section>
+
+      {screenshots.length > 0 ? (
+        <section className="mt-6">
+          <h2 className="text-lg font-bold">游戏截图</h2>
+          <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
+            {screenshots.map((src, i) => (
+              <a
+                key={`${src}-${i}`}
+                href={src}
+                target="_blank"
+                rel="noreferrer"
+                className="group block overflow-hidden rounded-xl border border-border bg-surface"
+              >
+                <img
+                  src={src}
+                  alt={`${game.title} 截图 ${i + 1}`}
+                  loading="lazy"
+                  className="aspect-video w-full object-cover transition-transform duration-200 group-hover:scale-[1.02]"
+                />
+              </a>
+            ))}
+          </div>
+        </section>
+      ) : null}
 
       <section className="mt-6">
         <h2 className="text-lg font-bold">为什么值得玩？</h2>
