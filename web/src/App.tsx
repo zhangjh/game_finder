@@ -2,6 +2,7 @@ import { Route, Routes } from "react-router";
 
 import { Layout } from "./components/layout";
 import { DetailPage } from "./pages/detail";
+import { FavoritesPage } from "./pages/favorites";
 import { GamesPage } from "./pages/games";
 import { HomePage } from "./pages/home";
 import { SearchPage } from "./pages/search";
@@ -18,6 +19,7 @@ export function App() {
         <Route path="games" element={<GamesPage />} />
         <Route path="game/:slug" element={<DetailPage />} />
         <Route path="search" element={<SearchPage />} />
+        <Route path="favorites" element={<FavoritesPage />} />
         <Route
           path="*"
           element={

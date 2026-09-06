@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router";
 
 import { fetchGameDetail, fetchSimilarGames } from "../api";
+import { FavoriteButton } from "../components/favorite-button";
 import { GameCard } from "../components/game-card";
 import { GamePlayer } from "../components/game-player";
 import {
@@ -94,16 +95,20 @@ export function DetailPage() {
           <h1 className="text-2xl font-bold">{game.title}</h1>
           <p className="mt-1 text-sm text-muted">{game.titleOriginal}</p>
         </div>
-        {game.totalScore != null && (
-          <span className="rounded-full bg-primary/10 px-3 py-1 text-sm font-semibold text-primary">
-            ⭐ {game.totalScore.toFixed(1)}
-          </span>
-        )}
+        <div className="flex items-center gap-3">
+          {game.totalScore != null && (
+            <span className="rounded-full bg-primary/10 px-3 py-1 text-sm font-semibold text-primary">
+              ⭐ {game.totalScore.toFixed(1)}
+            </span>
+          )}
+          <FavoriteButton game={game} variant="detail" />
+        </div>
       </div>
 
       <div className="mt-4">
         <GamePlayer
           gameId={game.id}
+          slug={game.slug}
           gameUrl={game.gameUrl}
           title={game.title}
           portrait={game.portrait}

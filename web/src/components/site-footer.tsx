@@ -9,6 +9,9 @@ export function SiteFooter() {
           <Link to="/games" className="transition-colors hover:text-foreground">
             全部游戏
           </Link>
+          <Link to="/favorites" className="transition-colors hover:text-foreground">
+            我的收藏
+          </Link>
           <Link to="/search" className="transition-colors hover:text-foreground">
             搜索
           </Link>
