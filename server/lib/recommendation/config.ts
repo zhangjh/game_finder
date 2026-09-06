@@ -19,9 +19,14 @@ export const RANKING_WEIGHTS = {
   freshness: 0.1,
 } as const;
 
-/** 最终返回数量（PRD §23：默认 3~5 款，不返回几十款） */
+/** random 场景的返回数量（"随便推荐" 无需长列表；常规搜索按语义阈值决定数量） */
 export const TOP_N = 5;
+
+/** 一律保证的最少返回数量（阈值过滤不足时兜底，PRD §42 绝不空转） */
 export const MIN_RESULTS = 3;
+
+/** 语义召回相似度阈值（cosine 0~1）：≥ 该值的结果全量返回，不设数量上限 */
+export const SEMANTIC_SIM_THRESHOLD = 0.75;
 
 /** 五路召回各路配额（PRD §42 Candidate Recall） */
 export const RECALL_QUOTA = {

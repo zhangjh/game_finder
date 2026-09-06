@@ -13,7 +13,12 @@ import type { ScoreDetail } from "@game-finder/shared";
 import type { GameIntent } from "@game-finder/shared";
 import type { ReferenceGame } from "./intent-parser";
 import type { RecallCandidate } from "./recall";
-import { MIN_RESULTS, RANKING_WEIGHTS, TOP_N } from "./config";
+import {
+  MIN_RESULTS,
+  RANKING_WEIGHTS,
+  SEMANTIC_SIM_THRESHOLD,
+  TOP_N,
+} from "./config";
 
 /** parseJsonArray 的本地副本（避免依赖 web 侧 shared 工具的行为差异） */
 function parseArray(raw: string): string[] {
@@ -224,8 +229,9 @@ export interface RankedCandidate {
 }
 
 /**
- * Filter → Rank → Top N。
- * strict 过滤不足 MIN_RESULTS 时自动放宽软条件（时长）重排（relaxed=true），
+ * Filter → Rank → 语义阈值过滤。
+ * strict 过滤不足 MIN_RESULTS 时自动放宽软条件（时长）重排（relaxed=true）；
+ * 语义相似度 ≥ SEMANTIC_SIM_THRESHOLD 的结果全量返回，不足则兜底取总分 Top，
  * 保证推荐列表非空（PRD：解析失败/空结果绝不空转）。
  */
 export function rankCandidates(
@@ -262,5 +268,18 @@ export function rankCandidates(
     }))
     .sort((a, b) => b.scoreDetail.total - a.scoreDetail.total);
 
-  return { items: ranked.slice(0, TOP_N), relaxed };
+  // random 场景无明确语义，维持固定 TOP_N
+  if (intent.random) {
+    return { items: ranked.slice(0, TOP_N), relaxed };
+  }
+
+  // 常规推荐：按语义相似度阈值过滤（≥0.8 全量返回，不强制数量），
+  // 结果不足 MIN_RESULTS 时兜底取总分 Top，保证列表非空（PRD §42 绝不空转）。
+  const items = ranked.filter(
+    (r) => r.candidate.semanticSim >= SEMANTIC_SIM_THRESHOLD,
+  );
+  if (items.length < MIN_RESULTS) {
+    return { items: ranked.slice(0, MIN_RESULTS), relaxed };
+  }
+  return { items, relaxed };
 }
