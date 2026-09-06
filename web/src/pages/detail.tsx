@@ -116,30 +116,6 @@ export function DetailPage() {
         <p className="mt-2 leading-relaxed text-muted">{game.description}</p>
       </section>
 
-      {screenshots.length > 0 ? (
-        <section className="mt-6">
-          <h2 className="text-lg font-bold">游戏截图</h2>
-          <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
-            {screenshots.map((src, i) => (
-              <a
-                key={`${src}-${i}`}
-                href={src}
-                target="_blank"
-                rel="noreferrer"
-                className="group block overflow-hidden rounded-xl border border-border bg-surface"
-              >
-                <img
-                  src={src}
-                  alt={`${game.title} 截图 ${i + 1}`}
-                  loading="lazy"
-                  className="aspect-video w-full object-cover transition-transform duration-200 group-hover:scale-[1.02]"
-                />
-              </a>
-            ))}
-          </div>
-        </section>
-      ) : null}
-
       <section className="mt-6">
         <h2 className="text-lg font-bold">为什么值得玩？</h2>
         <ul className="mt-2 space-y-1 text-muted">
