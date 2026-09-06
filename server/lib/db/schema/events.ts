@@ -23,6 +23,7 @@ export const gameEventTypeEnum = pgEnum("game_event_type", [
   "game_exit",
   "game_replay",
   "favorite",
+  "share",
   "recommendation_impression",
   "recommendation_click",
 ]);

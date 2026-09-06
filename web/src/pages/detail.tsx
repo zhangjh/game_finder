@@ -5,6 +5,7 @@ import { fetchGameDetail, fetchSimilarGames } from "../api";
 import { FavoriteButton } from "../components/favorite-button";
 import { GameCard } from "../components/game-card";
 import { GamePlayer } from "../components/game-player";
+import { ShareButton } from "../components/share-button";
 import {
   parseJsonArray,
   ratingLabel,
@@ -101,6 +102,7 @@ export function DetailPage() {
               ⭐ {game.totalScore.toFixed(1)}
             </span>
           )}
+          <ShareButton game={game} />
           <FavoriteButton game={game} variant="detail" />
         </div>
       </div>

@@ -9,7 +9,7 @@
  *
  * 事件全集（PRD §25）：game_impression / game_click / game_start /
  *   game_30s / game_2min / game_5min / game_exit / game_replay /
- *   favorite / recommendation_impression / recommendation_click
+ *   favorite / share / recommendation_impression / recommendation_click
  */
 import { getUserId } from "./user-id";
 
@@ -27,6 +27,7 @@ export type EventType =
   | "game_exit"
   | "game_replay"
   | "favorite"
+  | "share"
   | "recommendation_impression"
   | "recommendation_click";
 
