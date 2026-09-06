@@ -19,6 +19,7 @@ export function GamePlayer({
 }) {
   const [playing, setPlaying] = useState(false);
   const [failed, setFailed] = useState(false);
+  const [fullscreen, setFullscreen] = useState(false);
   const iframeRef = useRef<HTMLIFrameElement>(null);
 
   // 移动端若沿用 16:9 会让 iframe 高度过矮：游戏源（GamePix）的
@@ -86,6 +87,24 @@ export function GamePlayer({
     return () => clearTimeout(t);
   }, [playing]);
 
+  // 全屏播放：播放区右上角提供全屏/还原按钮。
+  // 移动端全屏后 iframe 填满真机屏幕，游戏源（GamePix）按真实屏幕渲染，
+  // 与上面"移动端方向比例适配"互为补充。
+  useEffect(() => {
+    const onFullscreenChange = () =>
+      setFullscreen(document.fullscreenElement != null);
+    document.addEventListener("fullscreenchange", onFullscreenChange);
+    return () => document.removeEventListener("fullscreenchange", onFullscreenChange);
+  }, []);
+
+  const toggleFullscreen = () => {
+    if (document.fullscreenElement) {
+      void document.exitFullscreen().catch(() => {});
+    } else if (iframeRef.current) {
+      void iframeRef.current.requestFullscreen().catch(() => {});
+    }
+  };
+
   if (!playing && !failed) {
     return (
       <div className={`flex ${frameAspect} w-full flex-col items-center justify-center gap-4 rounded-xl border border-border bg-surface`}>
@@ -129,6 +148,43 @@ export function GamePlayer({
         allow="fullscreen; autoplay; gamepad"
         sandbox="allow-scripts allow-same-origin allow-pointer-lock allow-popups"
       />
+      <button
+        type="button"
+        onClick={toggleFullscreen}
+        aria-label={fullscreen ? "退出全屏" : "进入全屏"}
+        title={fullscreen ? "退出全屏" : "进入全屏"}
+        className="absolute right-2 top-2 z-10 flex h-9 w-9 items-center justify-center rounded-full bg-black/50 text-white backdrop-blur transition-colors hover:bg-black/70"
+      >
+        {fullscreen ? (
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <path d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 1 2-2h3M3 16h3a2 2 0 0 1 2 2v3" />
+          </svg>
+        ) : (
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3" />
+          </svg>
+        )}
+      </button>
     </div>
   );
 }
