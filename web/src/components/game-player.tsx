@@ -48,11 +48,6 @@ export function GamePlayer({
   const [stalled, setStalled] = useState(false);
   /** 强制重新挂载 iframe（重新加载游戏） */
   const [reloadKey, setReloadKey] = useState(0);
-  /** 是否将游戏画面旋转 90°，适配与设备相反的方向 */
-  const [rotated, setRotated] = useState(false);
-  /** 游戏区未旋转时的高度，用于旋转后保持外层占位、避免页面跳动 */
-  const frameRef = useRef<HTMLDivElement>(null);
-  const [frameDims, setFrameDims] = useState<{ w: number; h: number } | null>(null);
   /** 是否收到过来自播放器（游戏源）的消息，视为已开始启动流程 */
   const bootSignaledRef = useRef(false);
   const iframeRef = useRef<HTMLIFrameElement>(null);
@@ -281,61 +276,6 @@ export function GamePlayer({
     }
   };
 
-  // 测量游戏区的宽高（未旋转时），供旋转后计算占位与外层尺寸。
-  // 旋转过程中几何会变化，因此仅在未旋转状态下记录基准尺寸。
-  useEffect(() => {
-    const el = frameRef.current;
-    if (!el) return;
-    const update = () => {
-      if (rotated) return;
-      setFrameDims({ w: el.clientWidth, h: el.clientHeight });
-    };
-    update();
-    const ro = new ResizeObserver(update);
-    ro.observe(el);
-    return () => ro.disconnect();
-  }, [rotated, playing]);
-
-  /** 旋转时游戏区外层占位：旋转后包围盒仍为 w×h，保持与未旋转相同的占位高度 */
-  const outerStyle = rotated && frameDims ? { height: `${frameDims.h}px` } : undefined;
-  /** 旋转时游戏区变形：宽高互换并绕中心旋转 90°（顺时针），居中于外层 */
-  const frameBoxStyle = rotated && frameDims
-    ? {
-        width: `${frameDims.h}px`,
-        height: `${frameDims.w}px`,
-        position: "absolute" as const,
-        top: "50%",
-        left: "50%",
-        transform: "translate(-50%, -50%) rotate(90deg)",
-        transformOrigin: "center",
-      }
-    : undefined;
-
-  const RotateButton = ({ label, className }: { label: string; className?: string }) => (
-    <button
-      type="button"
-      onClick={() => setRotated((r) => !r)}
-      aria-label={label}
-      title={label}
-      className={className}
-    >
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        width="16"
-        height="16"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      >
-        <path d="M21 12a9 9 0 1 1-2.64-6.36" />
-        <path d="M21 3v6h-6" />
-      </svg>
-    </button>
-  );
-
   /** 停顿后重新加载：重建 iframe 并重新注入 LOAD_DATA */
   const reloadGame = () => {
     bootSignaledRef.current = false;
@@ -347,54 +287,40 @@ export function GamePlayer({
   if (!playing && !failed) {
     const hasSave = saveable && !!gameSave?.hasSave;
     return (
-      <div className="relative w-full" style={outerStyle}>
-        <div
-          ref={frameRef}
-          className={`relative ${frameAspect} w-full overflow-hidden rounded-xl border border-border bg-surface`}
-          style={frameBoxStyle}
-        >
-          {poster ? (
-            <>
-              <img
-                src={poster}
-                alt={title}
-                className="absolute inset-0 h-full w-full object-cover"
-              />
-              <div className="absolute inset-0 bg-black/35" />
-            </>
-          ) : null}
-          <div className="absolute inset-0 flex flex-col items-center justify-center gap-4">
-            <p
-              className={`text-sm drop-shadow ${poster ? "text-white/90" : "text-muted"}`}
+      <div className={`relative ${frameAspect} w-full overflow-hidden rounded-xl border border-border bg-surface`}>
+        {poster ? (
+          <>
+            <img
+              src={poster}
+              alt={title}
+              className="absolute inset-0 h-full w-full object-cover"
+            />
+            <div className="absolute inset-0 bg-black/35" />
+          </>
+        ) : null}
+        <div className="absolute inset-0 flex flex-col items-center justify-center gap-4">
+          <p
+            className={`text-sm drop-shadow ${poster ? "text-white/90" : "text-muted"}`}
+          >
+            {portrait ? "建议竖屏体验" : "建议横屏 / 桌面体验"}
+          </p>
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              onClick={() => start(hasSave ? "continue" : "fresh")}
+              className="rounded-full bg-primary px-8 py-3 font-medium text-primary-foreground shadow-lg transition-opacity hover:opacity-90"
             >
-              {portrait ? "建议竖屏体验" : "建议横屏 / 桌面体验"}
-            </p>
-            <div className="flex flex-wrap items-center justify-center gap-3">
+              {hasSave ? "▶ 继续游戏" : "▶ 开始游戏"}
+            </button>
+            {hasSave ? (
               <button
                 type="button"
-                onClick={() => start(hasSave ? "continue" : "fresh")}
-                className="rounded-full bg-primary px-8 py-3 font-medium text-primary-foreground shadow-lg transition-opacity hover:opacity-90"
+                onClick={restart}
+                className="rounded-full border border-white/40 px-6 py-3 text-sm font-medium text-white/90 transition-colors hover:border-white hover:text-white"
               >
-                {hasSave ? "▶ 继续游戏" : "▶ 开始游戏"}
+                重新开始
               </button>
-              {hasSave ? (
-                <button
-                  type="button"
-                  onClick={restart}
-                  className="rounded-full border border-white/40 px-6 py-3 text-sm font-medium text-white/90 transition-colors hover:border-white hover:text-white"
-                >
-                  重新开始
-                </button>
-              ) : null}
-              <RotateButton
-                label={rotated ? "取消旋转" : "旋转屏幕"}
-                className={`flex h-9 w-9 items-center justify-center rounded-full border transition-colors ${
-                  poster
-                    ? "border-white/50 bg-black/40 text-white hover:border-white"
-                    : "border-border text-muted hover:border-primary hover:text-primary"
-                }`}
-              />
-            </div>
+            ) : null}
           </div>
         </div>
       </div>
@@ -403,113 +329,93 @@ export function GamePlayer({
 
   if (failed) {
     return (
-      <div className="relative w-full" style={outerStyle}>
-        <div
-          ref={frameRef}
-          className={`relative ${frameAspect} w-full overflow-hidden rounded-xl border border-border bg-surface`}
-          style={frameBoxStyle}
+      <div className={`flex ${frameAspect} w-full flex-col items-center justify-center gap-3 rounded-xl border border-border bg-surface text-center`}>
+        <p className="font-medium">游戏加载失败</p>
+        <p className="text-sm text-muted">可能是网络波动或游戏源暂时不可用</p>
+        <button
+          type="button"
+          onClick={() => start("fresh")}
+          className="mt-2 rounded-full border border-border px-6 py-2 text-sm transition-colors hover:border-primary hover:text-primary"
         >
-          <div className="flex h-full w-full flex-col items-center justify-center gap-3 text-center">
-            <p className="font-medium">游戏加载失败</p>
-            <p className="text-sm text-muted">可能是网络波动或游戏源暂时不可用</p>
-            <button
-              type="button"
-              onClick={() => start("fresh")}
-              className="mt-2 rounded-full border border-border px-6 py-2 text-sm transition-colors hover:border-primary hover:text-primary"
-            >
-              重试
-            </button>
-          </div>
-        </div>
+          重试
+        </button>
       </div>
     );
   }
 
   return (
-    <div className="relative w-full" style={outerStyle}>
-      <div
-        ref={frameRef}
-        className={`relative ${frameAspect} w-full overflow-hidden rounded-xl border border-border bg-black`}
-        style={frameBoxStyle}
-      >
-        <iframe
-          key={reloadKey}
-          ref={iframeRef}
-          name={typeof window !== "undefined" ? window.location.origin : undefined}
-          src={withExternalSave(gameUrl)}
-          title={title}
-          className="h-full w-full"
-          allow="fullscreen; autoplay; gamepad; encrypted-media; clipboard-read; clipboard-write; picture-in-picture"
-          sandbox="allow-scripts allow-same-origin allow-forms allow-modals allow-pointer-lock allow-popups allow-popups-to-escape-sandbox allow-top-navigation-by-user-activation"
-        />
-        {stalled ? (
-          <div className="absolute inset-0 z-20 flex flex-col items-center justify-center gap-3 bg-black/80 p-4 text-center text-white">
-            <p className="text-sm font-semibold">游戏没有启动</p>
-            <p className="text-xs leading-relaxed text-white/70">
-              通常是浏览器拦截了游戏源（GamePix）的广告/跟踪脚本（如 Edge 跟踪防护、广告拦截）。关闭拦截后点「重新加载」，或在新标签页直接打开游戏。
-            </p>
-            <div className="flex items-center gap-2 pt-1">
-              <button
-                type="button"
-                onClick={reloadGame}
-                className="rounded-full bg-primary px-5 py-2 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90"
-              >
-                重新加载
-              </button>
-              <button
-                type="button"
-                onClick={() => window.open(gameUrl, "_blank", "noopener,noreferrer")}
-                className="rounded-full border border-white/50 px-5 py-2 text-sm text-white transition-colors hover:border-white"
-              >
-                在新标签页打开
-              </button>
-            </div>
+    <div className={`relative ${frameAspect} w-full overflow-hidden rounded-xl border border-border bg-black`}>
+      <iframe
+        key={reloadKey}
+        ref={iframeRef}
+        name={typeof window !== "undefined" ? window.location.origin : undefined}
+        src={withExternalSave(gameUrl)}
+        title={title}
+        className="h-full w-full"
+        allow="fullscreen; autoplay; gamepad; encrypted-media; clipboard-read; clipboard-write; picture-in-picture"
+        sandbox="allow-scripts allow-same-origin allow-forms allow-modals allow-pointer-lock allow-popups allow-popups-to-escape-sandbox allow-top-navigation-by-user-activation"
+      />
+      {stalled ? (
+        <div className="absolute inset-0 z-20 flex flex-col items-center justify-center gap-3 bg-black/80 p-4 text-center text-white">
+          <p className="text-sm font-semibold">游戏没有启动</p>
+          <p className="text-xs leading-relaxed text-white/70">
+            通常是浏览器拦截了游戏源（GamePix）的广告/跟踪脚本（如 Edge 跟踪防护、广告拦截）。关闭拦截后点「重新加载」，或在新标签页直接打开游戏。
+          </p>
+          <div className="flex items-center gap-2 pt-1">
+            <button
+              type="button"
+              onClick={reloadGame}
+              className="rounded-full bg-primary px-5 py-2 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90"
+            >
+              重新加载
+            </button>
+            <button
+              type="button"
+              onClick={() => window.open(gameUrl, "_blank", "noopener,noreferrer")}
+              className="rounded-full border border-white/50 px-5 py-2 text-sm text-white transition-colors hover:border-white"
+            >
+              在新标签页打开
+            </button>
           </div>
-        ) : null}
-        <div className="absolute right-2 top-2 z-10 flex items-center gap-2">
-          <RotateButton
-            label={rotated ? "取消旋转" : "旋转屏幕"}
-            className="flex h-9 w-9 items-center justify-center rounded-full bg-black/50 text-white backdrop-blur transition-colors hover:bg-black/70"
-          />
-          <button
-            type="button"
-            onClick={toggleFullscreen}
-            aria-label={fullscreen ? "退出全屏" : "进入全屏"}
-            title={fullscreen ? "退出全屏" : "进入全屏"}
-            className="flex h-9 w-9 items-center justify-center rounded-full bg-black/50 text-white backdrop-blur transition-colors hover:bg-black/70"
-          >
-            {fullscreen ? (
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="16"
-                height="16"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <path d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 1 2-2h3M3 16h3a2 2 0 0 1 2 2v3" />
-              </svg>
-            ) : (
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="16"
-                height="16"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3" />
-              </svg>
-            )}
-          </button>
         </div>
-      </div>
+      ) : null}
+      <button
+        type="button"
+        onClick={toggleFullscreen}
+        aria-label={fullscreen ? "退出全屏" : "进入全屏"}
+        title={fullscreen ? "退出全屏" : "进入全屏"}
+        className="absolute right-2 top-2 z-10 flex h-9 w-9 items-center justify-center rounded-full bg-black/50 text-white backdrop-blur transition-colors hover:bg-black/70"
+      >
+        {fullscreen ? (
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <path d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 1 2-2h3M3 16h3a2 2 0 0 1 2 2v3" />
+          </svg>
+        ) : (
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3" />
+          </svg>
+        )}
+      </button>
     </div>
   );
 }
