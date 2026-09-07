@@ -6,7 +6,7 @@ import { GameCard } from "../components/game-card";
 import type { GameListItem } from "@game-finder/shared";
 
 /** 源站原始质量分阈值：只展示 quality_score > 该值的精品 */
-const MIN_QUALITY = 0.9;
+const MIN_QUALITY = 0.8;
 
 const PAGE_SIZE = 24;
 
