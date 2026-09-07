@@ -2,13 +2,17 @@
  * 批量清洗低质量 GamePix 游戏（一次性运维脚本，可重复执行）：
  *   1. 遍历 GamePix feed 全量（order=quality，96/页），按 source_game_id
  *      回填 source_quality_score（0~1 官方质量分）。
- *   2. 将 quality_score < 阈值（默认 0.8）的已发布游戏批量下架（status=offline），
- *      前台不可见；之后 feed 质量提升重新 > 阈值时，同步管道会按 isChanged 复活/更新。
+ *   2. 将 quality_score < 阈值（默认 0.2，只清"极渣尾部"）的已发布游戏批量
+ *      下架（status=offline），前台不可见；之后 feed 质量提升重新 > 阈值时，
+ *      同步管道会按 isChanged 复活/更新。
+ *
+ * 阈值说明：GamePix quality_score 在全库接近均匀分布（中位数 ~0.58），
+ * 0.8 会把 85%+ 目录全下架，正常只清底部垃圾（<0.2 ≈ 8%）。
  *
  * 用法：
- *   pnpm cleanup:quality                       # 全量回填 + 下架低质（阈值 0.8）
+ *   pnpm cleanup:quality                       # 全量回填 + 下架极渣（阈值 0.2）
  *   pnpm cleanup:quality -- --dry-run          # 只回填并打印将下架的量，不落库
- *   pnpm cleanup:quality -- --threshold 0.7    # 自定义阈值
+ *   pnpm cleanup:quality -- --threshold 0.5    # 自定义阈值
  */
 import { Client } from "pg";
 
@@ -20,7 +24,7 @@ const SID = process.env.GAMEPIX_SID ?? "7E317";
 const FEED = `https://feeds.gamepix.com/v2/json?sid=${SID}&pagination=96&order=quality`;
 
 const thresholdArg = process.argv.find((a) => a.startsWith("--threshold="));
-const THRESHOLD = Number(thresholdArg?.split("=")[1]) || 0.8;
+const THRESHOLD = Number(thresholdArg?.split("=")[1]) || 0.2;
 const DRY_RUN = process.argv.includes("--dry-run");
 
 const asQualityScore = (v) =>

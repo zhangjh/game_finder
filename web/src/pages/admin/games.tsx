@@ -170,11 +170,15 @@ export function AdminGamesPage() {
                 <td className="px-3 py-2">
                   {g.sourceQualityScore != null ? (
                     <span
-                      title="GamePix 官方质量分"
+                      title="GamePix 官方质量分（<0.2 极渣 / <0.5 较差 / <0.8 一般 / ≥0.8 优质）"
                       className={`rounded px-1.5 py-0.5 text-xs font-medium ${
-                        g.sourceQualityScore < 0.8
+                        g.sourceQualityScore < 0.2
                           ? "bg-red-700/30 text-red-300"
-                          : "bg-neutral-800 text-neutral-300"
+                          : g.sourceQualityScore < 0.5
+                            ? "bg-amber-700/25 text-amber-300"
+                            : g.sourceQualityScore < 0.8
+                              ? "bg-neutral-800 text-neutral-300"
+                              : "bg-emerald-700/30 text-emerald-300"
                       }`}
                     >
                       {Math.round(g.sourceQualityScore * 100)}

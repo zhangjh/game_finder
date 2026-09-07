@@ -272,11 +272,15 @@ cd server && docker compose up -d --build
 docker compose ps               # 确认 healthy
 ```
 
-### 6.1 清洗低质量游戏（quality_score < 0.8 批量下架）
+### 6.1 清洗低质量游戏（quality_score < 0.2 极渣批量下架）
 
 > 迁移无需手动执行：server 容器启动时自动应用（`src/migrate.ts`，含本提交新增
 > 的 `0006_same_ben_grimm.sql`），先 `docker compose up -d --build` 重建并重启
 > server 即可让新列生效。下面的回填/下架脚本在**宿主机**跑一遍即可。
+>
+> 阈值说明：GamePix quality_score 全库接近均匀分布（中位数 ~0.58），默认阈值
+> **0.2** 只清底部垃圾（约 8%）；调大（如 `-- --threshold 0.5`）会下架更多
+> 中低质量游戏，谨慎使用。
 
 先 `git pull` 拿到最新代码，再用一次性容器执行（连内网 postgres，挂载仓库复用
 `server/node_modules` 里的 `pg`；等价于仓库根 `pnpm cleanup:quality`）：
@@ -289,15 +293,14 @@ docker run --rm --network server_default -v ~/dev/game_finder:/app -w /app/serve
   -e DATABASE_URL="postgresql://postgres:postgres@postgres:5432/game_discovery" \
   node:22 node scripts/cleanup-low-quality.mjs -- --dry-run
 
-# 正式执行：回填 + quality<0.8 的已发布游戏 status='offline'
+# 正式执行：回填 + quality<0.2 的已发布游戏 status='offline'
 docker run --rm --network server_default -v ~/dev/game_finder:/app -w /app/server \
   -e DATABASE_URL="postgresql://postgres:postgres@postgres:5432/game_discovery" \
   node:22 node scripts/cleanup-low-quality.mjs
 ```
 
 > 脚本幂等可重复跑；回填后日常由 `sync_games` 定时任务按 `source_updated_at`
-> 变更自动刷新质量分，无需再手动执行。默认阈值 0.8，可用 `-- --threshold 0.7`
-> 覆盖。
+> 变更自动刷新质量分，无需再手动执行。默认阈值 0.2。
 
 ### 回滚
 
