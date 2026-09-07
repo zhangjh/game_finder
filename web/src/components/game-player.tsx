@@ -51,6 +51,9 @@ export function GamePlayer({
   const { showToast } = useToast();
 
   const saveable = isGamePixEmbed(gameUrl);
+  /** 调试开关：URL 带 ?noSandbox=1 时去掉 iframe sandbox，用于真机 A/B */
+  const debugNoSandbox =
+    typeof window !== "undefined" && new URLSearchParams(window.location.search).has("noSandbox");
   /** GamePix 播放器 origin（postMessage targetOrigin / 来源校验） */
   const gameOrigin = (() => {
     try {
@@ -318,7 +321,10 @@ export function GamePlayer({
         title={title}
         className="h-full w-full"
         allow="fullscreen; autoplay; gamepad; encrypted-media; clipboard-read; clipboard-write; picture-in-picture"
-        sandbox="allow-scripts allow-same-origin allow-forms allow-modals allow-pointer-lock allow-popups allow-popups-to-escape-sandbox allow-top-navigation-by-user-activation"
+        {...(!debugNoSandbox && {
+          sandbox:
+            "allow-scripts allow-same-origin allow-forms allow-modals allow-pointer-lock allow-popups allow-popups-to-escape-sandbox allow-top-navigation-by-user-activation",
+        })}
       />
       <button
         type="button"
