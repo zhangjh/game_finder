@@ -317,8 +317,8 @@ export function GamePlayer({
         src={withExternalSave(gameUrl)}
         title={title}
         className="h-full w-full"
-        allow="fullscreen; autoplay; gamepad"
-        sandbox="allow-scripts allow-same-origin allow-pointer-lock allow-popups"
+        allow="fullscreen; autoplay; gamepad; encrypted-media; clipboard-read; clipboard-write; picture-in-picture"
+        sandbox="allow-scripts allow-same-origin allow-forms allow-modals allow-pointer-lock allow-popups allow-popups-to-escape-sandbox allow-top-navigation-by-user-activation"
       />
       <button
         type="button"
