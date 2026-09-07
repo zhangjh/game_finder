@@ -274,15 +274,15 @@ docker compose ps               # 确认 healthy
 
 ### 6.1 清洗低质量游戏（quality_score < 0.8 批量下架）
 
+> 迁移无需手动执行：server 容器启动时自动应用（`src/migrate.ts`，含本提交新增
+> 的 `0006_same_ben_grimm.sql`），先 `docker compose up -d --build` 重建并重启
+> server 即可让新列生效。下面的回填/下架脚本在**宿主机**跑一遍即可。
+
 先 `git pull` 拿到最新代码，再用一次性容器执行（连内网 postgres，挂载仓库复用
 `server/node_modules` 里的 `pg`；等价于仓库根 `pnpm cleanup:quality`）：
 
 ```bash
-cd ~/dev/game_finder
-# 迁移新增列 source_quality_score（本提交新增的 0006_same_ben_grimm.sql）
-docker run --rm --network server_default -v ~/dev/game_finder:/app -w /app/server \
-  -e DATABASE_URL="postgresql://postgres:postgres@postgres:5432/game_discovery" \
-  node:22 sh -c "npx drizzle-kit migrate && node scripts/apply-manual-sql.mjs"
+cd ~/dev/game_finder/server
 
 # 预检：全量回填质量分 + 打印将下架数量（不改数据）
 docker run --rm --network server_default -v ~/dev/game_finder:/app -w /app/server \
