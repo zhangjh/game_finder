@@ -75,8 +75,12 @@ export function GamePlayer({
 
   // 移动端若沿用 16:9 会让 iframe 高度过矮：游戏源（GamePix）的
   // 开始按钮被压缩到点不动、Cookie 提示条直接盖在按钮上（实测）。
-  // 按游戏方向给更高的比例，sm 及以上维持 16:9。
-  const frameAspect = portrait ? "aspect-[9/16] sm:aspect-video" : "aspect-[4/3] sm:aspect-video";
+  // 竖屏游戏在桌面端同样维持竖屏比例：否则桌面 16:9 的横屏 iframe
+  // 会被游戏源判定为横屏，弹出无法关闭的"旋转设备"提示。
+  // 横屏游戏保持原来的响应式比例。
+  const frameAspect = portrait
+    ? "aspect-[9/16]"
+    : "aspect-[4/3] sm:aspect-video";
 
   // 会话计时器引用
   const startRef = useRef<number>(0);
