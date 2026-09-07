@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router";
 import { useFavorites } from "../hooks/use-favorites";
 
 const CATEGORIES = [
+  { label: "高品质", href: "/high-quality" },
   { label: "休闲", href: "/games?genre=休闲" },
   { label: "塔防", href: "/games?genre=塔防" },
   { label: "Roguelike", href: "/games?genre=Roguelike" },

@@ -4,6 +4,7 @@ import { Layout } from "./components/layout";
 import { DetailPage } from "./pages/detail";
 import { FavoritesPage } from "./pages/favorites";
 import { GamesPage } from "./pages/games";
+import { HighQualityPage } from "./pages/high-quality";
 import { HomePage } from "./pages/home";
 import { SearchPage } from "./pages/search";
 
@@ -17,6 +18,7 @@ export function App() {
       <Route element={<Layout />}>
         <Route index element={<HomePage />} />
         <Route path="games" element={<GamesPage />} />
+        <Route path="high-quality" element={<HighQualityPage />} />
         <Route path="game/:slug" element={<DetailPage />} />
         <Route path="search" element={<SearchPage />} />
         <Route path="favorites" element={<FavoritesPage />} />

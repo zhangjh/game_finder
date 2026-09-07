@@ -16,6 +16,7 @@ import {
   adminMergeDuplicate,
   adminOverview,
   adminSetGameStatus,
+  type AdminGameFilters,
   type AdminGameStatus,
 } from "@/lib/games/admin-queries";
 import {
@@ -93,8 +94,11 @@ adminRouter.get("/games", async (req, res) => {
       sourceCode: typeof sp.source === "string" ? sp.source : undefined,
       q: typeof sp.q === "string" ? sp.q : undefined,
       sort:
-        sp.sort === "oldest" || sp.sort === "play_count" || sp.sort === "title"
-          ? sp.sort
+        typeof sp.sort === "string" &&
+        ["oldest", "play_count", "title", "quality_asc", "quality_desc", "score_asc", "score_desc"].includes(
+          sp.sort,
+        )
+          ? (sp.sort as AdminGameFilters["sort"])
           : "newest",
       page: typeof sp.page === "string" && /^\d+$/.test(sp.page) ? Number(sp.page) : 1,
       pageSize:

@@ -37,6 +37,9 @@ export function AdminGamesPage() {
   );
   const [q, setQ] = useState("");
   const [page, setPage] = useState(1);
+  const [sortKey, setSortKey] = useState<
+    { col: "quality" | "score"; dir: "asc" | "desc" } | null
+  >(null);
   const [data, setData] = useState<{
     items: AdminGameListItem[];
     total: number;
@@ -45,12 +48,17 @@ export function AdminGamesPage() {
   const [error, setError] = useState(false);
   const [busyId, setBusyId] = useState<number | null>(null);
 
+  const sortParam = sortKey
+    ? `${sortKey.col === "quality" ? "quality" : "score"}_${sortKey.dir}`
+    : undefined;
+
   const load = useCallback(async () => {
     setError(false);
     try {
       const res = await fetchAdminGames({
         status: status || undefined,
         q: q || undefined,
+        sort: sortParam,
         page,
         pageSize: 30,
       });
@@ -58,11 +66,44 @@ export function AdminGamesPage() {
     } catch {
       setError(true);
     }
-  }, [status, q, page]);
+  }, [status, q, sortParam, page]);
 
   useEffect(() => {
     load();
   }, [load]);
+
+  /** 点击表头排序：未排序→降序 → 升序 → 清除 */
+  function toggleHeaderSort(col: "quality" | "score") {
+    setSortKey((prev) => {
+      if (!prev || prev.col !== col) return { col, dir: "desc" };
+      if (prev.dir === "desc") return { col, dir: "asc" };
+      return null;
+    });
+  }
+
+  /** 表头排序按钮（点击排序，激活时显示 ▲/▼） */
+  function SortHeader({
+    col,
+    children,
+  }: {
+    col: "quality" | "score";
+    children: React.ReactNode;
+  }) {
+    const active = sortKey?.col === col;
+    return (
+      <button
+        type="button"
+        onClick={() => toggleHeaderSort(col)}
+        title="点击排序（再次点击切换升降序，第三次清除）"
+        className={`inline-flex items-center gap-1 transition-colors ${
+          active ? "text-white" : "hover:text-white"
+        }`}
+      >
+        {children}
+        {active && <span className="text-[10px]">{sortKey!.dir === "desc" ? "▼" : "▲"}</span>}
+      </button>
+    );
+  }
 
   async function toggleStatus(g: AdminGameListItem) {
     const next: AdminGameStatus = g.status === "published" ? "offline" : "published";
@@ -128,8 +169,12 @@ export function AdminGamesPage() {
               <th className="px-3 py-2">游戏</th>
               <th className="px-3 py-2">来源</th>
               <th className="px-3 py-2">状态</th>
-              <th className="px-3 py-2">源站质量</th>
-              <th className="px-3 py-2">平台分</th>
+              <th className="px-3 py-2">
+                <SortHeader col="quality">源站质量</SortHeader>
+              </th>
+              <th className="px-3 py-2">
+                <SortHeader col="score">平台分</SortHeader>
+              </th>
               <th className="px-3 py-2">游玩数</th>
               <th className="px-3 py-2 text-right">操作</th>
             </tr>

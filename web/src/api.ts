@@ -24,7 +24,9 @@ export type GameListQueryParams = {
   players?: number | "multi";
   platform?: "mobile" | "desktop";
   q?: string;
-  sort?: "popular" | "newest" | "score" | "random";
+  sort?: "popular" | "newest" | "score" | "random" | "quality";
+  /** 源站质量分下限（> 该值），如 0.9 */
+  minQualityScore?: number;
   page?: number;
   pageSize?: number;
 };
@@ -39,6 +41,8 @@ export async function fetchGames(
   if (params.platform) sp.set("platform", params.platform);
   if (params.q) sp.set("q", params.q);
   if (params.sort) sp.set("sort", params.sort);
+  if (params.minQualityScore != null)
+    sp.set("minQualityScore", String(params.minQualityScore));
   if (params.page) sp.set("page", String(params.page));
   if (params.pageSize) sp.set("pageSize", String(params.pageSize));
 

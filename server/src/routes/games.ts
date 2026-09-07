@@ -7,12 +7,18 @@ export const gamesRouter = Router();
 const num = (v: string | undefined) =>
   v && /^\d+$/.test(v) ? Number(v) : undefined;
 
+const decimal = (v: string | undefined) => {
+  if (!v || !/^\d+(\.\d+)?$/.test(v)) return undefined;
+  const n = Number(v);
+  return n >= 0 && n <= 1 ? n : undefined;
+};
+
 /**
  * GET /api/games — 游戏列表（筛选/排序/分页）。
  * 参数与 @game-finder/shared GameListQuery 对齐。
  */
 gamesRouter.get("/", async (req, res) => {
-  const { genre, duration, players, platform, q, sort, page, pageSize } =
+  const { genre, duration, players, platform, q, sort, page, pageSize, minQualityScore } =
     req.query;
 
   const filters: GameListFilters = {
@@ -23,8 +29,11 @@ gamesRouter.get("/", async (req, res) => {
     platform:
       platform === "mobile" || platform === "desktop" ? platform : undefined,
     q: typeof q === "string" ? q : undefined,
+    minQualityScore: decimal(
+      typeof minQualityScore === "string" ? minQualityScore : undefined,
+    ),
     sort:
-      sort === "newest" || sort === "score" || sort === "random"
+      sort === "newest" || sort === "score" || sort === "random" || sort === "quality"
         ? sort
         : "popular",
     page: num(typeof page === "string" ? page : undefined) ?? 1,

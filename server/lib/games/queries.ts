@@ -2,7 +2,7 @@
  * 游戏查询层：列表（筛选/排序/分页）+ slug 详情。
  * server 内部使用，返回类型与 @game-finder/shared 的 API 契约对齐。
  */
-import { and, desc, eq, gte, ilike, lte, or, sql, type SQL } from "drizzle-orm";
+import { and, desc, eq, gt, gte, ilike, lte, or, sql, type SQL } from "drizzle-orm";
 
 import { db } from "@/lib/db";
 import { games, gameScores } from "@/lib/db/schema";
@@ -22,7 +22,9 @@ export type GameListFilters = {
   platform?: "mobile" | "desktop";
   /** 关键词（标题/标签/描述简单 ILIKE；M5 升级 FTS） */
   q?: string;
-  sort?: "popular" | "newest" | "score" | "random";
+  /** 源站质量分下限（strict：仅 > 该值，NULL 不通过） */
+  minQualityScore?: number;
+  sort?: "popular" | "newest" | "score" | "random" | "quality";
   page?: number;
   pageSize?: number;
 };
@@ -45,6 +47,8 @@ function buildConditions(filters: GameListFilters): SQL[] {
     );
   if (filters.platform === "mobile") conds.push(eq(games.mobile, true));
   else if (filters.platform === "desktop") conds.push(eq(games.desktop, true));
+  if (filters.minQualityScore != null)
+    conds.push(gt(games.sourceQualityScore, filters.minQualityScore));
   if (filters.q) {
     const like = `%${filters.q}%`;
     conds.push(
@@ -66,6 +70,9 @@ function orderBy(sort: GameListFilters["sort"]) {
       return desc(games.publishedAt);
     case "score":
       return desc(sql`coalesce(${gameScores.totalScore}, 0)`);
+    case "quality":
+      // 源站质量分倒序；缺失值（NULL）沉底
+      return sql`${games.sourceQualityScore} DESC NULLS LAST`;
     case "random":
       return sql`random()`;
     default:

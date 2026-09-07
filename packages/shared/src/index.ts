@@ -79,7 +79,9 @@ export interface GameListQuery {
   players?: number | "multi";
   platform?: "mobile" | "desktop";
   q?: string;
-  sort?: "popular" | "newest" | "score" | "random";
+  sort?: "popular" | "newest" | "score" | "random" | "quality";
+  /** 源站质量分下限（strict：> 该值），如 0.9 只看原始质量 90+ 的游戏 */
+  minQualityScore?: number;
   page?: number;
   pageSize?: number;
 }
@@ -93,7 +95,7 @@ export interface GameListResponse {
 }
 
 /** 排序选项（PRD §33） */
-export const SORT_OPTIONS = ["popular", "newest", "score", "random"] as const;
+export const SORT_OPTIONS = ["popular", "newest", "score", "random", "quality"] as const;
 
 /** 体验属性 → 中文标签 */
 export function ratingLabel(value: number): string {
