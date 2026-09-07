@@ -49,8 +49,7 @@ export function HighQualityPage() {
         <div>
           <h1 className="text-xl font-bold">高品质精选</h1>
           <p className="mt-1 text-sm text-muted">
-            源站原始质量分 &gt; {Math.round(MIN_QUALITY * 100)}
-            的精品（GamePix quality_score），按分数高到低
+            质量分 &gt; {Math.round(MIN_QUALITY * 100)}的精品，按分数高到低
           </p>
         </div>
         <Link
