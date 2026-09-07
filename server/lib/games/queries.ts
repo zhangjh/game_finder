@@ -100,6 +100,7 @@ export async function listGames(
       mobile: games.mobile,
       playCount: games.playCount,
       gameLanguage: games.gameLanguage,
+      sourceQualityScore: games.sourceQualityScore,
       totalScore: gameScores.totalScore,
     })
     .from(games)
@@ -192,7 +193,7 @@ export async function getSimilarGames(
     SELECT id, slug, title, title_original, description, thumbnail, genre, tags,
            difficulty, cognitive_load, session_length_min, session_length_max,
            multiplayer, min_players, max_players, mobile, play_count,
-           game_language, NULL::real AS total_score
+           game_language, source_quality_score, NULL::real AS total_score
     FROM games
     WHERE status = 'published' AND id != ${gameId}
     ORDER BY (CASE WHEN genre = (SELECT genre FROM games WHERE id = ${gameId}) THEN 0 ELSE 2 END)
@@ -221,6 +222,7 @@ export async function getSimilarGames(
     mobile: (r.mobile as boolean) ?? false,
     playCount: (r.play_count as number) ?? 0,
     gameLanguage: (r.game_language as string) ?? "en",
+    sourceQualityScore: (r.source_quality_score as number | null) ?? null,
     totalScore: (r.total_score as number | null) ?? null,
   }));
 }

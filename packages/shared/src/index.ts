@@ -28,6 +28,8 @@ export interface GameListItem {
   gameLanguage: string;
   /** GameScore，冷启动时为 null */
   totalScore: number | null;
+  /** 源站官方质量分（GamePix quality_score，0~1），缺失为 null */
+  sourceQualityScore: number | null;
 }
 
 /** 详情页完整字段（games 全行 + totalScore） */
@@ -65,6 +67,7 @@ export interface GameDetail {
   metadataLanguage: string;
   playCount: number;
   totalScore: number | null;
+  sourceQualityScore: number | null;
 }
 
 /** 列表查询参数（web → GET /api/games） */

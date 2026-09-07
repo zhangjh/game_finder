@@ -9,7 +9,7 @@
  *   adapter 将其视为正常翻页结束信号
  * - 每项含 id / namespace(slug) / title / description(可空) / category /
  *   orientation(all|portrait|landscape) / banner_image / image / url(embed)
- *   / date_published / date_modified
+ *   / date_published / date_modified / quality_score(0~1 官方质量分)
  * - embed url 自带 sid 参数，直接可播放（含收入分成追踪）
  *
  * 环境变量：GAMEPIX_SID（publisher/site id，商务分配，当前 7E317）
@@ -73,6 +73,7 @@ interface RawGamePixItem {
   url?: unknown;
   date_published?: unknown;
   date_modified?: unknown;
+  quality_score?: unknown;
 }
 
 const asString = (v: unknown): string | null =>
@@ -88,6 +89,12 @@ const asDate = (v: unknown): Date | null => {
 const asDateOnly = (v: unknown): string | null => {
   const d = asDate(v);
   return d ? d.toISOString().slice(0, 10) : null;
+};
+
+/** 官方质量分（0~1），非数值或越界视为缺失 */
+const asQualityScore = (v: unknown): number | null => {
+  if (typeof v !== "number" || !Number.isFinite(v)) return null;
+  return v < 0 ? 0 : v > 1 ? 1 : v;
 };
 
 /** 把 GamePix CDN 缩略图升级为高清封面（banner_image 是 ?w=320 的小图） */
@@ -135,6 +142,7 @@ function normalizeItem(raw: RawGamePixItem): NormalizedGameRecord | null {
     rawTags: category ? [category] : [],
     releaseDate: asDateOnly(raw.date_published),
     sourceUpdatedAt: asDate(raw.date_modified),
+    qualityScore: asQualityScore(raw.quality_score),
     portrait: orientation !== "landscape",
     landscape: orientation !== "portrait",
     // GamePix 全是 HTML5 网页游戏，浏览器即玩；设备筛选单靠"能否运行"无法区分，

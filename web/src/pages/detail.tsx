@@ -78,6 +78,12 @@ export function DetailPage() {
     ],
     ["画面方向", game.portrait ? "竖屏" : "横屏"],
     ["游戏语言", game.gameLanguage === "zh" ? "中文" : "英文"],
+    [
+      "质量分",
+      game.sourceQualityScore != null
+        ? `${Math.round(game.sourceQualityScore * 100)} / 100`
+        : "暂无",
+    ],
     ["平台评分", game.totalScore != null ? game.totalScore.toFixed(1) : "暂无"],
   ];
 

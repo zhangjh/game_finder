@@ -88,6 +88,14 @@ export function GameCard({
             ⭐ {score.toFixed(1)}
           </span>
         )}
+        {game.sourceQualityScore != null && (
+          <span
+            title="质量分"
+            className="absolute bottom-2 right-2 rounded-full bg-black/50 px-2 py-0.5 text-xs font-medium text-white/90"
+          >
+            🏅 {Math.round(game.sourceQualityScore * 100)}
+          </span>
+        )}
       </div>
 
       <div className="flex flex-1 flex-col gap-2 p-3">

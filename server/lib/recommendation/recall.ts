@@ -47,6 +47,7 @@ export interface CandidateGame {
   portrait: boolean;
   playCount: number;
   gameLanguage: string;
+  sourceQualityScore: number | null;
   totalScore: number | null;
   publishedAt: Date | null;
 }
@@ -84,6 +85,7 @@ const candidateColumns = {
   portrait: games.portrait,
   playCount: games.playCount,
   gameLanguage: games.gameLanguage,
+  sourceQualityScore: games.sourceQualityScore,
   totalScore: gameScores.totalScore,
   publishedAt: games.publishedAt,
 };
@@ -281,7 +283,7 @@ export async function vectorRecall(
              g.multiplayer, g.min_players, g.max_players,
              g.mobile, g.desktop, g.portrait,
              g.play_count, g.game_language,
-             gs.total_score, g.published_at,
+             g.source_quality_score, gs.total_score, g.published_at,
              1 - (ge.embedding <=> ${vecLiteral}::vector) AS similarity
       FROM game_embeddings ge
       JOIN games g ON g.id = ge.game_id
@@ -344,6 +346,7 @@ function mapRawCandidate(r: Record<string, unknown>): CandidateGame & {
     portrait: (r.portrait as boolean) ?? false,
     playCount: (r.play_count as number) ?? 0,
     gameLanguage: (r.game_language as string) ?? "en",
+    sourceQualityScore: (r.source_quality_score as number | null) ?? null,
     totalScore: (r.total_score as number | null) ?? null,
     publishedAt: r.published_at ? new Date(r.published_at as string) : null,
     similarity:
@@ -375,7 +378,7 @@ export async function relationsRecall(
            g.multiplayer, g.min_players, g.max_players,
            g.mobile, g.desktop, g.portrait,
            g.play_count, g.game_language,
-           gs.total_score, g.published_at, gr.similarity
+           g.source_quality_score, gs.total_score, g.published_at, gr.similarity
     FROM game_relations gr
     JOIN games g ON g.id = gr.related_game_id
     LEFT JOIN game_scores gs ON gs.game_id = g.id

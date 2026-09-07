@@ -27,16 +27,23 @@ function* chunks<T>(arr: T[], size: number): Generator<T[]> {
 const sameInstant = (a: Date | null, b: Date | null): boolean =>
   (a?.getTime() ?? null) === (b?.getTime() ?? null);
 
-/** 源字段是否有变化（date_modified 为主，标题/地址/缩略图兜底防漏） */
+/** 源字段是否有变化（date_modified 为主，标题/地址/缩略图/质量分兜底防漏） */
 function isChanged(
-  existing: { sourceUpdatedAt: Date | null; titleOriginal: string; gameUrl: string; thumbnail: string | null },
+  existing: {
+    sourceUpdatedAt: Date | null;
+    titleOriginal: string;
+    gameUrl: string;
+    thumbnail: string | null;
+    sourceQualityScore: number | null;
+  },
   rec: NormalizedGameRecord,
 ): boolean {
   return (
     !sameInstant(existing.sourceUpdatedAt, rec.sourceUpdatedAt) ||
     existing.titleOriginal !== rec.titleOriginal ||
     existing.gameUrl !== rec.gameUrl ||
-    existing.thumbnail !== rec.thumbnail
+    existing.thumbnail !== rec.thumbnail ||
+    existing.sourceQualityScore !== rec.qualityScore
   );
 }
 
@@ -126,6 +133,7 @@ function toInsertValues(
     gameUrl: rec.gameUrl,
     releaseDate: rec.releaseDate,
     sourceUpdatedAt: rec.sourceUpdatedAt,
+    sourceQualityScore: rec.qualityScore,
     genre: rec.genre,
     tags: JSON.stringify(tags),
     portrait: rec.portrait,
@@ -188,6 +196,7 @@ export async function syncSource(
           titleOriginal: games.titleOriginal,
           gameUrl: games.gameUrl,
           thumbnail: games.thumbnail,
+          sourceQualityScore: games.sourceQualityScore,
         })
         .from(games)
         .where(and(eq(games.sourceId, sourceId), inArray(games.sourceGameId, pageIds)));
@@ -213,6 +222,7 @@ export async function syncSource(
               gameUrl: rec.gameUrl,
               releaseDate: rec.releaseDate,
               sourceUpdatedAt: rec.sourceUpdatedAt,
+              sourceQualityScore: rec.qualityScore,
               portrait: rec.portrait,
               landscape: rec.landscape,
               mobile: rec.mobile,
@@ -239,6 +249,7 @@ export async function syncSource(
             gameUrl: rec.gameUrl,
             releaseDate: rec.releaseDate,
             sourceUpdatedAt: rec.sourceUpdatedAt,
+            sourceQualityScore: rec.qualityScore,
             portrait: rec.portrait,
             landscape: rec.landscape,
             mobile: rec.mobile,

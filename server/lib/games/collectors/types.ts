@@ -34,6 +34,8 @@ export interface NormalizedGameRecord {
   releaseDate: string | null;
   /** 源站最近更新时间（变更检测的依据） */
   sourceUpdatedAt: Date | null;
+  /** 源站官方质量分（GamePix quality_score，0~1），可能缺失 */
+  qualityScore: number | null;
   portrait: boolean;
   landscape: boolean;
   mobile: boolean;

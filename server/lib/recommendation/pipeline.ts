@@ -103,6 +103,7 @@ export async function runRecommendation(
       mobile: candidate.mobile,
       playCount: candidate.playCount,
       gameLanguage: candidate.gameLanguage,
+      sourceQualityScore: candidate.sourceQualityScore,
       totalScore: candidate.totalScore,
     },
     reason: buildReason(candidate, intent, reference),

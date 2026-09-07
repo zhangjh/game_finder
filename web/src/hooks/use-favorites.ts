@@ -35,6 +35,7 @@ export interface FavoriteItem {
   playCount: number;
   gameLanguage: string;
   totalScore: number | null;
+  sourceQualityScore: number | null;
   /** 收藏时间（ISO 字符串），用于排序 */
   favoritedAt: string;
 }
@@ -92,6 +93,7 @@ function toFavoriteItem(game: FavoriteInput): FavoriteItem {
     playCount: game.playCount,
     gameLanguage: game.gameLanguage,
     totalScore: game.totalScore,
+    sourceQualityScore: game.sourceQualityScore ?? null,
     favoritedAt: new Date().toISOString(),
   };
 }

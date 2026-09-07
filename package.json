@@ -13,6 +13,7 @@
     "db:migrate": "pnpm --filter server db:migrate",
     "db:seed": "pnpm --filter server db:seed",
     "import:gamepix": "pnpm --filter server import:gamepix",
+    "cleanup:quality": "pnpm --filter server cleanup:quality",
     "db:studio": "pnpm --filter server db:studio"
   },
   "packageManager": "pnpm@10.15.1"

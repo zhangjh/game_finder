@@ -1,0 +1,1 @@
+ALTER TABLE "games" ADD COLUMN "source_quality_score" double precision;--> statement-breakpoint

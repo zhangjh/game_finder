@@ -1,5 +1,6 @@
 import {
   boolean,
+  doublePrecision,
   index,
   integer,
   pgEnum,
@@ -65,6 +66,8 @@ export const games = pgTable(
     publisher: text("publisher"),
     releaseDate: text("release_date"),
     sourceUpdatedAt: timestamp("source_updated_at", { withTimezone: true }),
+    /** 源站官方质量分（GamePix quality_score，0~1），缺失为 NULL */
+    sourceQualityScore: doublePrecision("source_quality_score"),
 
     /* ===== 类型（PRD §11）===== */
     /** 中文类型名，如 塔防 / Roguelike / 解谜 */
