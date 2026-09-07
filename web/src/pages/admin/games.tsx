@@ -128,6 +128,8 @@ export function AdminGamesPage() {
               <th className="px-3 py-2">游戏</th>
               <th className="px-3 py-2">来源</th>
               <th className="px-3 py-2">状态</th>
+              <th className="px-3 py-2">源站质量</th>
+              <th className="px-3 py-2">平台分</th>
               <th className="px-3 py-2">游玩数</th>
               <th className="px-3 py-2 text-right">操作</th>
             </tr>
@@ -164,6 +166,25 @@ export function AdminGamesPage() {
                       ↻
                     </span>
                   )}
+                </td>
+                <td className="px-3 py-2">
+                  {g.sourceQualityScore != null ? (
+                    <span
+                      title="GamePix 官方质量分"
+                      className={`rounded px-1.5 py-0.5 text-xs font-medium ${
+                        g.sourceQualityScore < 0.8
+                          ? "bg-red-700/30 text-red-300"
+                          : "bg-neutral-800 text-neutral-300"
+                      }`}
+                    >
+                      {Math.round(g.sourceQualityScore * 100)}
+                    </span>
+                  ) : (
+                    <span className="text-xs text-neutral-600">—</span>
+                  )}
+                </td>
+                <td className="px-3 py-2 text-neutral-400">
+                  {g.totalScore != null ? g.totalScore.toFixed(1) : "—"}
                 </td>
                 <td className="px-3 py-2 text-neutral-400">
                   {g.playCount.toLocaleString()}

@@ -5,7 +5,12 @@
 import { and, asc, desc, eq, ilike, or, sql, type SQL } from "drizzle-orm";
 
 import { db } from "@/lib/db";
-import { gameScores, gameSources, games, suspectedDuplicates } from "@/lib/db/schema";
+import {
+  gameScores,
+  gameSources,
+  games,
+  suspectedDuplicates,
+} from "@/lib/db/schema";
 
 export type AdminGameStatus = "draft" | "pending" | "published" | "offline";
 
@@ -67,6 +72,8 @@ export async function adminListGames(filters: AdminGameFilters) {
       genre: games.genre,
       status: games.status,
       playCount: games.playCount,
+      sourceQualityScore: games.sourceQualityScore,
+      totalScore: gameScores.totalScore,
       needsReanalysis: games.needsReanalysis,
       healthFailCount: games.healthFailCount,
       createdAt: games.createdAt,
@@ -75,6 +82,7 @@ export async function adminListGames(filters: AdminGameFilters) {
     })
     .from(games)
     .innerJoin(gameSources, eq(gameSources.id, games.sourceId))
+    .leftJoin(gameScores, eq(gameScores.gameId, games.id))
     .where(where)
     .orderBy(order)
     .limit(pageSize)

@@ -63,6 +63,10 @@ export interface AdminGameListItem {
   genre: string | null;
   status: AdminGameStatus;
   playCount: number;
+  /** 源站官方质量分（0~1），缺失为 null */
+  sourceQualityScore: number | null;
+  /** GameScore（0~10 平台分），冷启动为 null */
+  totalScore: number | null;
   needsReanalysis: boolean;
   healthFailCount: number;
   createdAt: string;
