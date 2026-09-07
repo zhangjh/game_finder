@@ -16,6 +16,8 @@ const LOAD_POST_INTERVAL_MS = 400;
 const LOAD_MAX_POSTS = 40;
 /** SAVE_DATA 落库防抖：设置后 1s 内在有更新则刷新计时 */
 const SAVE_DEBOUNCE_MS = 1_000;
+/** 启动停顿判定：超出此时间仍未收到播放器消息 → 提示用户 */
+const STALL_TIMEOUT_MS = 15_000;
 
 /**
  * 游戏启动区（PRD §31）：点击后加载 iframe，含失败重试态。
@@ -42,18 +44,21 @@ export function GamePlayer({
   const [playing, setPlaying] = useState(false);
   const [failed, setFailed] = useState(false);
   const [fullscreen, setFullscreen] = useState(false);
+  /** 启动停顿：GamePix 播放器在移动端被广告/跟踪拦截时会永久停在加载态 */
+  const [stalled, setStalled] = useState(false);
+  /** 强制重新挂载 iframe（重新加载游戏） */
+  const [reloadKey, setReloadKey] = useState(0);
+  /** 是否收到过来自播放器（游戏源）的消息，视为已开始启动流程 */
+  const bootSignaledRef = useRef(false);
+  const iframeRef = useRef<HTMLIFrameElement>(null);
   /** 存档状态：null=加载中 / {data,hasSave}=已就绪 */
   const [gameSave, setGameSave] = useState<{
     data: string | null;
     hasSave: boolean;
   } | null>(null);
-  const iframeRef = useRef<HTMLIFrameElement>(null);
   const { showToast } = useToast();
 
   const saveable = isGamePixEmbed(gameUrl);
-  /** 调试开关：URL 带 ?noSandbox=1 时去掉 iframe sandbox，用于真机 A/B */
-  const debugNoSandbox =
-    typeof window !== "undefined" && new URLSearchParams(window.location.search).has("noSandbox");
   /** GamePix 播放器 origin（postMessage targetOrigin / 来源校验） */
   const gameOrigin = (() => {
     try {
@@ -125,6 +130,8 @@ export function GamePlayer({
   const start = (mode: "continue" | "fresh") => {
     setFailed(false);
     setPlaying(true);
+    bootSignaledRef.current = false;
+    setStalled(false);
     startRef.current = Date.now();
     sessionCountRef.current += 1;
 
@@ -181,6 +188,11 @@ export function GamePlayer({
 
     const onMessage = (e: MessageEvent) => {
       if (e.origin !== gameOrigin) return;
+      // 收到播放器任何消息即视为已启动（结束停顿提示）
+      if (!bootSignaledRef.current) {
+        bootSignaledRef.current = true;
+        setStalled(false);
+      }
       const d = e.data as {
         type?: string;
         payload?: { key?: unknown; value?: unknown };
@@ -202,6 +214,17 @@ export function GamePlayer({
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [saveable, playing, slug]);
+
+  // 启动停顿检测：GamePix 在移动端浏览器拦截广告/跨站跟踪时（Edge 跟踪防护、
+  // 广告拦截/第三方 Cookie 隔离）会永久停在加载态。超时未收到播放器消息 →
+  // 展示兜底提示（关闭拦截 / 直接打开 / 重新加载）。
+  useEffect(() => {
+    if (!saveable || !playing) return;
+    const t = setTimeout(() => {
+      if (!bootSignaledRef.current) setStalled(true);
+    }, STALL_TIMEOUT_MS);
+    return () => clearTimeout(t);
+  }, [saveable, playing, reloadKey]);
 
   // 退出时上报 game_exit（含会话时长）
   useEffect(() => {
@@ -251,6 +274,14 @@ export function GamePlayer({
     } else if (iframeRef.current) {
       void iframeRef.current.requestFullscreen().catch(() => {});
     }
+  };
+
+  /** 停顿后重新加载：重建 iframe 并重新注入 LOAD_DATA */
+  const reloadGame = () => {
+    bootSignaledRef.current = false;
+    setStalled(false);
+    setReloadKey((k) => k + 1);
+    startLoadInjection();
   };
 
   if (!playing && !failed) {
@@ -315,17 +346,39 @@ export function GamePlayer({
   return (
     <div className={`relative ${frameAspect} w-full overflow-hidden rounded-xl border border-border bg-black`}>
       <iframe
+        key={reloadKey}
         ref={iframeRef}
         name={typeof window !== "undefined" ? window.location.origin : undefined}
         src={withExternalSave(gameUrl)}
         title={title}
         className="h-full w-full"
         allow="fullscreen; autoplay; gamepad; encrypted-media; clipboard-read; clipboard-write; picture-in-picture"
-        {...(!debugNoSandbox && {
-          sandbox:
-            "allow-scripts allow-same-origin allow-forms allow-modals allow-pointer-lock allow-popups allow-popups-to-escape-sandbox allow-top-navigation-by-user-activation",
-        })}
+        sandbox="allow-scripts allow-same-origin allow-forms allow-modals allow-pointer-lock allow-popups allow-popups-to-escape-sandbox allow-top-navigation-by-user-activation"
       />
+      {stalled ? (
+        <div className="absolute inset-0 z-20 flex flex-col items-center justify-center gap-3 bg-black/80 p-4 text-center text-white">
+          <p className="text-sm font-semibold">游戏没有启动</p>
+          <p className="text-xs leading-relaxed text-white/70">
+            通常是浏览器拦截了游戏源（GamePix）的广告/跟踪脚本（如 Edge 跟踪防护、广告拦截）。关闭拦截后点「重新加载」，或在新标签页直接打开游戏。
+          </p>
+          <div className="flex items-center gap-2 pt-1">
+            <button
+              type="button"
+              onClick={reloadGame}
+              className="rounded-full bg-primary px-5 py-2 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90"
+            >
+              重新加载
+            </button>
+            <button
+              type="button"
+              onClick={() => window.open(gameUrl, "_blank", "noopener,noreferrer")}
+              className="rounded-full border border-white/50 px-5 py-2 text-sm text-white transition-colors hover:border-white"
+            >
+              在新标签页打开
+            </button>
+          </div>
+        </div>
+      ) : null}
       <button
         type="button"
         onClick={toggleFullscreen}
