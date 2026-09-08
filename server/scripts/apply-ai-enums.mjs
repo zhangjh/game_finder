@@ -1,8 +1,9 @@
 /**
  * 应用/清理 M4 定时任务类型枚举值。
  *
- * - 确保 analyze_games / relation_games 存在
- * - 移除已废弃的 embedding_games（embedding 已并入 analyze_games，不再有独立任务）
+ * - 确保 analyze_games / relation_games / embedding_games 存在
+ * - embedding_games 曾被移除（当时并入 analyze_games 即时生成），
+ *   但发布时 embedding 失败的游戏无补偿路径，故重新启用独立补偿任务（手动触发）。
  *
  * 幂等：各步均有检查/保护。用法：node scripts/apply-ai-enums.mjs
  */
@@ -11,8 +12,8 @@ import { Client } from "pg";
 const url =
   process.env.DATABASE_URL ?? "postgresql://postgres:postgres@localhost:5432/game_discovery";
 
-const ADD_VALUES = ["analyze_games", "relation_games"];
-const DROP_VALUES = ["embedding_games"];
+const ADD_VALUES = ["analyze_games", "relation_games", "embedding_games"];
+const DROP_VALUES = [];
 
 const c = new Client({ connectionString: url });
 

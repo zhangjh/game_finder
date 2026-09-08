@@ -13,6 +13,7 @@ import cron, { type ScheduledTask } from "node-cron";
 import { db } from "@/lib/db";
 import { cronJobRuns, cronJobs } from "@/lib/db/schema";
 import { runAnalyzeGames } from "@/lib/ai/job";
+import { runEmbeddingJob } from "@/lib/ai/embedding-job";
 import { runRelationJob } from "@/lib/ai/relations-job";
 import { computeScores } from "@/lib/analytics/compute-scores";
 import { allAdapters, getAdapter, syncSource } from "@/lib/games/collectors";
@@ -184,6 +185,23 @@ const RUNNERS: Record<string, JobRunner> = {
     );
     return stats as unknown as Record<string, unknown>;
   },
+  embedding_games: async (params) => {
+    const limit =
+      typeof params.limit === "number"
+        ? params.limit
+        : typeof params.limit === "string" && /^\d+$/.test(params.limit)
+          ? Number(params.limit)
+          : undefined;
+    console.log(`[scheduler] embedding-games: start (limit=${limit ?? 20})`);
+    const stats = await runEmbeddingJob(limit);
+    if (stats.error) throw new Error(stats.error);
+    console.log(
+      `[scheduler] embedding-games done: 扫描=${stats.scanned} ` +
+        `新增=${stats.newEmbeddings} 更新=${stats.updatedEmbeddings} ` +
+        `跳过未变=${stats.skippedUnchanged} 失败=${stats.failed}`,
+    );
+    return stats as unknown as Record<string, unknown>;
+  },
 };
 
 const DEFAULT_PARAMS: Record<string, Record<string, unknown>> = {
@@ -192,6 +210,7 @@ const DEFAULT_PARAMS: Record<string, Record<string, unknown>> = {
   detect_duplicates: {},
   analyze_games: { limit: 20 },
   relation_games: {},
+  embedding_games: { limit: 20 },
 };
 
 export const DEFAULT_JOBS: {
@@ -201,7 +220,8 @@ export const DEFAULT_JOBS: {
     | "detect_duplicates"
     | "analyze_games"
     | "relation_games"
-    | "compute_scores";
+    | "compute_scores"
+    | "embedding_games";
   name: string;
   description: string;
   schedule: string;
@@ -252,6 +272,15 @@ export const DEFAULT_JOBS: {
     description: "按权重 30/20/20/15/10/5 计算已发布游戏总分 game_scores（每日 02:00）",
     schedule: "0 2 * * *",
     params: {},
+  },
+  {
+    type: "embedding_games",
+    name: "Embedding 补偿",
+    description:
+      "扫描已发布游戏，为缺失或内容 hash 过期的游戏补偿生成 embedding 向量。默认停用：仅手动触发，不自动调度。",
+    schedule: "0 1 * * *",
+    params: { limit: 20 },
+    defaultEnabled: false,
   },
 ];
 

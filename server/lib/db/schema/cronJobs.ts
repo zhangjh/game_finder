@@ -25,6 +25,7 @@ export const cronJobTypeEnum = pgEnum("cron_job_type", [
   "analyze_games",
   "relation_games",
   "compute_scores",
+  "embedding_games",
 ]);
 
 export const cronJobs = pgTable(
