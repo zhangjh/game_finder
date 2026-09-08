@@ -13,6 +13,8 @@
  */
 import { Client } from "pg";
 
+import { triggerPagesDeploy } from "./pages-deploy.mjs";
+
 const url =
   process.env.DATABASE_URL ??
   "postgresql://postgres:postgres@postgres:5432/game_discovery";
@@ -188,6 +190,7 @@ try {
   console.log("scores: cold-start placeholder written for GamePix games");
 
   await client.query("COMMIT");
+  await triggerPagesDeploy("import-gamepix");
   console.log("import done — 现在访问前台即可玩到真实 GamePix 游戏");
 } catch (err) {
   await client.query("ROLLBACK").catch(() => {});

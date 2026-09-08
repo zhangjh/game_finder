@@ -454,10 +454,10 @@ T2.4 的 AI 管理页接入真实数据：查看画像、人工修正、单游�
 - [x] T6.2 全量前端埋点
 - [x] T6.3 GameScore v0 计算 job
 - [x] T6.4 指标看板
-- [ ] T7.1 Metadata / Sitemap / Robots / JSON-LD
-- [ ] T7.2 SEO Landing Pages（8 个）
-- [ ] T7.3 Docker 部署
-- [ ] T7.4 上线检查清单
+- [ ] T7.1 Metadata / Sitemap / Robots / JSON-LD（代码完成；Search Console 与 CWV 待生产验证）
+- [x] T7.2 SEO Landing Pages（8 个场景专题）
+- [ ] T7.3 Docker 生产编排（沿用 postgres + server 与进程内 scheduler；生产 HTTPS 待部署）
+- [ ] T7.4 上线检查清单（需真实生产域名、第三方账号与 6 小时运行窗口）
 - [ ] T8.1 Google AdSense 广告变现
 - [ ] T8.2 联盟营销（游戏手柄/外设推荐）
 - [ ] T8.3 广告效果监控看板

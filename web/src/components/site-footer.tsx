@@ -4,7 +4,7 @@ export function SiteFooter() {
   return (
     <footer className="border-t border-border bg-surface">
       <div className="mx-auto flex max-w-6xl flex-col items-center gap-3 px-4 py-6 text-sm text-muted sm:flex-row sm:justify-between">
-        <p>© 2026 AI Game Discovery · 让你更快找到想玩的游戏</p>
+        <p>© 2026 PlayWhat（玩什么）· 让你更快找到想玩的游戏</p>
         <nav className="flex items-center gap-4">
           <Link to="/games" className="transition-colors hover:text-foreground">
             全部游戏

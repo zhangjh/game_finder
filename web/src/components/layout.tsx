@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { Outlet, useLocation } from "react-router";
 
 import { SiteFooter } from "./site-footer";
@@ -8,8 +9,9 @@ export function Layout() {
   const location = useLocation();
 
   // SPA 路由切换后回到顶部
-  if (typeof window !== "undefined") window.scrollTo(0, 0);
-  void location;
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [location.pathname, location.search]);
 
   return (
     <ToastProvider>

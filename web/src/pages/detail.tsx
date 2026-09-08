@@ -5,8 +5,11 @@ import { fetchGameDetail, fetchSimilarGames } from "../api";
 import { FavoriteButton } from "../components/favorite-button";
 import { GameCard } from "../components/game-card";
 import { GamePlayer } from "../components/game-player";
+import { Seo } from "../components/seo";
 import { ShareButton } from "../components/share-button";
 import {
+  buildVideoGameJsonLd,
+  PUBLIC_SITE_URL,
   parseJsonArray,
   ratingLabel,
   sessionLabel,
@@ -20,24 +23,51 @@ export function DetailPage() {
   const [similar, setSimilar] = useState<GameListItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
+  const [error, setError] = useState(false);
+  const [loadedSlug, setLoadedSlug] = useState<string | null>(null);
 
   useEffect(() => {
+    let active = true;
     setLoading(true);
     setNotFound(false);
-    fetchGameDetail(slug)
-      .then((g) => {
-        if (!g) {
+    setError(false);
+    setSimilar([]);
+    void fetchGameDetail(slug)
+      .then((nextGame) => {
+        if (!active) return;
+        if (!nextGame) {
+          setGame(null);
           setNotFound(true);
+          setLoadedSlug(slug);
           return;
         }
-        setGame(g);
-        document.title = `${g.title}（${g.titleOriginal}）| AI Game Discovery`;
-        return fetchSimilarGames(slug).then(setSimilar);
+
+        setGame(nextGame);
+        setLoadedSlug(slug);
+        void fetchSimilarGames(slug)
+          .then((nextSimilar) => {
+            if (active) setSimilar(nextSimilar);
+          })
+          .catch(() => {
+            if (active) setSimilar([]);
+          });
       })
-      .finally(() => setLoading(false));
+      .catch(() => {
+        if (!active) return;
+        setGame(null);
+        setError(true);
+        setLoadedSlug(slug);
+      })
+      .finally(() => {
+        if (active) setLoading(false);
+      });
+
+    return () => {
+      active = false;
+    };
   }, [slug]);
 
-  if (loading) {
+  if (loading || loadedSlug !== slug) {
     return (
       <div className="mx-auto max-w-4xl px-4 py-20 text-center text-muted">
         加载中…
@@ -45,9 +75,29 @@ export function DetailPage() {
     );
   }
 
+  if (error) {
+    return (
+      <div className="mx-auto max-w-4xl px-4 py-20 text-center text-muted">
+        <Seo
+          title="游戏加载失败 | 玩什么 PlayWhat"
+          description="游戏详情暂时无法加载，请稍后重试。"
+          path={`/game/${encodeURIComponent(slug)}`}
+          noIndex
+        />
+        游戏详情加载失败，请稍后重试
+      </div>
+    );
+  }
+
   if (notFound || !game) {
     return (
       <div className="mx-auto max-w-4xl px-4 py-20 text-center text-muted">
+        <Seo
+          title="游戏不存在 | 玩什么 PlayWhat"
+          description="这款游戏不存在、已下架或暂时不可用。"
+          path={`/game/${encodeURIComponent(slug)}`}
+          noIndex
+        />
         游戏不存在或已下架 ·{" "}
         <Link to="/games" className="text-primary hover:underline">
           浏览全部游戏
@@ -94,9 +144,19 @@ export function DetailPage() {
   ];
 
   const screenshots = parseJsonArray(game.screenshots);
+  const canonicalPath = `/game/${encodeURIComponent(game.slug)}`;
+  const jsonLd = buildVideoGameJsonLd(game, `${PUBLIC_SITE_URL}${canonicalPath}`);
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-6">
+      <Seo
+        title={`${game.title}（${game.titleOriginal}）| 玩什么 PlayWhat`}
+        description={game.description.slice(0, 155)}
+        path={canonicalPath}
+        image={game.thumbnail}
+        type="article"
+        jsonLd={jsonLd}
+      />
       <div className="flex flex-wrap items-end justify-between gap-2">
         <div>
           <h1 className="text-2xl font-bold">{game.title}</h1>

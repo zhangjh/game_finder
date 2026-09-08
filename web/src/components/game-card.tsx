@@ -80,6 +80,9 @@ export function GameCard({
           src={game.thumbnail ?? "/placeholder.svg"}
           alt={`${game.title}缩略图`}
           loading="lazy"
+          decoding="async"
+          width={640}
+          height={400}
           className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
         />
         <FavoriteButton game={game} variant="card" />

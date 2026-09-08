@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, useSearchParams } from "react-router";
 
 import { fetchGames, fetchRecommendation } from "../api";
+import { Seo } from "../components/seo";
 import { GameCard } from "../components/game-card";
 import { RecommendResults } from "../components/recommend-results";
 import type { GameListItem, RecommendResponse } from "@game-finder/shared";
@@ -32,9 +33,6 @@ export function SearchPage() {
   const [aiMode, setAiMode] = useState(false);
 
   useEffect(() => {
-    document.title = q
-      ? `「${q}」搜索结果 | AI Game Discovery`
-      : "搜索 | AI Game Discovery";
     if (!q) {
       setResults([]);
       setTotal(0);
@@ -98,6 +96,12 @@ export function SearchPage() {
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-6">
+      <Seo
+        title={q ? `「${q}」搜索结果 | 玩什么 PlayWhat` : "搜索 | 玩什么 PlayWhat"}
+        description="搜索在线网页游戏，或直接描述你的时间、心情、人数和设备需求。"
+        path="/search"
+        noIndex
+      />
       <h1 className="text-xl font-bold">
         {q ? (
           <>

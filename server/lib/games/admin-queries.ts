@@ -244,28 +244,30 @@ export async function adminListDuplicates(status = "pending", page = 1, pageSize
  * - 记录标记 merged
  */
 export async function adminMergeDuplicate(pairId: number, keep: "game_id" | "duplicate_of_game_id") {
-  const rows = await db
-    .select()
-    .from(suspectedDuplicates)
-    .where(eq(suspectedDuplicates.id, pairId))
-    .limit(1);
-  const pair = rows[0];
-  if (!pair) return undefined;
+  return db.transaction(async (tx) => {
+    const rows = await tx
+      .select()
+      .from(suspectedDuplicates)
+      .where(eq(suspectedDuplicates.id, pairId))
+      .limit(1);
+    const pair = rows[0];
+    if (!pair) return undefined;
 
-  const keepId = keep === "game_id" ? pair.gameId : pair.duplicateOfGameId;
-  const offlineId = keep === "game_id" ? pair.duplicateOfGameId : pair.gameId;
+    const keepId = keep === "game_id" ? pair.gameId : pair.duplicateOfGameId;
+    const offlineId = keep === "game_id" ? pair.duplicateOfGameId : pair.gameId;
 
-  await db
-    .update(games)
-    .set({ status: "offline", updatedAt: new Date() })
-    .where(eq(games.id, offlineId));
-  const updated = await db
-    .update(suspectedDuplicates)
-    .set({ status: "merged", updatedAt: new Date() })
-    .where(eq(suspectedDuplicates.id, pairId))
-    .returning({ id: suspectedDuplicates.id });
+    await tx
+      .update(games)
+      .set({ status: "offline", updatedAt: new Date() })
+      .where(eq(games.id, offlineId));
+    const updated = await tx
+      .update(suspectedDuplicates)
+      .set({ status: "merged", updatedAt: new Date() })
+      .where(eq(suspectedDuplicates.id, pairId))
+      .returning({ id: suspectedDuplicates.id });
 
-  return { pair: updated[0], keptId: keepId, offlinedId: offlineId };
+    return { pair: updated[0], keptId: keepId, offlinedId: offlineId };
+  });
 }
 
 export async function adminDismissDuplicate(pairId: number) {

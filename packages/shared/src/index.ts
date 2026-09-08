@@ -41,6 +41,9 @@ export interface GameDetail {
   description: string;
   descriptionZh: string;
   thumbnail: string | null;
+  developer: string | null;
+  publisher: string | null;
+  releaseDate: string | null;
   /** JSON 数组字符串（Web 用 parseJsonArray 解析；游戏画面/封面 URL 列表） */
   screenshots: string;
   gameUrl: string;
@@ -78,6 +81,8 @@ export interface GameListQuery {
   /** 人数，"multi" 表示多人 */
   players?: number | "multi";
   platform?: "mobile" | "desktop";
+  /** AI 心情画像标签 */
+  mood?: "relaxing";
   q?: string;
   sort?: "popular" | "newest" | "score" | "random" | "quality";
   /** 源站质量分下限（strict：> 该值），如 0.9 只看原始质量 90+ 的游戏 */
@@ -122,6 +127,9 @@ export function parseJsonArray(raw: string): string[] {
 
 /** AI Game Finder 推荐契约（M5） */
 export * from "./recommendation";
+
+/** SEO 专题页配置（M7） */
+export * from "./seo";
 
 /**
  * 游戏续玩存档 API 契约（M6.5）。

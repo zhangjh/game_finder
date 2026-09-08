@@ -1,4 +1,4 @@
-# 生产环境部署文档（VPS：2c4g）
+# 玩什么 / PlayWhat 生产环境部署文档（VPS：2c4g）
 
 > 本文面向**正式上线**，假定服务器为单台 **2c4g VPS**。本地/开发流程见 [`deployment.md`](deployment.md)。
 
@@ -6,7 +6,7 @@
 
 ```text
 用户浏览器
-   │  https://zhangjh.cn（主域，Cloudflare Pages SPA + ads.txt）
+   │  https://playwhat.cc（主域，Cloudflare Pages 静态站 + 构建期 SEO + ads.txt）
    │  fetch https://game-api.zhangjh.cn/api/*
    ▼
 顶级域名 game-api.zhangjh.cn ──> Nginx（自动 HTTPS，反代到本机 :3001）
@@ -18,7 +18,7 @@
                        Docker：postgres（pgvector，restart: unless-stopped）
 ```
 
-- **web**：静态 SPA，Cloudflare Pages 托管。构建时把 `VITE_API_BASE_URL=https://game-api.zhangjh.cn` 注入。
+- **web**：Cloudflare Pages 托管。`build:seo` 构建 SPA，并从 `VITE_API_BASE_URL=https://game-api.zhangjh.cn` 批量读取 SEO 数据，生成主域详情页 metadata、JSON-LD、robots 和 sitemap。
 - **server**：Express API，Docker 容器；镜像为**自包含单文件**（不含 node_modules）。监听宿主机 `:3001`（避开 VPS 上其他服务占用的 3000）。
 - **DB**：PostgreSQL 16 + pgvector，同机 Docker；只在自己 docker 内网，不对宿主机暴露端口。
 - **守护**：进程内致命错误 → `index.ts` 兜底退出 → Docker `restart` 拉起（闭环）。
@@ -71,9 +71,14 @@ cd ~/dev/game_finder/server
 cat > .env <<'EOF'
 # 注：compose 的 server 服务已把 DATABASE_URL 硬编码为 @postgres:5432，
 #     因此 DATABASE_URL 无需在此重复（保留可覆盖，但不建议改）。
+# Cloudflare Pages 构建专用导出密钥（两端必须一致）
+SEO_EXPORT_TOKEN=<强随机密钥>
+# Cloudflare Pages Production Deploy Hook（敏感 URL，仅放 VPS）
+CLOUDFLARE_PAGES_DEPLOY_HOOK_URL=<Production Deploy Hook URL>
+
 # CORS 白名单（必填！）：允许哪些前端域名调用。逗号分隔，不带末尾斜杠
 # 未设置 = 放行所有来源（生产绝不允许）
-ALLOWED_ORIGINS=https://zhangjh.cn
+ALLOWED_ORIGINS=https://playwhat.cc
 
 # 管理后台密码（必填！没有它后台登录永远报"密码错误"）
 ADMIN_PASSWORD=<强密码>
@@ -89,6 +94,9 @@ chmod 600 .env
 > `env_file: .env`，会把 `.env` 注入容器（否则容器内读不到 `ADMIN_PASSWORD` 等，
 > 后台登录会永远报"密码错误"）。生产建议同时把 `DATABASE_URL`、`ADMIN_PASSWORD`
 > 用 VPS 密钥管理或 compose `environment` 覆盖，避免明文常驻。
+>
+> 后端同步、AI 发布、健康下线和后台公开目录操作会以 30 秒 debounce 合并触发
+> Production Deploy Hook，使 Pages 重新生成详情页与 sitemap。Hook URL 等同部署凭据，禁止提交。
 
 ### 4. 数据库：初始化 Schema 与种子数据
 
@@ -150,7 +158,7 @@ sudo apt install -y nginx certbot python3-certbot-nginx
 
 ### 2. DNS（Cloudflare 上操作）
 
-在 Cloudflare 的 `zhangjh.cn` 面板建一条 **A 记录**：
+在 Cloudflare 的 `zhangjh.cn` 面板建一条 **A 记录**（当前 API 仍使用旧域名）：
 - 类型：`A`，名称：`game-api`，IPv4：你的 VPS 公网 IP
 - 代理状态：**灰云（仅 DNS）**（不要开橙色云，避免 CF 代理回源冲突）
 - 保存后确认解析：`dig +short game-api.zhangjh.cn` 应返回你的 IP
@@ -199,15 +207,15 @@ sudo nginx -t
 sudo systemctl reload nginx
 ```
 
-> **DNS 提示**：`game-api` 子域在 Cloudflare 用**灰云（仅 DNS）**避免 CF 代理；`zhangjh.cn` 主域保持 CF Pages 代理。
+> **DNS 提示**：`game-api` 子域在 Cloudflare 用**灰云（仅 DNS）**避免 CF 代理；`playwhat.cc` 主域保持 CF Pages 代理。
 
 ### 3. 验证 HTTPS
 
 ```bash
 curl https://game-api.zhangjh.cn/healthz
 curl https://game-api.zhangjh.cn/api/games?pageSize=2
-curl -H "Origin: https://zhangjh.cn" -I https://game-api.zhangjh.cn/api/games
-# 响应应含 access-control-allow-origin: https://zhangjh.cn
+curl -H "Origin: https://playwhat.cc" -I https://game-api.zhangjh.cn/api/games
+# 响应应含 access-control-allow-origin: https://playwhat.cc
 ```
 
 ---
@@ -288,13 +296,14 @@ docker compose ps               # 确认 healthy
 ```bash
 cd ~/dev/game_finder/server
 
-# 预检：全量回填质量分 + 打印将下架数量（不改数据）
-docker run --rm --network server_default -v ~/dev/game_finder:/app -w /app/server \
+# 预检：会回填质量分并打印将下架数量，但不会下架游戏
+# --env-file 让脚本在质量分或目录变化后触发 Pages 重建
+docker run --rm --env-file .env --network server_default -v ~/dev/game_finder:/app -w /app/server \
   -e DATABASE_URL="postgresql://postgres:postgres@postgres:5432/game_discovery" \
   node:22 node scripts/cleanup-low-quality.mjs -- --dry-run
 
 # 正式执行：回填 + quality<0.2 的已发布游戏 status='offline'
-docker run --rm --network server_default -v ~/dev/game_finder:/app -w /app/server \
+docker run --rm --env-file .env --network server_default -v ~/dev/game_finder:/app -w /app/server \
   -e DATABASE_URL="postgresql://postgres:postgres@postgres:5432/game_discovery" \
   node:22 node scripts/cleanup-low-quality.mjs
 ```
@@ -335,11 +344,12 @@ docker compose up -d server
 
 - [ ] `https://game-api.zhangjh.cn/healthz` → `200 {"status":"ok"}`
 - [ ] `https://game-api.zhangjh.cn/api/games?pageSize=2` 返回 JSON
-- [ ] 跨域：`curl -H "Origin: https://zhangjh.cn" -I .../api/games` 含 `access-control-allow-origin: https://zhangjh.cn`
-- [ ] `https://zhangjh.cn/ads.txt` 返回 GamePix 内容
+- [ ] 跨域：`curl -H "Origin: https://playwhat.cc" -I .../api/games` 含 `access-control-allow-origin: https://playwhat.cc`
+- [ ] `https://playwhat.cc/ads.txt` 返回 GamePix 内容
 - [ ] 首页四区块、`/games` 筛选、`/game/{slug}`、搜索均显示真实数据（无 CORS 报错）
 - [ ] `3001`/`5432` 未直接暴露公网，仅 `443` 可达
-- [ ] `.env` 权限 600、`ALLOWED_ORIGINS`/`ADMIN_PASSWORD` 已设
+- [ ] `.env` 权限 600、`ALLOWED_ORIGINS`/`ADMIN_PASSWORD`/`SEO_EXPORT_TOKEN`/`CLOUDFLARE_PAGES_DEPLOY_HOOK_URL` 已设
+- [ ] 发布新 slug 后 Pages 自动重建且详情进入 sitemap；下线后自动重建且详情返回 404 并从 sitemap 移除
 - [ ] 每日备份 cron 已生效，且能恢复
 - [ ] 镜像已打稳定 tag（非 `latest`），升级有回滚路径
 
@@ -354,7 +364,7 @@ docker compose up -d server
 | API 报 500 | `docker logs game_discovery_server`；多为 DB 连接/查询错误，确认 `DATABASE_URL` |
 | 首页空且 `API error` | CF Pages 构建时 `VITE_API_BASE_URL` 未注入，重新部署 |
 | 内存吃紧 | 2c4g 内 postgres + server 各约 150~250MB / 60~100MB；异常则看 `docker stats` 揪出进程 |
-| 证书问题 | `sudo journalctl -u caddy -f`；确认 `api` 子域 A 记录指向本机 |
+| 证书问题 | `sudo journalctl -u nginx -f`；确认 `game-api` 子域 A 记录指向本机 |
 
 ---
 

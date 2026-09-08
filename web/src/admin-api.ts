@@ -3,7 +3,7 @@
  * Cookie 会话跨域：credentials: "include"（Express CORS 已开 credentials）。
  */
 
-const BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:3000";
+import { API_BASE_URL as BASE_URL } from "./api-base";
 
 async function adminFetch(path: string, init?: RequestInit) {
   const res = await fetch(`${BASE_URL}/api/admin${path}`, {

@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
-    "lint": "oxlint src",
+    "build:seo": "pnpm build && tsx scripts/generate-seo.ts",
+    "lint": "oxlint src scripts",
     "preview": "vite preview"
   },
   "dependencies": {
@@ -23,6 +24,7 @@
     "@vitejs/plugin-react": "^6.1.0",
     "oxlint": "^1.79.0",
     "tailwindcss": "^4",
+    "tsx": "4.23.13",
     "typescript": "~6.0.2",
     "vite": "^8.2.2"
   }

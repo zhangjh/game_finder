@@ -1,18 +1,20 @@
-import { useEffect } from "react";
 import { Link } from "react-router";
 
 import { GameCard } from "../components/game-card";
+import { Seo } from "../components/seo";
 import { useFavorites } from "../hooks/use-favorites";
 
 export function FavoritesPage() {
   const { list } = useFavorites();
 
-  useEffect(() => {
-    document.title = "我的收藏 | AI Game Discovery";
-  }, []);
-
   return (
     <div className="mx-auto max-w-6xl px-4 py-6">
+      <Seo
+        title="我的收藏 | 玩什么 PlayWhat"
+        description="查看保存在当前浏览器中的游戏收藏。"
+        path="/favorites"
+        noIndex
+      />
       <div className="flex items-center justify-between">
         <h1 className="text-xl font-bold">我的收藏</h1>
         {list.length > 0 && (

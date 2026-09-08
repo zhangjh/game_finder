@@ -1,5 +1,7 @@
 import { Router } from "express";
 
+import { schedulePagesDeploy } from "@/lib/pages-deploy";
+
 import {
   clearSessionCookie,
   isAdminAuthed,
@@ -136,6 +138,7 @@ adminRouter.post("/games/:id/status", async (req, res) => {
     res.status(404).json({ error: "not_found" });
     return;
   }
+  schedulePagesDeploy("admin-game-status");
   res.json(updated);
 });
 
@@ -154,6 +157,9 @@ adminRouter.put("/games/:id/profile", async (req, res) => {
     if (!updated) {
       res.status(404).json({ error: "not_found" });
       return;
+    }
+    if (updated.status === "published") {
+      schedulePagesDeploy("admin-game-profile");
     }
     res.json(updated);
   } catch (err) {
@@ -177,6 +183,7 @@ adminRouter.post("/games/:id/reanalyze", async (req, res) => {
     res.status(502).json({ error: result.error });
     return;
   }
+  schedulePagesDeploy("admin-game-reanalyze");
   res.json(result);
 });
 
@@ -229,6 +236,7 @@ adminRouter.post("/duplicates/:id/merge", async (req, res) => {
     res.status(404).json({ error: "not_found" });
     return;
   }
+  schedulePagesDeploy("admin-duplicate-merge");
   res.json(result);
 });
 

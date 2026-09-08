@@ -16,6 +16,8 @@
  */
 import { Client } from "pg";
 
+import { triggerPagesDeploy } from "./pages-deploy.mjs";
+
 const url =
   process.env.DATABASE_URL ??
   "postgresql://postgres:postgres@postgres:5432/game_discovery";
@@ -103,6 +105,7 @@ try {
   }
 
   await client.query("COMMIT");
+  await triggerPagesDeploy("cleanup-low-quality");
   console.log("[cleanup] 完成");
 } catch (err) {
   await client.query("ROLLBACK").catch(() => {});

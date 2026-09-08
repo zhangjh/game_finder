@@ -3,6 +3,7 @@ import "dotenv/config";
 import { createApp } from "./app";
 import { runMigrations } from "./migrate";
 import { initScheduler, stopScheduler } from "@/lib/scheduler";
+import { schedulePagesDeploy } from "@/lib/pages-deploy";
 
 const port = Number(process.env.PORT ?? 3001);
 const host = process.env.HOSTNAME ?? "0.0.0.0";
@@ -20,6 +21,7 @@ app.listen(port, host, () => {
 // 应用内定时任务调度器（T3.6）：从 cron_jobs 表加载并注册 node-cron 任务。
 // 失败不阻止 HTTP 服务启动（DB 未就绪等场景记录后继续）。
 void initScheduler();
+schedulePagesDeploy("server-start");
 
 // 兜底：任何未捕获的异常/拒绝都记录后退出进程。
 // 致命错误无法安全恢复（资源/连接可能已损坏），直接退出让外层的

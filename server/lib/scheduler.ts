@@ -18,6 +18,7 @@ import { computeScores } from "@/lib/analytics/compute-scores";
 import { allAdapters, getAdapter, syncSource } from "@/lib/games/collectors";
 import { detectDuplicates } from "@/lib/games/duplicates";
 import { runHealthCheck } from "@/lib/games/health-check";
+import { schedulePagesDeploy } from "@/lib/pages-deploy";
 import { eq, sql } from "drizzle-orm";
 
 /** 已注册的 node-cron 任务：cronJobs.id → ScheduledTask */
@@ -81,9 +82,15 @@ const RUNNERS: Record<string, JobRunner> = {
       (s, r) => s + (Number((r as { updated?: unknown }).updated) || 0),
       0,
     );
+    const offline = results.reduce(
+      (s, r) => s + (Number((r as { offline?: unknown }).offline) || 0),
+      0,
+    );
+    let published = 0;
     if (inserted + updated > 0) {
       try {
         const followStats = await runAnalyzeGames();
+        published = followStats.published;
         console.log(
           `[scheduler] sync→analyze follow-up: scanned=${followStats.scanned} ` +
             `analyzed=${followStats.analyzed} published=${followStats.published} ` +
@@ -94,6 +101,9 @@ const RUNNERS: Record<string, JobRunner> = {
       } catch (err) {
         console.error("[scheduler] sync→analyze follow-up failed:", err);
       }
+    }
+    if (updated > 0 || offline > 0 || published > 0) {
+      schedulePagesDeploy("sync-games");
     }
     return { results };
   },
@@ -112,6 +122,7 @@ const RUNNERS: Record<string, JobRunner> = {
           : undefined;
     console.log(`[scheduler] health-check: start (limit=${limit ?? 200}, threshold=${threshold ?? 3})`);
     const stats = await runHealthCheck({ limit, offlineThreshold: threshold });
+    if (stats.offlined > 0) schedulePagesDeploy("health-check");
     if (stats.error) throw new Error(stats.error);
     console.log(
       `[scheduler] health-check done: 检查=${stats.checked} 正常=${stats.ok} ` +
@@ -146,6 +157,7 @@ const RUNNERS: Record<string, JobRunner> = {
           : undefined;
     console.log(`[scheduler] analyze-games: start (limit=${limit ?? 20})`);
     const stats = await runAnalyzeGames(limit);
+    if (stats.published > 0) schedulePagesDeploy("analyze-games");
     if (stats.error) throw new Error(stats.error);
     console.log(
       `[scheduler] analyze-games done: 扫描=${stats.scanned} 分析=${stats.analyzed} ` +

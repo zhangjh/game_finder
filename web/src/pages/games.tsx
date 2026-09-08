@@ -3,6 +3,7 @@ import { Link, useSearchParams } from "react-router";
 
 import { fetchGames } from "../api";
 import { GameCard } from "../components/game-card";
+import { Seo } from "../components/seo";
 import type { GameListItem } from "@game-finder/shared";
 
 const GENRES = ["休闲", "塔防", "Roguelike", "解谜", "对战"];
@@ -80,6 +81,12 @@ export function GamesPage() {
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-6">
+      <Seo
+        title="在线网页游戏大全｜按时长、人数和设备筛选"
+        description="浏览无需下载的在线网页游戏，按类型、单局时长、玩家人数、设备和评分筛选。"
+        path="/games"
+        noIndex={sp.size > 0}
+      />
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h1 className="text-xl font-bold">全部游戏</h1>
         <div className="flex items-center gap-2 text-sm">

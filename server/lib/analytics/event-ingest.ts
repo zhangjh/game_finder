@@ -106,7 +106,6 @@ export async function ingestEvents(raw: RawEvent[]): Promise<IngestResult> {
         .update(games)
         .set({
           playCount: sql`${games.playCount} + 1`,
-          updatedAt: new Date(),
         })
         .where(inArray(games.id, startGameIds));
     }

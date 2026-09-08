@@ -1,10 +1,17 @@
 import tailwindcss from "@tailwindcss/vite";
 import react from "@vitejs/plugin-react";
-import { defineConfig } from "vite";
+import { defineConfig, loadEnv } from "vite";
 
 // https://vite.dev/config/
-export default defineConfig({
-  plugins: [react(), tailwindcss()],
-  // CF Pages 是纯静态托管，SPA 路由需要回退到 index.html
-  // （CF Pages 默认已做 SPA fallback，本地 preview 也默认支持）
+export default defineConfig(({ command, mode }) => {
+  const env = loadEnv(mode, process.cwd(), "VITE_");
+  const apiBaseUrl = process.env.VITE_API_BASE_URL ?? env.VITE_API_BASE_URL;
+  if (command === "build" && !apiBaseUrl) {
+    throw new Error("VITE_API_BASE_URL is required for production builds");
+  }
+
+  return {
+    plugins: [react(), tailwindcss()],
+    // Cloudflare Pages 由 build:seo 生成全部已知 SPA 路径和 404.html。
+  };
 });

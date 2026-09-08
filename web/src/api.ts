@@ -1,8 +1,7 @@
 /**
  * 后端 API client。
- * API 地址通过 Vite 环境变量注入：
- *   开发：.env.local 里 VITE_API_BASE_URL=http://localhost:3000
- *   生产（CF Pages 构建时）：VITE_API_BASE_URL=https://api.example.com
+ * 生产构建必须通过 VITE_API_BASE_URL 指向独立 API 域名；
+ * 本地开发未配置时默认使用 http://localhost:3001。
  */
 import type {
   GameDetail,
@@ -14,15 +13,17 @@ import type {
   RecommendResponse,
 } from "@game-finder/shared";
 
+import { API_BASE_URL } from "./api-base";
 import { getPersistedUserId } from "./analytics/user-id";
 
-const BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:3000";
+const BASE_URL = API_BASE_URL;
 
 export type GameListQueryParams = {
   genre?: string;
   duration?: number;
   players?: number | "multi";
   platform?: "mobile" | "desktop";
+  mood?: "relaxing";
   q?: string;
   sort?: "popular" | "newest" | "score" | "random" | "quality";
   /** 源站质量分下限（> 该值），如 0.9 */
@@ -39,6 +40,7 @@ export async function fetchGames(
   if (params.duration) sp.set("duration", String(params.duration));
   if (params.players) sp.set("players", String(params.players));
   if (params.platform) sp.set("platform", params.platform);
+  if (params.mood) sp.set("mood", params.mood);
   if (params.q) sp.set("q", params.q);
   if (params.sort) sp.set("sort", params.sort);
   if (params.minQualityScore != null)

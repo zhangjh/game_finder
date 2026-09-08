@@ -1,17 +1,17 @@
-# Game Discovery
+# 玩什么 / PlayWhat
 
 游戏发现与推荐平台。monorepo（pnpm workspace）双包结构：
 
 | 包 | 栈 | 角色 | 部署 |
 | --- | --- | --- | --- |
-| `web/` | Vite + React SPA | 公开前台 | Cloudflare Pages（主域，含 ads.txt） |
+| `web/` | Vite + React SPA | 公开前台 + 构建期 SEO | Cloudflare Pages（主域，含 ads.txt） |
 | `server/` | Express + Drizzle ORM | API 服务（无前端文件） | VPS Docker（restart 守护） |
 | `packages/shared/` | TS | 前后端共享 API 契约类型 | workspace 内联 |
 
 架构：
 
 ```text
-用户浏览器 ──> CF Pages（静态 SPA + ads.txt）
+用户浏览器 ──> CF Pages（静态 SPA + 预生成 SEO 页面 + ads.txt）
     │  fetch /api/*
     └──> VPS API（Express，Docker restart 守护）──> PostgreSQL + pgvector
 ```

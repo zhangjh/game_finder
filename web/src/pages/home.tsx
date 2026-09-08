@@ -4,6 +4,7 @@ import { Link } from "react-router";
 import { fetchGames, fetchRecommendation } from "../api";
 import { GameCard } from "../components/game-card";
 import { RecommendResults } from "../components/recommend-results";
+import { Seo } from "../components/seo";
 import type { GameListItem, RecommendResponse } from "@game-finder/shared";
 
 /** 快捷 chips（PRD §20.1）：预定义 intent 走 API，不走 LLM */
@@ -76,6 +77,11 @@ export function HomePage() {
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-6">
+      <Seo
+        title="玩什么 PlayWhat — 告诉我你想怎么玩"
+        description="告诉 AI 你现在想怎么玩，它会结合时间、心情、人数和设备，从在线网页游戏中挑出更合适的选择。"
+        path="/"
+      />
       {/* ===== AI Game Finder（首页第一核心，PRD §20/§32）===== */}
       <section className="rounded-2xl bg-gradient-to-br from-primary/15 via-surface to-surface p-6 sm:p-10">
         <h1 className="text-center text-2xl font-bold sm:text-3xl">

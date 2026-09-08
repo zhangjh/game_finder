@@ -21,10 +21,10 @@ export function SiteHeader() {
       <div className="mx-auto flex max-w-6xl items-center gap-3 px-4 py-3">
         <Link to="/" className="flex shrink-0 items-center gap-2">
           <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-sm font-bold text-primary-foreground">
-            AI
+            玩
           </span>
           <span className="hidden text-base font-semibold sm:block">
-            Game Discovery
+            玩什么
           </span>
         </Link>
 

@@ -9,17 +9,19 @@ import { games, gameScores } from "@/lib/db/schema";
 import type {
   GameDetail,
   GameListItem,
+  SeoGameExportResponse,
 } from "@game-finder/shared";
 
 export type { GameDetail, GameListItem };
 
 export type GameListFilters = {
   genre?: string;
-  /** 单局时长上限（分钟）：session_length_min <= max */
+  /** 单局时长上限（分钟）：session_length_max <= max */
   durationMax?: number;
   /** 精确人数支持 或 "multi" 表示多人 */
   players?: number | "multi";
   platform?: "mobile" | "desktop";
+  mood?: "relaxing";
   /** 关键词（标题/标签/描述简单 ILIKE；M5 升级 FTS） */
   q?: string;
   /** 源站质量分下限（strict：仅 > 该值，NULL 不通过） */
@@ -36,7 +38,7 @@ function buildConditions(filters: GameListFilters): SQL[] {
 
   if (filters.genre) conds.push(eq(games.genre, filters.genre));
   if (filters.durationMax != null)
-    conds.push(lte(games.sessionLengthMin, filters.durationMax));
+    conds.push(lte(games.sessionLengthMax, filters.durationMax));
   if (filters.players === "multi") conds.push(eq(games.multiplayer, true));
   else if (typeof filters.players === "number")
     conds.push(
@@ -47,6 +49,14 @@ function buildConditions(filters: GameListFilters): SQL[] {
     );
   if (filters.platform === "mobile") conds.push(eq(games.mobile, true));
   else if (filters.platform === "desktop") conds.push(eq(games.desktop, true));
+  if (filters.mood === "relaxing") {
+    conds.push(
+      or(
+        ilike(games.mood, '%"relaxing"%'),
+        ilike(games.mood, '%"chill"%'),
+      )!,
+    );
+  }
   if (filters.minQualityScore != null)
     conds.push(gt(games.sourceQualityScore, filters.minQualityScore));
   if (filters.q) {
@@ -232,4 +242,63 @@ export async function getSimilarGames(
     sourceQualityScore: (r.source_quality_score as number | null) ?? null,
     totalScore: (r.total_score as number | null) ?? null,
   }));
+}
+
+export async function exportSeoGames(
+  cursor: number,
+  pageSize: number,
+): Promise<SeoGameExportResponse> {
+  const safeCursor = Math.max(0, cursor);
+  const safePageSize = Math.min(1_000, Math.max(1, pageSize));
+
+  return db.transaction(
+    async (tx) => {
+      const [snapshot] = await tx
+        .select({
+          total: sql<number>`count(*)::int`,
+          lastUpdatedAt: sql<string>`coalesce(max(${games.updatedAt})::text, '')`,
+        })
+        .from(games)
+        .where(publishedOnly);
+      const rows = await tx
+        .select({
+          id: games.id,
+          slug: games.slug,
+          title: games.title,
+          titleOriginal: games.titleOriginal,
+          description: games.description,
+          thumbnail: games.thumbnail,
+          genre: games.genre,
+          sessionLengthMax: games.sessionLengthMax,
+          minPlayers: games.minPlayers,
+          maxPlayers: games.maxPlayers,
+          mood: games.mood,
+          sourceQualityScore: games.sourceQualityScore,
+          desktop: games.desktop,
+          mobile: games.mobile,
+          gameLanguage: games.gameLanguage,
+          multiplayer: games.multiplayer,
+          developer: games.developer,
+          publisher: games.publisher,
+          releaseDate: games.releaseDate,
+          updatedAt: games.updatedAt,
+        })
+        .from(games)
+        .where(and(publishedOnly, gt(games.id, safeCursor)))
+        .orderBy(games.id)
+        .limit(safePageSize);
+
+      return {
+        items: rows.map(({ id: _id, updatedAt, ...game }) => ({
+          ...game,
+          updatedAt: updatedAt.toISOString(),
+        })),
+        total: snapshot.total,
+        nextCursor:
+          rows.length === safePageSize ? rows[rows.length - 1].id : null,
+        catalogVersion: `${snapshot.total}:${snapshot.lastUpdatedAt}`,
+      };
+    },
+    { isolationLevel: "repeatable read", accessMode: "read only" },
+  );
 }

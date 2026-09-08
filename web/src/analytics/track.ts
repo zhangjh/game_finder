@@ -11,9 +11,9 @@
  *   game_30s / game_2min / game_5min / game_exit / game_replay /
  *   favorite / share / recommendation_impression / recommendation_click
  */
+import { API_BASE_URL as BASE_URL } from "../api-base";
 import { getUserId } from "./user-id";
 
-const BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:3000";
 const FLUSH_INTERVAL_MS = 10_000;
 const FLUSH_BATCH_SIZE = 20;
 

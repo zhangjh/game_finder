@@ -3,6 +3,7 @@ import { Link, useSearchParams } from "react-router";
 
 import { fetchGames } from "../api";
 import { GameCard } from "../components/game-card";
+import { Seo } from "../components/seo";
 import type { GameListItem } from "@game-finder/shared";
 
 /** 源站原始质量分阈值：只展示 quality_score > 该值的精品 */
@@ -11,7 +12,7 @@ const MIN_QUALITY = 0.8;
 const PAGE_SIZE = 24;
 
 /**
- * 高品质精选：源站原始质量分 > 0.9 的游戏，按质量分从高到低分页浏览。
+ * 高品质精选：源站原始质量分 > 0.8 的游戏，按质量分从高到低分页浏览。
  */
 export function HighQualityPage() {
   const [sp] = useSearchParams();
@@ -45,6 +46,12 @@ export function HighQualityPage() {
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-6">
+      <Seo
+        title="高品质在线游戏精选 | 玩什么 PlayWhat"
+        description="按质量分筛选的高品质在线网页游戏，免下载直接游玩。"
+        path="/high-quality"
+        noIndex={sp.size > 0}
+      />
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
           <h1 className="text-xl font-bold">高品质精选</h1>

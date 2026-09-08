@@ -1,6 +1,6 @@
-# 部署指南
+# 玩什么 / PlayWhat 部署指南
 
-> **生产上线请看**：[生产环境部署文档](deployment-production.md)（2c4g VPS 实战：Caddy/HTTPS、安全加固、备份恢复、升级回滚、监控）。
+> **生产上线请看**：[生产环境部署文档](deployment-production.md)（2c4g VPS 实战：Nginx/HTTPS、安全加固、备份恢复、升级回滚、监控）。
 
 **架构**：`web/`（Vite+React SPA）→ Cloudflare Pages 主域；`server/`（Express API）→ VPS `api` 子域；PostgreSQL + pgvector → VPS（或托管 PG）。
 
@@ -40,7 +40,7 @@ VITE_API_BASE_URL=http://localhost:3001
 | 项 | 值 |
 | --- | --- |
 | Framework preset | None（自定义） |
-| Build command | `pnpm --filter web build` |
+| Build command | `pnpm --filter web build:seo` |
 | Build output directory | `web/dist` |
 | Root directory | `/`（仓库根，monorepo） |
 
@@ -49,21 +49,24 @@ VITE_API_BASE_URL=http://localhost:3001
 | 变量 | 值 |
 | --- | --- |
 | `NODE_VERSION` | `22` |
-| `VITE_API_BASE_URL` | `https://api.zhangjh.cn`（你的 API 域名） |
+| `VITE_API_BASE_URL` | `https://game-api.zhangjh.cn`（当前 API 域名） |
+| `SEO_EXPORT_TOKEN` | 与 VPS `server/.env` 相同的强随机密钥（加密变量） |
+| `SEO_MAX_OUTPUT_FILES` | `19000`（可选；按 Pages 套餐文件上限调整） |
 
-4. Save and Deploy。首次构建会失败一次也没关系——如果 monorepo 根目录没有 `package.json` 里的构建脚本，确认上表命令正确即可。
+4. Save and Deploy。`build:seo` 会携带 `SEO_EXPORT_TOKEN` 从 `VITE_API_BASE_URL` 分页读取已发布游戏，生成详情页 metadata、JSON-LD、robots 和 sitemap；API 不可用、目录在分页期间变化、数据不完整或预计文件数超过 `SEO_MAX_OUTPUT_FILES` 时，构建会失败并保留上一成功部署。
+5. Pages 项目 → Settings → Builds & deployments → Deploy hooks，创建 Production Deploy Hook；将 URL 仅写入 VPS `server/.env` 的 `CLOUDFLARE_PAGES_DEPLOY_HOOK_URL`，不要提交或暴露给前端。
 
 ### 绑定主域
 
-5. Pages 项目 → Custom domains → Add → `zhangjh.cn`（或你想给 GamePix 验证的域名）。
-6. 按提示添加 CNAME 记录（域在 CF 托管时自动完成）。
-7. 验证：`https://<你的域名>/ads.txt` 返回 GamePix 的 ads.txt 内容（`web/public/ads.txt` 会随 dist 一起部署）。
+6. Pages 项目 → Custom domains → Add → `playwhat.cc`。
+7. 按提示添加 CNAME 记录（域在 CF 托管时自动完成）。
+8. 验证：`https://<你的域名>/ads.txt` 返回 GamePix 的 ads.txt 内容（`web/public/ads.txt` 会随 dist 一起部署）。
 
-> **SPA 路由**：CF Pages 对未命中文件的路径默认回退 `index.html`，SPA 的 `/games`、`/game/xxx` 路由无需额外配置。
+> **路由与 SEO**：构建产物包含全部已知 SPA 路径、`/game/{slug}`、8 个专题页、robots、sitemap 与顶级 `404.html`；未知路径由 Cloudflare Pages 返回真实 404。
 
 ### 每次更新
 
-push 到 GitHub 即自动构建部署（默认监听 production 分支，可在设置中改为 master）。
+push 到 GitHub 会自动构建部署（默认监听 production 分支，可在设置中改为 master）。后端同步、AI 发布、健康下线和后台公开目录操作会在 30 秒内合并触发一次 Production Deploy Hook；如果本次同时修改了 SEO 导出接口，仍应先部署 server，再触发 Pages 构建。
 
 ---
 
@@ -97,9 +100,11 @@ docker build -f server/Dockerfile -t game-discovery-server .
 docker run -d --name game-server \
   -p 3001:3001 \
   -e DATABASE_URL=postgresql://postgres:postgres@<db-host>:5432/game_discovery \
-  -e ALLOWED_ORIGINS=https://zhangjh.cn \
+  -e ALLOWED_ORIGINS=https://playwhat.cc \
   -e PORT=3001 \
   -e ADMIN_PASSWORD=<强密码> \
+  -e SEO_EXPORT_TOKEN=<与 Cloudflare Pages 相同的强随机密钥> \
+  -e CLOUDFLARE_PAGES_DEPLOY_HOOK_URL=<Production Deploy Hook URL> \
   -e GAMEPIX_SID=7E317 \
   --restart unless-stopped \
   game-discovery-server
@@ -155,8 +160,8 @@ server {
 
 ```bash
 curl https://game-api.zhangjh.cn/api/games          # 返回游戏 JSON
-curl -H "Origin: https://zhangjh.cn" -I https://game-api.zhangjh.cn/api/games
-# 响应头应含 access-control-allow-origin: https://zhangjh.cn
+curl -H "Origin: https://playwhat.cc" -I https://game-api.zhangjh.cn/api/games
+# 响应头应含 access-control-allow-origin: https://playwhat.cc
 ```
 
 ---
