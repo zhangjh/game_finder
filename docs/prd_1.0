@@ -1282,43 +1282,45 @@ UV
 ## 37.1 总体架构
 
 ```text
-                   Next.js
-                     │
-        ┌────────────┼────────────┐
-        │            │            │
-       Web          API         Cron
-        │            │            │
-        └────────────┼────────────┘
-                     │
-               PostgreSQL
-                + pgvector
-                     │
-       ┌─────────────┼─────────────┐
-       │             │             │
-  Game Sources      AI API      Analytics
+用户浏览器
+    │
+    ├── Cloudflare Pages
+    │     Vite + React SPA
+    │     + 构建期 SEO 静态页面
+    │
+    └── VPS API
+          Express + Scheduler
+                 │
+           PostgreSQL
+            + pgvector
+                 │
+       ┌─────────┼─────────┐
+       │         │         │
+  Game Sources  AI API  Analytics
 ```
 
 ---
 
 # 38. 技术栈
 
-| 模块         | 技术                     |
-| ---------- | ---------------------- |
-| Language   | **TypeScript**         |
-| Framework  | **Next.js**            |
-| UI         | React                  |
-| API        | Next.js Route Handlers |
-| SSR        | Next.js                |
-| SEO        | Next.js                |
-| Database   | PostgreSQL             |
-| Vector     | pgvector               |
-| ORM        | Drizzle / Prisma       |
-| AI         | OpenAI SDK             |
-| Embedding  | OpenAI Embeddings      |
-| Search     | PostgreSQL FTS         |
-| Scheduler  | Cron                   |
-| Deployment | Docker                 |
-| CI/CD      | GitHub Actions         |
+| 模块         | 技术                              |
+| ------------ | --------------------------------- |
+| Language     | **TypeScript**                    |
+| Web Build    | **Vite**                          |
+| UI           | React                             |
+| Routing      | React Router                      |
+| API          | Express                           |
+| Rendering    | SPA + 构建期静态 SEO 页面         |
+| SEO          | `web/scripts/generate-seo.ts`     |
+| Database     | PostgreSQL                        |
+| Vector       | pgvector                          |
+| ORM          | Drizzle ORM                       |
+| AI           | OpenAI-compatible SDK             |
+| Embedding    | OpenAI-compatible Embeddings API  |
+| Search       | PostgreSQL FTS                    |
+| Scheduler    | node-cron                         |
+| Web 部署     | Cloudflare Pages                  |
+| API 部署     | Docker / VPS                      |
 
 ---
 
@@ -1347,40 +1349,23 @@ MVP 阶段：
 
 # 40. 项目结构
 
-建议：
-
 ```text
-game-discovery/
-│
-├── app/
-│   ├── page.tsx
-│   ├── games/
-│   ├── game/
-│   ├── search/
-│   ├── api/
-│   └── admin/
-│
-├── components/
-│
-├── lib/
-│   ├── db/
-│   ├── ai/
-│   ├── games/
-│   ├── recommendation/
-│   ├── search/
-│   └── analytics/
-│
-├── jobs/
-│   ├── sync-games.ts
-│   ├── analyze-games.ts
-│   └── health-check.ts
-│
-├── prisma/ / drizzle/
-│
-└── public/
+game_finder/
+├── web/
+│   ├── index.html
+│   ├── src/                 # React 页面、组件、路由与前端埋点
+│   ├── scripts/             # 构建期 SEO 页面生成
+│   └── public/
+├── server/
+│   ├── src/                 # Express 入口、路由与中间件
+│   ├── lib/                 # 数据库、AI、游戏、推荐与分析逻辑
+│   ├── scripts/             # 运维及数据任务
+│   └── drizzle/             # 数据库迁移
+└── packages/
+    └── shared/              # 前后端共享类型
 ```
 
-具体 ORM 二选一即可，不需要纠结。
+前后端通过 `packages/shared` 共享 API 契约，部署和运行时保持分离。
 
 ---
 
@@ -1677,9 +1662,10 @@ LLM Recommendation Explanation
 ## Day 1：项目骨架
 
 ```text
-Next.js
-PostgreSQL
-pgvector
+pnpm workspace monorepo
+Vite + React 前端
+Express API
+PostgreSQL + pgvector
 基础 UI
 ```
 

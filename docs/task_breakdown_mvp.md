@@ -27,24 +27,28 @@
 
 ## M0 项目骨架与基础设施（Day 1 上午）
 
-### T0.1 [P0] Next.js 项目初始化
+### T0.1 [P0] Vite/React + Express monorepo 初始化
 
-- `create-next-app`（TypeScript + App Router + Tailwind + ESLint）
-- 建立项目结构（按 PRD 第 40 章）：
+- 使用 pnpm workspace 拆分 `web`、`server` 和 `packages/shared`
+- 建立当前项目结构：
 
 ```text
-game-discovery/
-├── app/            # page.tsx / games / game / search / api / admin
-├── components/
-├── lib/            # db / ai / games / recommendation / search / analytics
-├── jobs/           # sync-games / analyze-games / health-check
-├── drizzle/
-└── public/
+game_finder/
+├── web/                    # Vite + React SPA
+│   ├── src/                # 页面、组件、路由与前端埋点
+│   ├── scripts/            # 构建期 SEO 页面生成
+│   └── public/
+├── server/                 # Express API
+│   ├── src/                # 入口、路由与中间件
+│   ├── lib/                # 核心业务逻辑
+│   ├── scripts/            # 运维及数据任务
+│   └── drizzle/            # 数据库迁移
+└── packages/shared/        # 前后端共享类型
 ```
 
-- `.env.example`：`DATABASE_URL` / `AI_API_KEY` / `CRON_SECRET`
+- `.env.example`：数据库、AI、Embedding、定时任务和服务端鉴权所需变量
 
-**验收：** `pnpm dev` 启动无报错；目录结构与 PRD 一致。
+**验收：** `pnpm dev:web` 与 `pnpm dev:server` 均可启动；`pnpm build` 通过。
 
 ### T0.2 [P0] Docker Compose 数据库
 
@@ -304,7 +308,7 @@ T2.4 的 AI 管理页接入真实数据：查看画像、人工修正、单游�
 ### T7.1 [P0] 技术 SEO
 
 - Metadata 模板（首页/列表/详情，Open Graph + Twitter Card）
-- `app/sitemap.ts` 动态生成全量游戏 + 分类页；`robots.txt`；canonical
+- `web/scripts/generate-seo.ts` 生成全量游戏页、Landing Page、sitemap 和 `robots.txt`；各页写入 canonical
 - 详情页 JSON-LD（VideoGame 类型）
 - Google Search Console 验证 + sitemap 提交
 - 页面性能优化：Core Web Vitals（LCP < 2.5s, CLS < 0.1）
