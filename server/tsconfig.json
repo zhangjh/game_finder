@@ -16,6 +16,6 @@
       "@/*": ["./*"]
     }
   },
-  "include": ["src/**/*.ts", "lib/**/*.ts", "scripts/**/*.mjs", "drizzle.config.ts"],
+  "include": ["src/**/*.ts", "lib/**/*.ts", "scripts/**/*.ts", "scripts/**/*.mjs", "drizzle.config.ts"],
   "exclude": ["node_modules", "dist"]
 }

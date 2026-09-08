@@ -35,6 +35,8 @@ ENV NODE_ENV=production \
 COPY --from=builder /app/server/dist ./dist
 # drizzle 迁移文件（src/migrate.ts 启动时从 cwd/drizzle 读取并自动执行）
 COPY --from=builder /app/server/drizzle ./drizzle
+# Playgama catalog JSON（adapter 运行时 readFileSync 读取）
+COPY --from=builder /app/server/data ./data
 
 # 非 root 运行
 RUN addgroup --system --gid 1001 nodejs \

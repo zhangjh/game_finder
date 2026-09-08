@@ -40,6 +40,9 @@ services:
       HOSTNAME: 0.0.0.0
       DATABASE_URL: postgresql://postgres:postgres@postgres:5432/game_discovery
       ALLOWED_ORIGINS: ${ALLOWED_ORIGINS:-}
+    # Playgama catalog 更新后挂载覆盖镜像内文件，无需重新构建镜像
+    volumes:
+      - ./data:/app/data:ro
     ports:
       - "3001:3001"
     depends_on:

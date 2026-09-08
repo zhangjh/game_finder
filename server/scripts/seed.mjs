@@ -14,6 +14,7 @@ const url =
 const SOURCES = [
   { code: "gamepix", name: "GamePix", baseUrl: "https://feeds.gamepix.com" },
   { code: "gamezop", name: "Gamezop", baseUrl: "https://pub.gamezop.com" },
+  { code: "playgama", name: "Playgama", baseUrl: "https://playgama.com" },
 ];
 
 const client = new Client({ connectionString: url });

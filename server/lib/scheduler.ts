@@ -212,7 +212,7 @@ export const DEFAULT_JOBS: {
   {
     type: "sync_games",
     name: "游戏源同步",
-    description: "从各数据源（如 GamePix）全量拉取游戏并入库/下架（每 6 小时）",
+    description: "从各数据源（GamePix、Playgama）全量拉取游戏并入库/下架（每 6 小时）",
     schedule: "0 */6 * * *",
     params: {},
   },

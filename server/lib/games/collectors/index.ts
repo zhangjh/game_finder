@@ -3,6 +3,7 @@
  * 新增数据源（Gamezop / GameMonetize…）在此注册即可接入同步管道。
  */
 import { createGamePixAdapter } from "./gamepix";
+import { createPlaygamaAdapter } from "./playgama";
 import type { SourceAdapter } from "./types";
 
 export * from "./types";
@@ -10,6 +11,7 @@ export { syncSource } from "./pipeline";
 
 const ADAPTER_FACTORIES: Record<string, () => SourceAdapter> = {
   gamepix: createGamePixAdapter,
+  playgama: createPlaygamaAdapter,
 };
 
 /** 获取全部已注册 adapter（Gamezop 等 T3.4 接入后追加） */

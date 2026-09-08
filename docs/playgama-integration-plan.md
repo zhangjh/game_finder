@@ -3,7 +3,7 @@
 **依据：** `docs/game-sources-research.md`（数据源调研结论）
 **前置：** 用户已在 widgets.playgama.com 自助注册并获取 **clid**（无流量门槛，注册即得），提供官方采集接口
 **目标：** 接入 Playgama 作为独立数据源，作为高品质专区的主要内容来源；GamePix 保留为基础数据池
-**状态：** 规划（待用户提供 clid 后实施）
+**状态：** 已完成（clid 已确认，adapter + 导入脚本 + 部署配置全部落地）
 
 ---
 
