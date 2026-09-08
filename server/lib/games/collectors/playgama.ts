@@ -185,12 +185,13 @@ function ensureClid(url: string, clid: string): string {
 }
 
 /**
- * 判断是否英文游戏：supportedLanguages 含 en-US 或 en 开头的语言代码。
- * 无 supportedLanguages 字段时默认放行（无语言信息视为通用/英文）。
+ * 严格英文过滤：supportedLanguages 中所有语言都必须是英文。
+ * 支持多语言（如 en-US + ru-RU）的游戏会被拒绝——
+ * Playgama iframe 会根据浏览器语言自动切换，多语言游戏可能显示非英文。
  */
-function isEnglishGame(langs: string[]): boolean {
+function isEnglishOnlyGame(langs: string[]): boolean {
   if (langs.length === 0) return true;
-  return langs.some((l) => l.toLowerCase().startsWith("en"));
+  return langs.every((l) => l.toLowerCase().startsWith("en"));
 }
 
 function normalizeHit(
@@ -204,7 +205,7 @@ function normalizeHit(
   if (!sourceGameId || !title || !slug || !gameUrlRaw) return null;
 
   const supportedLanguages = asStringArray(raw.supportedLanguages);
-  if (!isEnglishGame(supportedLanguages)) return null;
+  if (!isEnglishOnlyGame(supportedLanguages)) return null;
 
   const gameUrl = ensureClid(gameUrlRaw, clid);
   const genres = asStringArray(raw.genres);

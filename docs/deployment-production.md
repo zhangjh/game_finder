@@ -130,9 +130,9 @@ $DR -e DATABASE_URL="$DB" node:22 sh -c "npx drizzle-kit migrate && node scripts
 $DR -e DATABASE_URL="$DB" node:22 node scripts/seed.mjs
 # 导入 GamePix 真实游戏
 $DR -e DATABASE_URL="$DB" node:22 node scripts/import-gamepix.mjs -- --limit=24
-# 导入 Playgama 游戏目录（需先上传 data/playgama-catalog.json 到 VPS）
-# 通过挂载卷：server/data/ → 容器 /app/data（compose 已配置 volumes）
-$DR -e DATABASE_URL="$DB" -e PLAYGAMA_CLID="$PLAYGAMA_CLID" -e PLAYGAMA_CATALOG_PATH="data/playgama-catalog.json" -v ~/dev/game_finder/server/data:/app/server/data node:22 sh -c "cd /app/server && npx tsx scripts/import-playgama.ts"
+# 导入 Playgama 游戏目录（需先上传 catalog JSON 到 server/data/ 目录）
+# --env-file .env 读取 PLAYGAMA_CLID / PLAYGAMA_CATALOG_PATH 等配置
+$DR --env-file .env -e DATABASE_URL="$DB" node:22 npx tsx scripts/import-playgama.ts
 ```
 
 > 说明：`--network server_default` 是 compose 项目 `server` 的默认网络名，`postgres` 主机名在该网络内可解析；`node:22` 为一次性运行容器（输完即删 `--rm`），不含仓库时不需在此安装任何东西。迁移/种子/导入均**幂等**，可重复执行。
