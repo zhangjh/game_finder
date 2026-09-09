@@ -26,7 +26,9 @@ export interface AdminGameFilters {
     | "quality_asc"
     | "quality_desc"
     | "score_asc"
-    | "score_desc";
+    | "score_desc"
+    | "published_asc"
+    | "published_desc";
   page?: number;
   pageSize?: number;
 }
@@ -61,7 +63,7 @@ export async function adminListGames(filters: AdminGameFilters) {
 
   const where = conds.length > 0 ? and(...conds) : undefined;
 
-  // 质量分/平台分排序：NULL（未回填/冷启动无分）一律沉底，无论升降序
+  // 质量分/平台分/上架时间排序：NULL（未回填/冷启动无分/未上架）一律沉底，无论升降序
   const order =
     filters.sort === "oldest"
       ? asc(games.id)
@@ -77,7 +79,11 @@ export async function adminListGames(filters: AdminGameFilters) {
                 ? asc(gameScores.totalScore)
                 : filters.sort === "score_desc"
                   ? sql`${gameScores.totalScore} DESC NULLS LAST`
-                  : desc(games.id);
+                  : filters.sort === "published_asc"
+                    ? sql`${games.publishedAt} ASC NULLS LAST`
+                    : filters.sort === "published_desc"
+                      ? sql`${games.publishedAt} DESC NULLS LAST`
+                      : desc(games.id);
 
   const items = await db
     .select({
@@ -95,6 +101,7 @@ export async function adminListGames(filters: AdminGameFilters) {
       needsReanalysis: games.needsReanalysis,
       healthFailCount: games.healthFailCount,
       createdAt: games.createdAt,
+      publishedAt: games.publishedAt,
       sourceCode: gameSources.code,
       sourceName: gameSources.name,
     })

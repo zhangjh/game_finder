@@ -103,7 +103,7 @@ adminRouter.get("/games", async (req, res) => {
       q: typeof sp.q === "string" ? sp.q : undefined,
       sort:
         typeof sp.sort === "string" &&
-        ["oldest", "play_count", "title", "quality_asc", "quality_desc", "score_asc", "score_desc"].includes(
+        ["oldest", "play_count", "title", "quality_asc", "quality_desc", "score_asc", "score_desc", "published_asc", "published_desc"].includes(
           sp.sort,
         )
           ? (sp.sort as AdminGameFilters["sort"])

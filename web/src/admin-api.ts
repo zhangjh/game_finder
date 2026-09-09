@@ -70,6 +70,8 @@ export interface AdminGameListItem {
   needsReanalysis: boolean;
   healthFailCount: number;
   createdAt: string;
+  /** 上架（发布）时间，未上架为 null */
+  publishedAt: string | null;
   sourceCode: string;
   sourceName: string;
 }
@@ -133,6 +135,7 @@ export function fetchAdminOverview(): Promise<AdminOverview> {
 
 export function fetchAdminGames(params: {
   status?: AdminGameStatus;
+  source?: string;
   q?: string;
   sort?: string;
   page?: number;
@@ -140,6 +143,7 @@ export function fetchAdminGames(params: {
 }): Promise<AdminGamesResponse> {
   const sp = new URLSearchParams();
   if (params.status) sp.set("status", params.status);
+  if (params.source) sp.set("source", params.source);
   if (params.q) sp.set("q", params.q);
   if (params.sort) sp.set("sort", params.sort);
   if (params.page) sp.set("page", String(params.page));
@@ -147,9 +151,68 @@ export function fetchAdminGames(params: {
   return adminFetch(`/games?${sp}`);
 }
 
-export function fetchAdminGameDetail(
-  id: number,
-): Promise<Record<string, unknown>> {
+/** 后台游戏详情（getGame 全字段 + GameScore + 来源信息） */
+export interface AdminGameDetail {
+  id: number;
+  sourceId: number;
+  sourceGameId: string;
+  title: string;
+  titleOriginal: string;
+  slug: string;
+  description: string;
+  descriptionOriginal: string;
+  descriptionZh: string;
+  thumbnail: string | null;
+  screenshots: string;
+  gameUrl: string;
+  developer: string | null;
+  publisher: string | null;
+  releaseDate: string | null;
+  sourceUpdatedAt: string | null;
+  sourceQualityScore: number | null;
+  genre: string | null;
+  subGenre: string | null;
+  tags: string;
+  mechanics: string;
+  difficulty: number;
+  cognitiveLoad: number;
+  complexity: number;
+  pace: number;
+  stressLevel: number;
+  replayability: number;
+  sessionLengthMin: number | null;
+  sessionLengthMax: number | null;
+  singlePlayer: boolean;
+  multiplayer: boolean;
+  minPlayers: number;
+  maxPlayers: number;
+  coop: boolean;
+  competitive: boolean;
+  desktop: boolean;
+  mobile: boolean;
+  tablet: boolean;
+  portrait: boolean;
+  landscape: boolean;
+  inputMethods: string;
+  mood: string;
+  metadataLanguage: string;
+  gameLanguage: string;
+  status: AdminGameStatus;
+  profileManuallyEdited: boolean;
+  needsReanalysis: boolean;
+  analysisFailCount: number;
+  playCount: number;
+  healthCheckedAt: string | null;
+  healthFailCount: number;
+  createdAt: string;
+  updatedAt: string;
+  publishedAt: string | null;
+  totalScore: number | null;
+  sourceCode: string;
+  sourceName: string;
+}
+
+export function fetchAdminGameDetail(id: number): Promise<AdminGameDetail> {
   return adminFetch(`/games/${id}`);
 }
 

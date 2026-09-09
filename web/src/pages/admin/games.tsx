@@ -1,11 +1,13 @@
 import { useCallback, useEffect, useState } from "react";
-import { useSearchParams } from "react-router";
+import { Link, useSearchParams } from "react-router";
 
 import {
   fetchAdminGames,
+  fetchAdminSources,
   setAdminGameStatus,
   type AdminGameListItem,
   type AdminGameStatus,
+  type AdminSource,
 } from "../../admin-api";
 
 const STATUS_OPTIONS: { value: AdminGameStatus | ""; label: string }[] = [
@@ -27,6 +29,7 @@ export function AdminGamesPage() {
   // 仪表盘状态卡片带 ?status= 跳转进来，URL 参数优先
   const [searchParams] = useSearchParams();
   const urlStatus = searchParams.get("status") ?? "";
+  const urlSource = searchParams.get("source") ?? "";
 
   const [status, setStatus] = useState<AdminGameStatus | "">(
     (["draft", "pending", "published", "offline"] as const).includes(
@@ -35,10 +38,12 @@ export function AdminGamesPage() {
       ? (urlStatus as AdminGameStatus)
       : "",
   );
+  const [source, setSource] = useState(urlSource);
+  const [sources, setSources] = useState<AdminSource[]>([]);
   const [q, setQ] = useState("");
   const [page, setPage] = useState(1);
   const [sortKey, setSortKey] = useState<
-    { col: "quality" | "score"; dir: "asc" | "desc" } | null
+    { col: "quality" | "score" | "published"; dir: "asc" | "desc" } | null
   >(null);
   const [data, setData] = useState<{
     items: AdminGameListItem[];
@@ -48,15 +53,20 @@ export function AdminGamesPage() {
   const [error, setError] = useState(false);
   const [busyId, setBusyId] = useState<number | null>(null);
 
-  const sortParam = sortKey
-    ? `${sortKey.col === "quality" ? "quality" : "score"}_${sortKey.dir}`
-    : undefined;
+  useEffect(() => {
+    fetchAdminSources()
+      .then(setSources)
+      .catch(() => {});
+  }, []);
+
+  const sortParam = sortKey ? `${sortKey.col}_${sortKey.dir}` : undefined;
 
   const load = useCallback(async () => {
     setError(false);
     try {
       const res = await fetchAdminGames({
         status: status || undefined,
+        source: source || undefined,
         q: q || undefined,
         sort: sortParam,
         page,
@@ -66,14 +76,14 @@ export function AdminGamesPage() {
     } catch {
       setError(true);
     }
-  }, [status, q, sortParam, page]);
+  }, [status, source, q, sortParam, page]);
 
   useEffect(() => {
     load();
   }, [load]);
 
   /** 点击表头排序：未排序→降序 → 升序 → 清除 */
-  function toggleHeaderSort(col: "quality" | "score") {
+  function toggleHeaderSort(col: "quality" | "score" | "published") {
     setSortKey((prev) => {
       if (!prev || prev.col !== col) return { col, dir: "desc" };
       if (prev.dir === "desc") return { col, dir: "asc" };
@@ -86,7 +96,7 @@ export function AdminGamesPage() {
     col,
     children,
   }: {
-    col: "quality" | "score";
+    col: "quality" | "score" | "published";
     children: React.ReactNode;
   }) {
     const active = sortKey?.col === col;
@@ -139,6 +149,21 @@ export function AdminGamesPage() {
             </option>
           ))}
         </select>
+        <select
+          value={source}
+          onChange={(e) => {
+            setSource(e.target.value);
+            setPage(1);
+          }}
+          className="rounded border border-neutral-700 bg-neutral-900 px-2 py-1.5 text-sm"
+        >
+          <option value="">全部来源</option>
+          {sources.map((s) => (
+            <option key={s.code} value={s.code}>
+              {s.code} · {s.name}
+            </option>
+          ))}
+        </select>
         <form
           onSubmit={(e) => {
             e.preventDefault();
@@ -176,6 +201,9 @@ export function AdminGamesPage() {
                 <SortHeader col="score">平台分</SortHeader>
               </th>
               <th className="px-3 py-2">游玩数</th>
+              <th className="px-3 py-2">
+                <SortHeader col="published">上架时间</SortHeader>
+              </th>
               <th className="px-3 py-2 text-right">操作</th>
             </tr>
           </thead>
@@ -184,20 +212,26 @@ export function AdminGamesPage() {
               <tr key={g.id} className="border-t border-neutral-800">
                 <td className="px-3 py-2 text-neutral-500">{g.id}</td>
                 <td className="px-3 py-2">
-                  <div className="flex items-center gap-2">
+                  <Link
+                    to={`/admin/games/${g.id}`}
+                    title="查看游戏详情"
+                    className="group flex items-center gap-2"
+                  >
                     {g.thumbnail && (
                       <img
                         src={g.thumbnail}
                         alt=""
-                        className="h-8 w-8 shrink-0 rounded object-cover"
+                        className="h-8 w-8 shrink-0 rounded object-cover transition-opacity group-hover:opacity-80"
                         loading="lazy"
                       />
                     )}
                     <div>
-                      <div className="font-medium">{g.titleOriginal}</div>
+                      <div className="font-medium underline-offset-2 group-hover:underline">
+                        {g.titleOriginal}
+                      </div>
                       <div className="text-xs text-neutral-500">{g.slug}</div>
                     </div>
-                  </div>
+                  </Link>
                 </td>
                 <td className="px-3 py-2 text-neutral-400">{g.sourceCode}</td>
                 <td className="px-3 py-2">
@@ -237,6 +271,17 @@ export function AdminGamesPage() {
                 </td>
                 <td className="px-3 py-2 text-neutral-400">
                   {g.playCount.toLocaleString()}
+                </td>
+                <td className="whitespace-nowrap px-3 py-2 text-neutral-400">
+                  {g.publishedAt
+                    ? new Date(g.publishedAt).toLocaleString("zh-CN", {
+                        year: "numeric",
+                        month: "2-digit",
+                        day: "2-digit",
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })
+                    : "—"}
                 </td>
                 <td className="px-3 py-2 text-right">
                   <button

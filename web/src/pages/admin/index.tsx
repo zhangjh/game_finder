@@ -10,6 +10,7 @@ import { adminCheckSession } from "../../admin-api";
 import { AdminCronJobsPage } from "./cron-jobs";
 import { AdminDuplicatesPage } from "./duplicates";
 import { AdminFeedbackPage } from "./feedback";
+import { AdminGameDetailPage } from "./game-detail";
 import { AdminGamesPage } from "./games";
 import { AdminLoginPage } from "./login";
 import { AdminOverviewPage } from "./overview";
@@ -64,13 +65,18 @@ const PAGE_TITLES: Record<string, string> = {
   "/admin/analytics": "数据看板 | GameFinder Admin",
 };
 
+function pageTitle(path: string): string {
+  if (path.startsWith("/admin/games/")) return "游戏详情 | GameFinder Admin";
+  return PAGE_TITLES[path] ?? "管理后台 | GameFinder Admin";
+}
+
 function AdminShell({ onLogout }: { onLogout: (authed: boolean) => void }) {
   const navigate = useNavigate();
   const location = useLocation();
 
   // 管理后台不走 Seo 组件，按路由设置浏览器标签页标题（避免残留前台页面标题）
   useEffect(() => {
-    document.title = PAGE_TITLES[location.pathname] ?? "管理后台 | GameFinder Admin";
+    document.title = pageTitle(location.pathname);
   }, [location.pathname]);
 
   const logout = useCallback(async () => {
@@ -91,7 +97,9 @@ function AdminShell({ onLogout }: { onLogout: (authed: boolean) => void }) {
                 key={n.path}
                 href={n.path}
                 className={
-                  location.pathname === n.path
+                  location.pathname === n.path ||
+                  (n.path === "/admin/games" &&
+                    location.pathname.startsWith("/admin/games/"))
                     ? "text-white"
                     : "text-neutral-400 hover:text-neutral-200"
                 }
@@ -112,6 +120,7 @@ function AdminShell({ onLogout }: { onLogout: (authed: boolean) => void }) {
         <Routes>
           <Route index element={<AdminOverviewPage />} />
           <Route path="games" element={<AdminGamesPage />} />
+          <Route path="games/:id" element={<AdminGameDetailPage />} />
           <Route path="feedback" element={<AdminFeedbackPage />} />
           <Route path="sources" element={<AdminSourcesPage />} />
           <Route path="duplicates" element={<AdminDuplicatesPage />} />
