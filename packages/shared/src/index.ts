@@ -164,6 +164,7 @@ export const GENRE_LABELS_EN: Record<string, string> = {
   模拟经营: "Management",
   僵尸: "Zombie",
   格斗: "Fighting",
+  对战: "Battle",
   纸牌: "Card",
   "IO 对战": "IO Battle",
   战争: "War",
