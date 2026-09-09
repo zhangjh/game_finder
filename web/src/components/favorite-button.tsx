@@ -6,6 +6,7 @@
  * - "card"：浮层圆形图标，用于卡片缩略图左上角
  */
 import { useFavorites } from "../hooks/use-favorites";
+import { useI18n } from "../i18n";
 import { useToast } from "./toast";
 import { trackEvent } from "../analytics/track";
 import type { GameDetail, GameListItem } from "@game-finder/shared";
@@ -16,6 +17,7 @@ type FavoriteButtonProps = {
 };
 
 export function FavoriteButton({ game, variant }: FavoriteButtonProps) {
+  const { t } = useI18n();
   const { isFavorite, toggleFavorite } = useFavorites();
   const { showToast } = useToast();
   const favorited = isFavorite(game.id);
@@ -30,9 +32,9 @@ export function FavoriteButton({ game, variant }: FavoriteButtonProps) {
       context: { action: added ? "add" : "remove" },
     });
     if (added) {
-      showToast("已收藏", "收藏仅保存在当前浏览器，清理缓存或换设备后会丢失");
+      showToast(t("favAdded"), t("favAddedSub"));
     } else {
-      showToast("已取消收藏");
+      showToast(t("favRemoved"));
     }
   };
 
@@ -41,7 +43,7 @@ export function FavoriteButton({ game, variant }: FavoriteButtonProps) {
       <button
         type="button"
         onClick={handleToggle}
-        aria-label={favorited ? "取消收藏" : "收藏"}
+        aria-label={favorited ? t("ariaRemoveFav") : t("ariaAddFav")}
         className={`absolute left-2 top-2 flex h-8 w-8 items-center justify-center rounded-full backdrop-blur transition-all ${
           favorited
             ? "bg-primary text-primary-foreground"
@@ -65,7 +67,7 @@ export function FavoriteButton({ game, variant }: FavoriteButtonProps) {
       }`}
     >
       <HeartIcon filled={favorited} size={16} />
-      {favorited ? "已收藏" : "收藏"}
+      {favorited ? t("favorited") : t("favorite")}
     </button>
   );
 }

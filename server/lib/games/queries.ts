@@ -15,6 +15,12 @@ import type {
 export type { GameDetail, GameListItem };
 
 export type GameListFilters = {
+  /**
+   * 界面语种过滤（T1.7）：
+   * - zh：只返回有中文元数据的游戏（metadata_language='zh'）
+   * - en：不加语种过滤（英文原始字段 title_original 恒存在，全部可展示）
+   */
+  lang?: "zh" | "en";
   genre?: string;
   /** 单局时长上限（分钟）：session_length_max <= max */
   durationMax?: number;
@@ -36,6 +42,8 @@ const publishedOnly = eq(games.status, "published");
 function buildConditions(filters: GameListFilters): SQL[] {
   const conds: SQL[] = [publishedOnly];
 
+  // 中文界面只展示有中文元数据的游戏；英文界面展示全部（原始英文字段恒存在）
+  if (filters.lang === "zh") conds.push(eq(games.metadataLanguage, "zh"));
   if (filters.genre) conds.push(eq(games.genre, filters.genre));
   if (filters.durationMax != null)
     conds.push(lte(games.sessionLengthMax, filters.durationMax));
@@ -205,14 +213,17 @@ export async function getNewestGames(limit = 4) {
 export async function getSimilarGames(
   gameId: number,
   limit = 4,
+  lang: "zh" | "en" = "zh",
 ): Promise<GameListItem[]> {
+  // 中文界面只推有中文元数据的相似游戏；英文界面不过滤
+  const langCond = lang === "zh" ? sql` AND g.metadata_language = 'zh'` : sql``;
   const rows = await db.execute(sql`
     SELECT id, slug, title, title_original, description, thumbnail, genre, tags,
            difficulty, cognitive_load, session_length_min, session_length_max,
            multiplayer, min_players, max_players, mobile, play_count,
            game_language, source_quality_score, NULL::real AS total_score
-    FROM games
-    WHERE status = 'published' AND id != ${gameId}
+    FROM games g
+    WHERE g.status = 'published' AND g.id != ${gameId}${langCond}
     ORDER BY (CASE WHEN genre = (SELECT genre FROM games WHERE id = ${gameId}) THEN 0 ELSE 2 END)
            + abs(difficulty - (SELECT difficulty FROM games WHERE id = ${gameId}))
            + abs(cognitive_load - (SELECT cognitive_load FROM games WHERE id = ${gameId}))
@@ -278,6 +289,7 @@ export async function exportSeoGames(
           mobile: games.mobile,
           gameLanguage: games.gameLanguage,
           multiplayer: games.multiplayer,
+          metadataLanguage: games.metadataLanguage,
           developer: games.developer,
           publisher: games.publisher,
           releaseDate: games.releaseDate,

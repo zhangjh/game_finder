@@ -1,6 +1,8 @@
 import { useEffect } from "react";
 import { PUBLIC_SITE_URL } from "@game-finder/shared";
 
+import { useI18n } from "../i18n";
+
 function setMeta(selector: string, attributes: Record<string, string>) {
   let element = document.head.querySelector<HTMLMetaElement>(selector);
   if (!element) {
@@ -29,6 +31,7 @@ export function Seo({
   noIndex?: boolean;
   jsonLd?: object;
 }) {
+  const { lang } = useI18n();
   const jsonLdText = jsonLd
     ? JSON.stringify(jsonLd).replace(/</g, "\\u003c")
     : null;
@@ -54,6 +57,11 @@ export function Seo({
     });
     setMeta('meta[property="og:type"]', { property: "og:type", content: type });
     setMeta('meta[property="og:url"]', { property: "og:url", content: canonical });
+    // 界面语种 → og:locale（T1.7）
+    setMeta('meta[property="og:locale"]', {
+      property: "og:locale",
+      content: lang === "zh" ? "zh_CN" : "en_US",
+    });
     if (socialImage) {
       setMeta('meta[property="og:image"]', {
         property: "og:image",
@@ -101,7 +109,7 @@ export function Seo({
     } else {
       existingJsonLd?.remove();
     }
-  }, [description, image, jsonLdText, noIndex, path, title, type]);
+  }, [description, image, jsonLdText, lang, noIndex, path, title, type]);
 
   return null;
 }

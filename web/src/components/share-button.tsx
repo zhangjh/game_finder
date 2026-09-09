@@ -8,6 +8,7 @@
 import { useState } from "react";
 
 import { trackEvent } from "../analytics/track";
+import { useI18n } from "../i18n";
 import { useToast } from "./toast";
 import type { GameDetail } from "@game-finder/shared";
 
@@ -18,21 +19,29 @@ type ShareButtonProps = {
 type ShareMethod = "native" | "clipboard" | "fallback";
 
 export function ShareButton({ game }: ShareButtonProps) {
+  const { t, lang } = useI18n();
   const { showToast } = useToast();
   const [copied, setCopied] = useState(false);
 
   const shareUrl =
     typeof window !== "undefined" ? window.location.href : `/game/${game.slug}`;
-  const shareText = `来玩《${game.title}》——${game.description.slice(0, 60)}${
-    game.description.length > 60 ? "…" : ""
-  }`;
+  // 英文界面优先原始英文描述（T1.7）
+  const shareDescription =
+    lang === "en"
+      ? (game.descriptionOriginal || game.description).slice(0, 60)
+      : game.description.slice(0, 60);
+  const shareTitle = lang === "en" ? game.titleOriginal || game.title : game.title;
+  const shareText = t("shareText", {
+    title: shareTitle,
+    desc: shareDescription,
+  }) + (shareDescription.length > 60 ? "…" : "");
 
   const handleShare = async () => {
     // 1) Web Share API：移动端 / 部分桌面浏览器（Safari、Edge）
     if (typeof navigator !== "undefined" && navigator.share) {
       try {
         await navigator.share({
-          title: game.title,
+          title: shareTitle,
           text: shareText,
           url: shareUrl,
         });
@@ -75,10 +84,10 @@ export function ShareButton({ game }: ShareButtonProps) {
         reportShare("fallback");
         flashCopied();
       } else {
-        showToast("复制失败，请手动复制地址栏链接");
+        showToast(t("copyFailed"));
       }
     } catch {
-      showToast("复制失败，请手动复制地址栏链接");
+      showToast(t("copyFailed"));
     }
   };
 
@@ -92,7 +101,7 @@ export function ShareButton({ game }: ShareButtonProps) {
 
   const flashCopied = () => {
     setCopied(true);
-    showToast("链接已复制", "粘贴到微信 / 微博 / 群聊即可分享");
+    showToast(t("copiedToast"), t("copiedToastSub"));
     window.setTimeout(() => setCopied(false), 2000);
   };
 
@@ -100,7 +109,7 @@ export function ShareButton({ game }: ShareButtonProps) {
     <button
       type="button"
       onClick={handleShare}
-      aria-label="分享游戏"
+      aria-label={t("shareAria")}
       className={`flex items-center gap-1.5 rounded-full border px-4 py-2 text-sm font-medium transition-all ${
         copied
           ? "border-primary bg-primary/10 text-primary"
@@ -108,7 +117,7 @@ export function ShareButton({ game }: ShareButtonProps) {
       }`}
     >
       <ShareIcon copied={copied} size={16} />
-      {copied ? "已复制" : "分享"}
+      {copied ? t("copied") : t("share")}
     </button>
   );
 }

@@ -4,32 +4,20 @@ import { Link, useSearchParams } from "react-router";
 import { fetchGames } from "../api";
 import { GameCard } from "../components/game-card";
 import { Seo } from "../components/seo";
-import type { GameListItem } from "@game-finder/shared";
+import { useI18n } from "../i18n";
+import { genreLabel, type GameListItem } from "@game-finder/shared";
 
+/** 筛选值恒为 DB 中文 genre 值（服务端按中文值过滤），label 跟随界面语种 */
 const GENRES = ["休闲", "塔防", "Roguelike", "解谜", "对战"];
-const DURATIONS = [
-  { value: "5", label: "5分钟内" },
-  { value: "10", label: "10分钟内" },
-  { value: "30", label: "30分钟内" },
-];
-const PLAYERS = [
-  { value: "1", label: "单人" },
-  { value: "2", label: "双人" },
-  { value: "multi", label: "多人" },
-];
-const PLATFORMS = [
-  { value: "mobile", label: "手机" },
-  { value: "desktop", label: "电脑" },
-];
-const SORTS = [
-  { value: "popular", label: "热门" },
-  { value: "newest", label: "最新" },
-  { value: "score", label: "评分" },
-];
+const DURATIONS = ["5", "10", "30"];
+const PLAYERS = ["1", "2", "multi"];
+const PLATFORMS = ["mobile", "desktop"];
+const SORTS = ["popular", "newest", "score"] as const;
 
 const PAGE_SIZE = 24;
 
 export function GamesPage() {
+  const { t, lang } = useI18n();
   const [sp, setSp] = useSearchParams();
   const [games, setGames] = useState<GameListItem[]>([]);
   const [total, setTotal] = useState(0);
@@ -46,6 +34,7 @@ export function GamesPage() {
   useEffect(() => {
     setLoading(true);
     fetchGames({
+      lang,
       genre: genre || undefined,
       duration: duration ? Number(duration) : undefined,
       players:
@@ -63,10 +52,11 @@ export function GamesPage() {
         setError(null);
       })
       .catch((e: unknown) =>
-        setError(e instanceof Error ? e.message : "加载失败"),
+        setError(e instanceof Error ? e.message : t("loadFailed")),
       )
       .finally(() => setLoading(false));
-  }, [genre, duration, players, platform, sort, page]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [lang, genre, duration, players, platform, sort, page]);
 
   /** 更新单个查询参数（重置页码） */
   const setParam = (key: string, value: string) => {
@@ -79,29 +69,45 @@ export function GamesPage() {
 
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
 
+  const durationLabel = (value: string) => t("withinMin", { n: value });
+  const playersLabel = (value: string) =>
+    value === "1"
+      ? t("singlePlayer")
+      : value === "2"
+        ? t("twoPlayer")
+        : t("multiPlayer");
+  const platformLabel = (value: string) =>
+    value === "mobile" ? t("mobile") : t("desktop");
+  const sortLabel = (value: string) =>
+    value === "popular"
+      ? t("sortPopular")
+      : value === "newest"
+        ? t("sortNewest")
+        : t("sortScore");
+
   return (
     <div className="mx-auto max-w-6xl px-4 py-6">
       <Seo
-        title="在线网页游戏大全｜按时长、人数和设备筛选"
-        description="浏览无需下载的在线网页游戏，按类型、单局时长、玩家人数、设备和评分筛选。"
+        title={t("gamesSeoTitle")}
+        description={t("gamesSeoDesc")}
         path="/games"
         noIndex={sp.size > 0}
       />
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <h1 className="text-xl font-bold">全部游戏</h1>
+        <h1 className="text-xl font-bold">{t("allGames")}</h1>
         <div className="flex items-center gap-2 text-sm">
-          <span className="text-muted">排序：</span>
+          <span className="text-muted">{t("sortBy")}</span>
           {SORTS.map((s) => (
             <Link
-              key={s.value}
-              to={`/games?${buildQuery(sp, "sort", s.value)}`}
+              key={s}
+              to={`/games?${buildQuery(sp, "sort", s)}`}
               className={`rounded-full px-3 py-1 transition-colors ${
-                sort === s.value
+                sort === s
                   ? "bg-primary text-primary-foreground"
                   : "text-muted hover:text-foreground"
               }`}
             >
-              {s.label}
+              {sortLabel(s)}
             </Link>
           ))}
         </div>
@@ -109,48 +115,48 @@ export function GamesPage() {
 
       {/* 筛选区 */}
       <div className="mt-4 space-y-3 rounded-xl border border-border bg-surface p-4 text-sm">
-        <FilterRow label="分类">
+        <FilterRow label={t("filterGenre")}>
           {GENRES.map((g) => (
             <Chip
               key={g}
-              label={g}
+              label={genreLabel(g, lang)}
               active={genre === g}
               onClick={() => setParam("genre", genre === g ? "" : g)}
             />
           ))}
         </FilterRow>
-        <FilterRow label="时长">
+        <FilterRow label={t("filterDuration")}>
           {DURATIONS.map((d) => (
             <Chip
-              key={d.value}
-              label={d.label}
-              active={duration === d.value}
+              key={d}
+              label={durationLabel(d)}
+              active={duration === d}
               onClick={() =>
-                setParam("duration", duration === d.value ? "" : d.value)
+                setParam("duration", duration === d ? "" : d)
               }
             />
           ))}
         </FilterRow>
-        <FilterRow label="人数">
+        <FilterRow label={t("filterPlayers")}>
           {PLAYERS.map((p) => (
             <Chip
-              key={p.value}
-              label={p.label}
-              active={players === p.value}
+              key={p}
+              label={playersLabel(p)}
+              active={players === p}
               onClick={() =>
-                setParam("players", players === p.value ? "" : p.value)
+                setParam("players", players === p ? "" : p)
               }
             />
           ))}
         </FilterRow>
-        <FilterRow label="设备">
+        <FilterRow label={t("filterPlatform")}>
           {PLATFORMS.map((p) => (
             <Chip
-              key={p.value}
-              label={p.label}
-              active={platform === p.value}
+              key={p}
+              label={platformLabel(p)}
+              active={platform === p}
               onClick={() =>
-                setParam("platform", platform === p.value ? "" : p.value)
+                setParam("platform", platform === p ? "" : p)
               }
             />
           ))}
@@ -160,13 +166,15 @@ export function GamesPage() {
       {/* 结果 */}
       <p className="mt-4 text-sm text-muted">
         {loading
-          ? "加载中…"
-          : `共 ${total} 款游戏${totalPages > 1 ? ` · 第 ${page}/${totalPages} 页` : ""}`}
+          ? t("loading")
+          : totalPages > 1
+            ? t("countGamesPaged", { total, page, totalPages })
+            : t("countGames", { total })}
       </p>
 
       {error ? (
         <div className="mt-8 rounded-xl border border-dashed border-border p-10 text-center text-muted">
-          加载失败：{error}
+          {t("loadFailedWith", { error })}
         </div>
       ) : games.length > 0 ? (
         <div className="mt-3 grid grid-cols-2 gap-4 sm:grid-cols-4">
@@ -177,7 +185,7 @@ export function GamesPage() {
       ) : (
         !loading && (
           <div className="mt-8 rounded-xl border border-dashed border-border p-10 text-center text-muted">
-            没有符合条件的游戏，试试放宽筛选条件
+            {t("noMatch")}
           </div>
         )
       )}
@@ -190,7 +198,7 @@ export function GamesPage() {
               to={`/games?${buildQuery(sp, "page", String(page - 1))}`}
               className="rounded-full border border-border px-4 py-2 transition-colors hover:border-primary hover:text-primary"
             >
-              上一页
+              {t("prevPage")}
             </Link>
           )}
           {page < totalPages && (
@@ -198,7 +206,7 @@ export function GamesPage() {
               to={`/games?${buildQuery(sp, "page", String(page + 1))}`}
               className="rounded-full border border-border px-4 py-2 transition-colors hover:border-primary hover:text-primary"
             >
-              下一页
+              {t("nextPage")}
             </Link>
           )}
         </nav>

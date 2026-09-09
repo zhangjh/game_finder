@@ -16,9 +16,10 @@ import { runRecommendation } from "@/lib/recommendation/pipeline";
 export const recommendRouter = Router();
 
 recommendRouter.post("/", async (req, res) => {
-  const body = req.body as { input?: unknown; quick?: unknown };
+  const body = req.body as { input?: unknown; quick?: unknown; lang?: unknown };
   const input = typeof body.input === "string" ? body.input : undefined;
   const quick = typeof body.quick === "string" ? body.quick : undefined;
+  const lang = body.lang === "zh" || body.lang === "en" ? body.lang : undefined;
 
   if (!input?.trim() && !quick?.trim()) {
     res.status(400).json({ error: "bad_request", message: "input 或 quick 必填其一" });
@@ -26,7 +27,7 @@ recommendRouter.post("/", async (req, res) => {
   }
 
   try {
-    const result = await runRecommendation({ input, quick });
+    const result = await runRecommendation({ input, quick, lang });
     res.json(result);
   } catch (err) {
     if (isQuotaError(err)) {

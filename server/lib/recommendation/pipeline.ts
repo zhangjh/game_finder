@@ -26,6 +26,8 @@ export interface RecommendInput {
   input?: string;
   /** 快捷条件 id */
   quick?: string;
+  /** 界面语种（T1.7）：zh=只召回中文元数据游戏 + 中文理由，en=全部 + 英文理由，缺省 zh */
+  lang?: "zh" | "en";
 }
 
 /**
@@ -35,6 +37,7 @@ export interface RecommendInput {
 export async function runRecommendation(
   req: RecommendInput,
 ): Promise<RecommendResponse> {
+  const lang: "zh" | "en" = req.lang ?? "zh";
   const rawInput = (req.input ?? "").trim();
   const quickId = req.quick?.trim();
 
@@ -73,6 +76,7 @@ export async function runRecommendation(
     intent,
     quickId ? QUICK_CONDITIONS.find((q) => q.id === quickId)?.label ?? "" : rawInput,
     reference,
+    lang,
   );
 
   const { items: ranked, relaxed } = rankCandidates(
@@ -106,7 +110,7 @@ export async function runRecommendation(
       sourceQualityScore: candidate.sourceQualityScore,
       totalScore: candidate.totalScore,
     },
-    reason: buildReason(candidate, intent, reference),
+    reason: buildReason(candidate, intent, reference, lang),
     score: scoreDetail.total,
     scoreDetail,
   }));
@@ -124,7 +128,12 @@ export async function runRecommendation(
     parsedOk,
     intent,
     referenceGame: reference
-      ? { id: reference.id, slug: reference.slug, title: reference.title }
+      ? {
+          id: reference.id,
+          slug: reference.slug,
+          title: reference.title,
+          titleOriginal: reference.titleOriginal,
+        }
       : null,
     relaxed,
     items,

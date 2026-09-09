@@ -271,6 +271,10 @@ function parseSeoGame(value: unknown): SeoGameMetadata {
   if (Number.isNaN(Date.parse(updatedAt))) {
     throw new Error(`invalid updatedAt for ${readString(value, "slug")}`);
   }
+  const metadataLanguage = readString(value, "metadataLanguage");
+  if (metadataLanguage !== "zh" && metadataLanguage !== "en") {
+    throw new Error(`invalid metadataLanguage for ${readString(value, "slug")}`);
+  }
   return {
     slug: readString(value, "slug"),
     title: readString(value, "title"),
@@ -287,6 +291,7 @@ function parseSeoGame(value: unknown): SeoGameMetadata {
     mobile: readBoolean(value, "mobile"),
     gameLanguage: readString(value, "gameLanguage"),
     multiplayer: readBoolean(value, "multiplayer"),
+    metadataLanguage,
     developer: readNullableString(value, "developer"),
     publisher: readNullableString(value, "publisher"),
     releaseDate: readNullableString(value, "releaseDate"),

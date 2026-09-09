@@ -96,12 +96,16 @@ async function selectCandidates(
   conds: SQL[],
   order: SQL,
   limit: number,
+  lang: "zh" | "en",
 ): Promise<CandidateGame[]> {
+  // 中文界面只召回有中文元数据的游戏（T1.7，与 listGames 口径一致）
+  const langConds =
+    lang === "zh" ? [eq(games.metadataLanguage, "zh")] : [];
   const rows = await db
     .select(candidateColumns)
     .from(games)
     .leftJoin(gameScores, eq(gameScores.gameId, games.id))
-    .where(and(published, ...conds))
+    .where(and(published, ...langConds, ...conds))
     .orderBy(order)
     .limit(limit);
   return rows;
@@ -110,7 +114,10 @@ async function selectCandidates(
 /* ===== ① SQL 条件召回 ===== */
 
 /** intent 中的条件 → SQL（硬条件 players/platform 必加；软条件宽松 OR 组合提升召回率） */
-export async function sqlRecall(intent: GameIntent): Promise<CandidateGame[]> {
+export async function sqlRecall(
+  intent: GameIntent,
+  lang: "zh" | "en",
+): Promise<CandidateGame[]> {
   const conds: SQL[] = [];
 
   // 硬条件
@@ -164,10 +171,10 @@ export async function sqlRecall(intent: GameIntent): Promise<CandidateGame[]> {
   // 条件全空（如 random）时退化为热门序
   const allConds = conds.length ? conds : [];
   if (allConds.length === 0 && soft.length === 0) {
-    return selectCandidates([], desc(games.playCount), RECALL_QUOTA.sql);
+    return selectCandidates([], desc(games.playCount), RECALL_QUOTA.sql, lang);
   }
 
-  return selectCandidates(allConds, order, RECALL_QUOTA.sql);
+  return selectCandidates(allConds, order, RECALL_QUOTA.sql, lang);
 }
 
 /* ===== ② 关键词召回 ===== */
@@ -178,6 +185,7 @@ export async function sqlRecall(intent: GameIntent): Promise<CandidateGame[]> {
  */
 export async function keywordRecall(
   keywords: string[],
+  lang: "zh" | "en",
 ): Promise<CandidateGame[]> {
   const words = keywords.map((w) => w.trim()).filter((w) => w.length >= 2);
   if (words.length === 0) return [];
@@ -194,6 +202,7 @@ export async function keywordRecall(
     ],
     desc(games.playCount),
     RECALL_QUOTA.keyword,
+    lang,
   );
 }
 
@@ -246,6 +255,7 @@ export interface VectorRecallResult {
 export async function vectorRecall(
   intent: GameIntent,
   reference: ReferenceGame | null,
+  lang: "zh" | "en",
 ): Promise<VectorRecallResult> {
   if (!embeddingConfigured()) return { games: [], available: false };
 
@@ -275,6 +285,9 @@ export async function vectorRecall(
     if (!queryVector) return { games: [], available: false };
 
     const vecLiteral = `[${queryVector.join(",")}]`;
+    // 中文界面只召回有中文元数据的游戏（T1.7，与 listGames 口径一致）
+    const zhConds =
+      lang === "zh" ? sql` AND g.metadata_language = 'zh'` : sql``;
     const rows = await db.execute(sql`
       SELECT g.id, g.slug, g.title, g.title_original, g.description, g.thumbnail,
              g.genre, g.tags, g.mechanics, g.mood,
@@ -288,7 +301,7 @@ export async function vectorRecall(
       FROM game_embeddings ge
       JOIN games g ON g.id = ge.game_id
       LEFT JOIN game_scores gs ON gs.game_id = g.id
-      WHERE g.status = 'published'
+      WHERE g.status = 'published'${zhConds}
       ORDER BY ge.embedding <=> ${vecLiteral}::vector
       LIMIT ${RECALL_QUOTA.vector}
     `);
@@ -356,12 +369,13 @@ function mapRawCandidate(r: Record<string, unknown>): CandidateGame & {
 
 /* ===== ④ 热门兜底 ===== */
 
-export async function popularRecall(): Promise<CandidateGame[]> {
+export async function popularRecall(lang: "zh" | "en"): Promise<CandidateGame[]> {
   // play_count 全 0 的冷启动期按最新发布兜底，M6 后自然切到热门
   return selectCandidates(
     [],
     sql`${desc(games.playCount)}, ${desc(games.publishedAt)}`,
     RECALL_QUOTA.popular,
+    lang,
   );
 }
 
@@ -369,7 +383,11 @@ export async function popularRecall(): Promise<CandidateGame[]> {
 
 export async function relationsRecall(
   referenceId: number,
+  lang: "zh" | "en",
 ): Promise<(CandidateGame & { similarity?: number })[]> {
+  // 中文界面只召回有中文元数据的游戏（T1.7，与 listGames 口径一致）
+  const zhConds =
+    lang === "zh" ? sql` AND g.metadata_language = 'zh'` : sql``;
   const rows = await db.execute(sql`
     SELECT g.id, g.slug, g.title, g.title_original, g.description, g.thumbnail,
            g.genre, g.tags, g.mechanics, g.mood,
@@ -382,7 +400,7 @@ export async function relationsRecall(
     FROM game_relations gr
     JOIN games g ON g.id = gr.related_game_id
     LEFT JOIN game_scores gs ON gs.game_id = g.id
-    WHERE gr.game_id = ${referenceId} AND g.status = 'published'
+    WHERE gr.game_id = ${referenceId} AND g.status = 'published'${zhConds}
     ORDER BY gr.similarity DESC
     LIMIT ${RECALL_QUOTA.relations}
   `);
@@ -401,6 +419,7 @@ export async function recallAll(
   intent: GameIntent,
   rawInput: string,
   reference: ReferenceGame | null,
+  lang: "zh" | "en",
 ): Promise<RecallResult> {
   const keywords: string[] = [];
   if (intent.similarTo) keywords.push(intent.similarTo);
@@ -409,11 +428,11 @@ export async function recallAll(
   if (rawInput.trim().length <= 6) keywords.unshift(rawInput.trim());
 
   const [sqlRes, kwRes, vecRes, popRes, relRes] = await Promise.allSettled([
-    sqlRecall(intent),
-    keywordRecall(keywords),
-    vectorRecall(intent, reference),
-    popularRecall(),
-    reference ? relationsRecall(reference.id) : Promise.resolve([]),
+    sqlRecall(intent, lang),
+    keywordRecall(keywords, lang),
+    vectorRecall(intent, reference, lang),
+    popularRecall(lang),
+    reference ? relationsRecall(reference.id, lang) : Promise.resolve([]),
   ]);
 
   const byId = new Map<number, RecallCandidate>();

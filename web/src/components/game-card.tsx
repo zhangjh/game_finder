@@ -2,17 +2,25 @@ import { useEffect, useRef } from "react";
 import { Link } from "react-router";
 
 import { trackEvent } from "../analytics/track";
+import { useI18n } from "../i18n";
 import { FavoriteButton } from "./favorite-button";
 import {
+  displayTitle,
   parseJsonArray,
   ratingLabel,
   sessionLabel,
   type GameListItem,
 } from "@game-finder/shared";
 
+/** 是否含 CJK 字符（英文界面隐藏中文标签） */
+function hasCJK(text: string): boolean {
+  return /[\u4e00-\u9fff]/.test(text);
+}
+
 /**
  * 游戏卡片（PRD §23）：全站复用原子组件。
  * M6：IntersectionObserver 驱动 game_impression；click 上报 game_click。
+ * T1.7：卡片文案与游戏名跟随界面语种（en 用原始英文名/时长/难度标签）。
  */
 export function GameCard({
   game,
@@ -22,6 +30,7 @@ export function GameCard({
   /** 可选推荐上下文（recommendation_impression / click 时传入） */
   context?: { requestId?: number; rank?: number };
 }) {
+  const { t, lang } = useI18n();
   const tags = parseJsonArray(game.tags);
   const score = game.totalScore;
   const cardRef = useRef<HTMLAnchorElement>(null);
@@ -68,6 +77,11 @@ export function GameCard({
     trackEvent({ eventType: "game_click", gameId: game.id, context });
   };
 
+  // 英文界面隐藏中文标签（DB 标签为 AI 生成的中文）
+  const visibleTags =
+    lang === "en" ? tags.filter((tag) => !hasCJK(tag)) : tags;
+  const title = displayTitle(game, lang);
+
   return (
     <Link
       ref={cardRef}
@@ -78,7 +92,7 @@ export function GameCard({
       <div className="relative aspect-[16/10] overflow-hidden bg-background">
         <img
           src={game.thumbnail ?? "/placeholder.svg"}
-          alt={`${game.title}缩略图`}
+          alt={t("thumbnailAlt", { title })}
           loading="lazy"
           decoding="async"
           width={640}
@@ -93,7 +107,7 @@ export function GameCard({
         )}
         {game.sourceQualityScore != null && (
           <span
-            title="质量分"
+            title={t("qualityBadge")}
             className="absolute bottom-2 right-2 rounded-full bg-black/50 px-2 py-0.5 text-xs font-medium text-white/90"
           >
             🏅 {Math.round(game.sourceQualityScore * 100)}
@@ -103,21 +117,28 @@ export function GameCard({
 
       <div className="flex flex-1 flex-col gap-2 p-3">
         <h3 className="font-semibold leading-snug group-hover:text-primary">
-          {game.title}
+          {title}
         </h3>
 
         <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted">
           <span>
-            ⏱ {sessionLabel(game.sessionLengthMin, game.sessionLengthMax)}
+            ⏱{" "}
+            {sessionLabel(
+              game.sessionLengthMin,
+              game.sessionLengthMax,
+              lang,
+            )}
           </span>
-          <span>🧠 {ratingLabel(game.difficulty)}</span>
-          {game.multiplayer && <span>👥 {game.maxPlayers}人</span>}
+          <span>🧠 {ratingLabel(game.difficulty, lang)}</span>
+          {game.multiplayer && (
+            <span>👥 {t("nPlayers", { n: game.maxPlayers })}</span>
+          )}
           {game.mobile && <span>📱</span>}
         </div>
 
-        {tags.length > 0 && (
+        {visibleTags.length > 0 && (
           <div className="flex flex-wrap gap-1">
-            {tags.slice(0, 3).map((tag) => (
+            {visibleTags.slice(0, 3).map((tag) => (
               <span
                 key={tag}
                 className="rounded-full bg-background px-2 py-0.5 text-xs text-muted"
@@ -129,7 +150,7 @@ export function GameCard({
         )}
 
         <span className="mt-auto block rounded-lg bg-primary px-3 py-2 text-center text-sm font-medium text-primary-foreground transition-opacity group-hover:opacity-90">
-          立即玩
+          {t("playNow")}
         </span>
       </div>
     </Link>

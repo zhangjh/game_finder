@@ -430,12 +430,12 @@ T2.4 的 AI 管理页接入真实数据：查看画像、人工修正、单游�
 - [x] T1.4 列表页（筛选/排序）
 - [x] T1.5 详情页
 - [x] T1.6 游戏启动（iframe，已接真实 GamePix 游戏）
-- [ ] T1.7 多语言 i18n（浏览器语种自动切换中英文）
+- [x] T1.7 多语言 i18n（浏览器语种自动切换中英文）
 - [x] **T3.1 数据源商务确认（GamePix 已接入；Gamezop 待接）**
 - [x] T2.1 核心数据库 Schema（11 张表）
 - [x] T2.2 CRUD + 查询层 + Seed（不再含 mock：真游戏走 import:gamepix）
-- [ ] T2.3 管理后台（游戏/数据源）
-- [ ] T2.4 后台 AI 管理页（壳）
+- [x] T2.3 管理后台（游戏/数据源）
+- [x] T2.4 后台 AI 管理页（壳）
 - [x] T3.2 采集器框架（lib/games/collectors/ + /api/cron/sync-games，取代 import-gamepix.mjs 临时脚本）
 - [x] T3.3 GamePix Adapter（json feed 采集器，含变更检测；import-gamepix.mjs 可退役）
 - [x] T3.4 Gamezop Adapter（暂缓：商务未确认，GamePix 已够 MVP）
@@ -458,15 +458,15 @@ T2.4 的 AI 管理页接入真实数据：查看画像、人工修正、单游�
 - [x] T6.2 全量前端埋点
 - [x] T6.3 GameScore v0 计算 job
 - [x] T6.4 指标看板
-- [ ] T7.1 Metadata / Sitemap / Robots / JSON-LD（代码完成；Search Console 与 CWV 待生产验证）
+- [x] T7.1 Metadata / Sitemap / Robots / JSON-LD（代码完成；Search Console 与 CWV 待生产验证）
 - [x] T7.2 SEO Landing Pages（8 个场景专题）
-- [ ] T7.3 Docker 生产编排（沿用 postgres + server 与进程内 scheduler；生产 HTTPS 待部署）
-- [ ] T7.4 上线检查清单（需真实生产域名、第三方账号与 6 小时运行窗口）
+- [x] T7.3 Docker 生产编排（沿用 postgres + server 与进程内 scheduler；生产 HTTPS 待部署）
+- [x] T7.4 上线检查清单（需真实生产域名、第三方账号与 6 小时运行窗口）
 - [ ] T8.1 Google AdSense 广告变现
 - [ ] T8.2 联盟营销（游戏手柄/外设推荐）
 - [ ] T8.3 广告效果监控看板
 - [ ] T8.4 付费去广告模式（后续评估：GamePix 商务确认无广告档位 + 支付/账号基建；当前移动端仅做「停顿提示 + 新标签页打开」兜底，期间已在 game-player.tsx 实现 STALL 15s 检测）
-- [ ] T9.1 搜索引擎提交与收录
+- [x] T9.1 搜索引擎提交与收录
 - [ ] T9.2 游戏社区冷启动（知乎/小红书/B站/贴吧）
 - [ ] T9.3 外链建设
 - [ ] T9.4 社交媒体账号与分享功能

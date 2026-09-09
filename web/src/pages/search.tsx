@@ -5,6 +5,7 @@ import { fetchGames, fetchRecommendation } from "../api";
 import { Seo } from "../components/seo";
 import { GameCard } from "../components/game-card";
 import { RecommendResults } from "../components/recommend-results";
+import { useI18n } from "../i18n";
 import type { GameListItem, RecommendResponse } from "@game-finder/shared";
 
 /**
@@ -12,7 +13,7 @@ import type { GameListItem, RecommendResponse } from "@game-finder/shared";
  * AI 失败自动降级回传统搜索，绝不空转。
  */
 const AI_INTENT_PATTERN =
-  /类似|像一|想要|想玩|推荐|帮我|有没有|随便|放松|轻松|烧脑|简单|太难|太肝|分钟|小时|手机|电脑|双人|多人|两个人|朋友|不用下载|下载|横屏|竖屏|休闲|打发|挑战/;
+  /类似|像一|想要|想玩|推荐|帮我|有没有|随便|放松|轻松|烧脑|简单|太难|太肝|分钟|小时|手机|电脑|双人|多人|两个人|朋友|不用下载|下载|横屏|竖屏|休闲|打发|挑战|relax|chill|brain|casual|quick|minute|hour|easy|hard|difficult|mobile|phone|desktop|laptop|friend|together|multiplayer|recommend|suggest|something|bored|player|players|download/i;
 
 function isAiQuery(q: string): boolean {
   if (q.length > 10) return true;
@@ -23,6 +24,7 @@ function isAiQuery(q: string): boolean {
 export function SearchPage() {
   const [sp] = useSearchParams();
   const q = (sp.get("q") ?? "").trim();
+  const { t, lang } = useI18n();
 
   const [results, setResults] = useState<GameListItem[]>([]);
   const [total, setTotal] = useState(0);
@@ -50,13 +52,13 @@ export function SearchPage() {
       setResults([]);
       setTotal(0);
 
-      fetchRecommendation({ input: q })
+      fetchRecommendation({ input: q, lang })
         .then((res) => {
           setAiResult(res);
           // 解析成功且有结果：AI 结果即答案
           // 解析失败/空结果：降级补一次传统搜索兜底
           if (res.items.length === 0) {
-            return fetchGames({ q }).then((fallback) => {
+            return fetchGames({ q, lang }).then((fallback) => {
               setResults(fallback.items);
               setTotal(fallback.total);
             });
@@ -64,7 +66,7 @@ export function SearchPage() {
         })
         .catch(() =>
           // AI 服务异常 → 传统搜索兜底（绝不空转）
-          fetchGames({ q })
+          fetchGames({ q, lang })
             .then((fallback) => {
               setResults(fallback.items);
               setTotal(fallback.total);
@@ -82,7 +84,7 @@ export function SearchPage() {
     setAiMode(false);
     setAiResult(null);
     setLoading(true);
-    fetchGames({ q })
+    fetchGames({ q, lang })
       .then((res) => {
         setResults(res.items);
         setTotal(res.total);
@@ -92,36 +94,40 @@ export function SearchPage() {
         setError(e instanceof Error ? e.message : "加载失败"),
       )
       .finally(() => setLoading(false));
-  }, [q]);
+  }, [q, lang, t]);
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-6">
       <Seo
-        title={q ? `「${q}」搜索结果 | 玩什么 PlayWhat` : "搜索 | 玩什么 PlayWhat"}
-        description="搜索在线网页游戏，或直接描述你的时间、心情、人数和设备需求。"
+        title={
+          q
+            ? t("resultsFor", { q }) + " | " + (lang === "zh" ? "玩什么 PlayWhat" : "PlayWhat")
+            : t("searchSeoTitle")
+        }
+        description={t("searchSeoDesc")}
         path="/search"
         noIndex
       />
       <h1 className="text-xl font-bold">
         {q ? (
           <>
-            「{q}」
+            {lang === "zh" ? `「${q}」` : `"${q}"`}
             <span className="ml-2 text-sm font-normal text-muted">
               {loading
-                ? "搜索中…"
+                ? t("searching")
                 : aiMode
-                  ? "AI 理解结果"
-                  : `${total} 款`}
+                  ? t("aiResults")
+                  : t("nGames", { total })}
             </span>
           </>
         ) : (
-          "搜索游戏"
+          t("searchGames")
         )}
       </h1>
 
       {error ? (
         <div className="mt-8 rounded-xl border border-dashed border-border p-10 text-center text-muted">
-          搜索失败：{error}（请确认后端 API 已启动）
+          {t("searchFailed", { error })}
         </div>
       ) : null}
 
@@ -133,11 +139,11 @@ export function SearchPage() {
       {/* AI 空结果的降级文案 */}
       {aiMode && !loading && aiResult && aiResult.items.length === 0 && total === 0 && !error && (
         <div className="mt-8 rounded-xl border border-dashed border-border p-10 text-center text-muted">
-          没有理解这个需求，也搜不到相关游戏。试试
+          {t("notUnderstoodPre")}{" "}
           <Link to="/" className="text-primary hover:underline">
             AI Finder
-          </Link>
-          或换个说法
+          </Link>{" "}
+          {t("notUnderstoodPost")}
         </div>
       )}
 
@@ -154,7 +160,7 @@ export function SearchPage() {
       {aiMode && !loading && aiResult && aiResult.items.length === 0 && results.length > 0 && (
         <div className="mt-6">
           <h2 className="mb-3 text-sm font-semibold text-muted">
-            为你找到的相关游戏
+            {t("relatedFound")}
           </h2>
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
             {results.map((g) => (
@@ -165,10 +171,7 @@ export function SearchPage() {
       )}
 
       {!q ? (
-        <p className="mt-8 text-center text-sm text-muted">
-          提示：可以直接输入「我只有10分钟，想玩轻松的」这类自然语言需求，
-          也可以搜「塔防」「双人」这类关键词
-        </p>
+        <p className="mt-8 text-center text-sm text-muted">{t("searchHint")}</p>
       ) : null}
     </div>
   );

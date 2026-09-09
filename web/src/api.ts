@@ -19,6 +19,11 @@ import { getPersistedUserId } from "./analytics/user-id";
 const BASE_URL = API_BASE_URL;
 
 export type GameListQueryParams = {
+  /**
+   * 界面语种（T1.7）：zh=只返回中文元数据游戏，en=全部（英文原始字段恒存在）。
+   * 缺省时服务端不过滤。
+   */
+  lang?: "zh" | "en";
   genre?: string;
   duration?: number;
   players?: number | "multi";
@@ -36,6 +41,7 @@ export async function fetchGames(
   params: GameListQueryParams = {},
 ): Promise<GameListResponse> {
   const sp = new URLSearchParams();
+  if (params.lang) sp.set("lang", params.lang);
   if (params.genre) sp.set("genre", params.genre);
   if (params.duration) sp.set("duration", String(params.duration));
   if (params.players) sp.set("players", String(params.players));
@@ -64,8 +70,10 @@ export async function fetchGameDetail(
 
 export async function fetchSimilarGames(
   slug: string,
+  lang?: "zh" | "en",
 ): Promise<GameListItem[]> {
-  const res = await fetch(`${BASE_URL}/api/games/${slug}/similar`);
+  const qs = lang ? `?lang=${lang}` : "";
+  const res = await fetch(`${BASE_URL}/api/games/${slug}/similar${qs}`);
   if (!res.ok) throw new Error(`API error: ${res.status}`);
   const data = (await res.json()) as { items: GameListItem[] };
   return data.items;

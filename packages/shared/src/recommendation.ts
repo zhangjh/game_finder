@@ -21,7 +21,7 @@ export const MOOD_VALUES = [
 
 export type Mood = (typeof MOOD_VALUES)[number];
 
-/** 心情 → 中文标签 */
+/** 心情 → 标签（T1.7：中英两组） */
 export const MOOD_LABELS: Record<Mood, string> = {
   casual: "休闲",
   relaxing: "放松",
@@ -31,6 +31,17 @@ export const MOOD_LABELS: Record<Mood, string> = {
   competitive: "竞技",
   nostalgic: "怀旧",
   chill: "治愈",
+};
+
+export const MOOD_LABELS_EN: Record<Mood, string> = {
+  casual: "Casual",
+  relaxing: "Relaxing",
+  focus: "Focus",
+  brain_burn: "Brain-burning",
+  exciting: "Exciting",
+  competitive: "Competitive",
+  nostalgic: "Nostalgic",
+  chill: "Chill",
 };
 
 /**
@@ -71,27 +82,32 @@ export interface GameIntent {
 export interface QuickCondition {
   id: string;
   icon: string;
+  /** 中文标签 */
   label: string;
+  /** 英文标签（T1.7） */
+  labelEn: string;
   intent: GameIntent;
 }
 
 export const QUICK_CONDITIONS: QuickCondition[] = [
-  { id: "5min", icon: "⚡", label: "5分钟", intent: { sessionLengthMax: 5 } },
+  { id: "5min", icon: "⚡", label: "5分钟", labelEn: "5 min", intent: { sessionLengthMax: 5 } },
   {
     id: "relax",
     icon: "😌",
     label: "放松",
+    labelEn: "Relax",
     intent: { mood: ["relaxing"], cognitiveLoadMax: 2 },
   },
   {
     id: "brain",
     icon: "🧠",
     label: "烧脑",
+    labelEn: "Brain teaser",
     intent: { mood: ["brain_burn"], cognitiveLoadMin: 4 },
   },
-  { id: "2p", icon: "👥", label: "双人", intent: { players: 2 } },
-  { id: "mobile", icon: "📱", label: "手机", intent: { platform: "mobile" } },
-  { id: "random", icon: "🎲", label: "随便来一个", intent: { random: true } },
+  { id: "2p", icon: "👥", label: "双人", labelEn: "2 player", intent: { players: 2 } },
+  { id: "mobile", icon: "📱", label: "手机", labelEn: "Mobile", intent: { platform: "mobile" } },
+  { id: "random", icon: "🎲", label: "随便来一个", labelEn: "Surprise me", intent: { random: true } },
 ];
 
 /** Hybrid Ranking 各分项得分（PRD §42/§44，可解释性依据） */
@@ -119,6 +135,8 @@ export interface RecommendRequestBody {
   input?: string;
   /** 快捷条件 id（QUICK_CONDITIONS 之一，不走 LLM） */
   quick?: string;
+  /** 界面语种（T1.7）：影响召回过滤与理由语言，缺省 zh */
+  lang?: "zh" | "en";
 }
 
 /** POST /api/recommend 响应 */
@@ -128,7 +146,13 @@ export interface RecommendResponse {
   parsedOk: boolean;
   intent: GameIntent | null;
   /** similarTo 是否在站内命中参考游戏（命中时携带） */
-  referenceGame: { id: number; slug: string; title: string } | null;
+  referenceGame: {
+    id: number;
+    slug: string;
+    title: string;
+    /** 原始英文名（T1.7 英文界面展示用） */
+    titleOriginal: string;
+  } | null;
   /** 硬过滤后不足 3 款时的放宽提示 */
   relaxed: boolean;
   items: RecommendItem[];

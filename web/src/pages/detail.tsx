@@ -7,9 +7,12 @@ import { GameCard } from "../components/game-card";
 import { GamePlayer } from "../components/game-player";
 import { Seo } from "../components/seo";
 import { ShareButton } from "../components/share-button";
+import { useI18n } from "../i18n";
 import {
   buildVideoGameJsonLd,
   PUBLIC_SITE_URL,
+  displayTitle,
+  genreLabel,
   parseJsonArray,
   ratingLabel,
   sessionLabel,
@@ -19,6 +22,7 @@ import {
 
 export function DetailPage() {
   const { slug = "" } = useParams();
+  const { t, lang } = useI18n();
   const [game, setGame] = useState<GameDetail | null>(null);
   const [similar, setSimilar] = useState<GameListItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -44,7 +48,7 @@ export function DetailPage() {
 
         setGame(nextGame);
         setLoadedSlug(slug);
-        void fetchSimilarGames(slug)
+        void fetchSimilarGames(slug, lang)
           .then((nextSimilar) => {
             if (active) setSimilar(nextSimilar);
           })
@@ -65,12 +69,12 @@ export function DetailPage() {
     return () => {
       active = false;
     };
-  }, [slug]);
+  }, [slug, lang]);
 
   if (loading || loadedSlug !== slug) {
     return (
       <div className="mx-auto max-w-4xl px-4 py-20 text-center text-muted">
-        加载中…
+        {t("loading")}
       </div>
     );
   }
@@ -79,12 +83,12 @@ export function DetailPage() {
     return (
       <div className="mx-auto max-w-4xl px-4 py-20 text-center text-muted">
         <Seo
-          title="游戏加载失败 | 玩什么 PlayWhat"
-          description="游戏详情暂时无法加载，请稍后重试。"
+          title={t("detailLoadFailedTitle")}
+          description={t("detailLoadFailedDesc")}
           path={`/game/${encodeURIComponent(slug)}`}
           noIndex
         />
-        游戏详情加载失败，请稍后重试
+        {t("gameLoadFailed")}
       </div>
     );
   }
@@ -93,65 +97,108 @@ export function DetailPage() {
     return (
       <div className="mx-auto max-w-4xl px-4 py-20 text-center text-muted">
         <Seo
-          title="游戏不存在 | 玩什么 PlayWhat"
-          description="这款游戏不存在、已下架或暂时不可用。"
+          title={t("detailNotFoundTitle")}
+          description={t("detailNotFoundDesc")}
           path={`/game/${encodeURIComponent(slug)}`}
           noIndex
         />
-        游戏不存在或已下架 ·{" "}
+        {t("gameMissing")} ·{" "}
         <Link to="/games" className="text-primary hover:underline">
-          浏览全部游戏
+          {t("browseAll")}
         </Link>
       </div>
     );
   }
 
+  // 界面语种 → 展示字段（T1.7）：英文界面优先原始英文名/简介
+  const displayTitleText = displayTitle(game, lang);
+  const subtitle = lang === "en" ? game.title : game.titleOriginal;
+  const descriptionText =
+    lang === "en"
+      ? game.descriptionOriginal || game.description
+      : game.description;
+
+  const sessionText = sessionLabel(
+    game.sessionLengthMin,
+    game.sessionLengthMax,
+    lang,
+  );
+
   const spec: Array<[string, string]> = [
     [
-      "类型",
+      t("specGenre"),
       game.genre
-        ? `${game.genre}${game.subGenre ? ` · ${game.subGenre}` : ""}`
-        : "未分类",
+        ? `${genreLabel(game.genre, lang)}${game.subGenre ? ` · ${game.subGenre}` : ""}`
+        : t("valUncategorized"),
     ],
-    ["难度", ratingLabel(game.difficulty)],
-    ["认知负担", ratingLabel(game.cognitiveLoad)],
-    ["单局时长", sessionLabel(game.sessionLengthMin, game.sessionLengthMax)],
+    [t("specDifficulty"), ratingLabel(game.difficulty, lang)],
+    [t("specCognitive"), ratingLabel(game.cognitiveLoad, lang)],
+    [t("specSession"), sessionText],
     [
-      "玩家人数",
-      game.multiplayer ? `${game.minPlayers}~${game.maxPlayers} 人` : "单人",
+      t("specPlayers"),
+      game.multiplayer
+        ? t("playersRange", { min: game.minPlayers, max: game.maxPlayers })
+        : t("valSingle"),
     ],
     [
-      "设备",
-      [game.desktop && "电脑", game.mobile && "手机"]
+      t("specDevice"),
+      [
+        game.desktop && t("desktop"),
+        game.mobile && t("mobile"),
+      ]
         .filter(Boolean)
-        .join(" / ") || "未知",
+        .join(" / ") || t("valUnknown"),
     ],
-    ["画面方向", game.portrait ? "竖屏" : "横屏"],
-    ["游戏语言", game.gameLanguage === "zh" ? "中文" : "英文"],
+    [t("specOrientation"), game.portrait ? t("valPortrait") : t("valLandscape")],
     [
-      "质量分",
+      t("specGameLang"),
+      game.gameLanguage === "zh" ? t("valLangZh") : t("valLangEn"),
+    ],
+    [
+      t("specQuality"),
       game.sourceQualityScore != null
         ? `${Math.round(game.sourceQualityScore * 100)} / 100`
-        : "暂无",
+        : t("valNone"),
     ],
-    ["平台评分", game.totalScore != null ? game.totalScore.toFixed(1) : "暂无"],
+    [
+      t("specRating"),
+      game.totalScore != null ? game.totalScore.toFixed(1) : t("valNone"),
+    ],
   ];
 
   const whyPlay = [
-    `单局 ${sessionLabel(game.sessionLengthMin, game.sessionLengthMax)}，节奏可控，随时能停`,
-    `难度${ratingLabel(game.difficulty)}，${game.cognitiveLoad <= 2 ? "上手零门槛" : "需要一点学习成本"}`,
-    game.mobile ? "手机、电脑都能玩" : "适合电脑端游玩",
+    t("whyPlay1", { session: sessionText }),
+    t(game.cognitiveLoad <= 2 ? "whyPlay2Easy" : "whyPlay2Hard", {
+      level: ratingLabel(game.difficulty, lang),
+    }),
+    game.mobile ? t("whyPlay3Mobile") : t("whyPlay3Desktop"),
   ];
 
   const screenshots = parseJsonArray(game.screenshots);
   const canonicalPath = `/game/${encodeURIComponent(game.slug)}`;
-  const jsonLd = buildVideoGameJsonLd(game, `${PUBLIC_SITE_URL}${canonicalPath}`);
+  // 英文界面的 JSON-LD 同步用英文名/简介
+  const jsonLdGame =
+    lang === "en"
+      ? {
+          ...game,
+          title: displayTitleText,
+          description: descriptionText,
+        }
+      : game;
+  const jsonLd = buildVideoGameJsonLd(
+    jsonLdGame,
+    `${PUBLIC_SITE_URL}${canonicalPath}`,
+  );
+  const seoTitle =
+    lang === "en"
+      ? `${displayTitleText} | PlayWhat`
+      : `${game.title}（${game.titleOriginal}）| 玩什么 PlayWhat`;
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-6">
       <Seo
-        title={`${game.title}（${game.titleOriginal}）| 玩什么 PlayWhat`}
-        description={game.description.slice(0, 155)}
+        title={seoTitle}
+        description={descriptionText.slice(0, 155)}
         path={canonicalPath}
         image={game.thumbnail}
         type="article"
@@ -159,8 +206,10 @@ export function DetailPage() {
       />
       <div className="flex flex-wrap items-end justify-between gap-2">
         <div>
-          <h1 className="text-2xl font-bold">{game.title}</h1>
-          <p className="mt-1 text-sm text-muted">{game.titleOriginal}</p>
+          <h1 className="text-2xl font-bold">{displayTitleText}</h1>
+          {subtitle && (
+            <p className="mt-1 text-sm text-muted">{subtitle}</p>
+          )}
         </div>
         <div className="flex items-center gap-3">
           {game.totalScore != null && (
@@ -178,19 +227,19 @@ export function DetailPage() {
           gameId={game.id}
           slug={game.slug}
           gameUrl={game.gameUrl}
-          title={game.title}
+          title={displayTitleText}
           portrait={game.portrait}
           poster={screenshots[0] ?? game.thumbnail}
         />
       </div>
 
       <section className="mt-6">
-        <h2 className="text-lg font-bold">简介</h2>
-        <p className="mt-2 leading-relaxed text-muted">{game.description}</p>
+        <h2 className="text-lg font-bold">{t("descTitle")}</h2>
+        <p className="mt-2 leading-relaxed text-muted">{descriptionText}</p>
       </section>
 
       <section className="mt-6">
-        <h2 className="text-lg font-bold">为什么值得玩？</h2>
+        <h2 className="text-lg font-bold">{t("whyPlayTitle")}</h2>
         <ul className="mt-2 space-y-1 text-muted">
           {whyPlay.map((line) => (
             <li key={line}>· {line}</li>
@@ -199,7 +248,7 @@ export function DetailPage() {
       </section>
 
       <section className="mt-6">
-        <h2 className="text-lg font-bold">游戏参数</h2>
+        <h2 className="text-lg font-bold">{t("specsTitle")}</h2>
         <dl className="mt-2 grid grid-cols-2 gap-x-8 gap-y-2 rounded-xl border border-border bg-surface p-4 text-sm sm:grid-cols-3">
           {spec.map(([k, v]) => (
             <div key={k} className="flex justify-between gap-2">
@@ -210,14 +259,17 @@ export function DetailPage() {
         </dl>
         {parseJsonArray(game.tags).length > 0 ? (
           <div className="mt-3 flex flex-wrap gap-2">
-            {parseJsonArray(game.tags).map((tag) => (
-              <span
-                key={tag}
-                className="rounded-full bg-background px-3 py-1 text-xs text-muted"
-              >
-                {tag}
-              </span>
-            ))}
+            {parseJsonArray(game.tags)
+              // 英文界面隐藏中文标签（DB 标签为 AI 生成的中文）
+              .filter((tag) => lang === "en" ? !/[\u4e00-\u9fff]/.test(tag) : true)
+              .map((tag) => (
+                <span
+                  key={tag}
+                  className="rounded-full bg-background px-3 py-1 text-xs text-muted"
+                >
+                  {tag}
+                </span>
+              ))}
           </div>
         ) : null}
       </section>
@@ -225,9 +277,9 @@ export function DetailPage() {
       {similar.length > 0 ? (
         <section className="mt-6">
           <div className="flex items-center justify-between">
-            <h2 className="text-lg font-bold">你可能还喜欢</h2>
+            <h2 className="text-lg font-bold">{t("similarTitle")}</h2>
             <Link to="/games" className="text-sm text-muted hover:text-primary">
-              全部游戏 →
+              {t("allGamesArrow")}
             </Link>
           </div>
           <div className="mt-3 grid grid-cols-2 gap-4 sm:grid-cols-4">

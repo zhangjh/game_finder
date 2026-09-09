@@ -24,6 +24,8 @@ export interface SeoGameMetadata extends VideoGameJsonLdInput {
   maxPlayers: number;
   mood: string;
   sourceQualityScore: number | null;
+  /** 元数据语种（zh=AI 中文化后，en=原始英文），T1.7 SEO 分目录用 */
+  metadataLanguage: "zh" | "en";
   updatedAt: string;
 }
 
@@ -32,6 +34,16 @@ export interface SeoGameExportResponse {
   total: number;
   nextCursor: number | null;
   catalogVersion: string;
+}
+
+/** landing 页多语内容（T1.7：中文主版本 + 英文 /en/ 版本） */
+export interface SeoLandingContent {
+  title: string;
+  description: string;
+  heading: string;
+  intro: string[];
+  filterLabels: string[];
+  aiExplanation: string;
 }
 
 export interface SeoLandingPage {
@@ -45,6 +57,8 @@ export interface SeoLandingPage {
   filterLabels: string[];
   aiExplanation: string;
   relatedPaths: string[];
+  /** 英文版内容（T1.7），path 前缀 /en */
+  en: SeoLandingContent;
 }
 
 export const SEO_LANDING_PAGES: SeoLandingPage[] = [
@@ -64,6 +78,19 @@ export const SEO_LANDING_PAGES: SeoLandingPage[] = [
     aiExplanation:
       "AI 会综合塔防类型匹配度、认知负担、难度、单局时长和 GameScore 排序；高分不等于更难，而是更符合塔防需求且实际游玩反馈更好。",
     relatedPaths: ["/games/10-minute", "/games/mobile", "/games/relaxing"],
+    en: {
+      title: "Best Online Tower Defense Games | Play Instantly in Your Browser",
+      description:
+        "Hand-picked tower defense games you can play right in your browser. Filter by pace, difficulty and session length, with an explanation of who each game suits.",
+      heading: "Best Online Tower Defense Games",
+      intro: [
+        "Tower defense is about making trade-offs between limited resources, enemy paths and upgrade timing — not just filling the map with turrets. These picks require no download and run directly in your browser.",
+        "We prioritize games with clear rules and a fast entry into the core loop in the first few minutes, while keeping a range of difficulty and pace for both newcomers and strategy fans.",
+      ],
+      filterLabels: ["Genre: Tower Defense", "Status: Playable online", "Sort: Rating"],
+      aiExplanation:
+        "AI weighs tower-defense genre fit, cognitive load, difficulty, session length and GameScore. A higher rank doesn't mean harder — it means a better match with what tower-defense players actually enjoy.",
+    },
   },
   {
     slug: "roguelike",
@@ -81,6 +108,19 @@ export const SEO_LANDING_PAGES: SeoLandingPage[] = [
     aiExplanation:
       "AI 优先考虑类型与玩法机制，再结合重复可玩性、难度、认知负担和玩家行为分数；目标是推荐真正有随机成长循环的游戏，而不是只匹配标题关键词。",
     relatedPaths: ["/games/10-minute", "/games/mobile", "/games/tower-defense"],
+    en: {
+      title: "Best Online Roguelike Games | A New Run Every Time",
+      description:
+        "Hand-picked browser Roguelike games with no download required. Compare difficulty, run length and cognitive load to find the right run for right now.",
+      heading: "Best Online Roguelike Games",
+      intro: [
+        "The heart of Roguelike is randomized growth and re-deciding after failure. Every run gives different abilities, routes and combos — perfect for players who love experimenting with builds and replayability.",
+        "The list ranges from lightweight survival to hardcore planning. Check run length and difficulty first to decide whether now is a good time to start a run, rather than relying on popularity alone.",
+      ],
+      filterLabels: ["Genre: Roguelike", "Status: Playable online", "Sort: Rating"],
+      aiExplanation:
+        "AI prioritizes genre and mechanics, then combines replayability, difficulty, cognitive load and player behavior scores. The goal is games with a real randomized growth loop, not just title keyword matches.",
+    },
   },
   {
     slug: "puzzle",
@@ -98,6 +138,19 @@ export const SEO_LANDING_PAGES: SeoLandingPage[] = [
     aiExplanation:
       "AI 先匹配解谜类型，再结合难度、认知负担、单局时长和玩家反馈排序，减少只有题材像谜题、实际玩法却不匹配的结果。",
     relatedPaths: ["/games/5-minute", "/games/relaxing", "/games/mobile"],
+    en: {
+      title: "Best Online Puzzle Games | Think, Don't Just Trial-and-Error",
+      description:
+        "Hand-picked browser puzzle games. Filter by difficulty, cognitive load and session length to find the right puzzle for your current state of mind.",
+      heading: "Best Online Puzzle Games",
+      intro: [
+        "Good puzzles ask you to observe rules, spot clues and verify reasoning — not to burn time on blind trial and error. These picks all run instantly in your browser.",
+        "Choose by difficulty, cognitive load and session length: short riddles fit fragmented time, while connected levels suit players ready to keep thinking.",
+      ],
+      filterLabels: ["Genre: Puzzle", "Status: Playable online", "Sort: Rating"],
+      aiExplanation:
+        "AI matches the puzzle genre first, then ranks by difficulty, cognitive load, session length and player feedback — reducing results that only look like puzzles without the gameplay to match.",
+    },
   },
   {
     slug: "2-player",
@@ -115,6 +168,19 @@ export const SEO_LANDING_PAGES: SeoLandingPage[] = [
     aiExplanation:
       "玩家人数属于硬条件，不会被热度放宽。满足双人条件后，AI 再比较难度、单局时长、GameScore 与流行度，减少点进去才发现不能一起玩的情况。",
     relatedPaths: ["/games/5-minute", "/games/mobile", "/games/relaxing"],
+    en: {
+      title: "Best 2-Player Online Games | Play Together in Your Browser",
+      description:
+        "No-download browser games that genuinely support two players, ranked by ease of pickup, device support and real play feedback.",
+      heading: "Best 2-Player Online Games",
+      intro: [
+        "When two people want a quick game, the biggest time sink isn't winning or losing — it's downloading and signing up only to find there's no shared-screen or 2-player mode. Player count is a hard filter here: only games that truly support two players are listed.",
+        "Before starting, check the device and control notes on each card and detail page: some games suit taking turns on one screen, others lean cooperative or competitive, depending on whether you share one device or play on two.",
+      ],
+      filterLabels: ["Players: 2 supported", "Status: Playable online", "Sort: Rating"],
+      aiExplanation:
+        "Player count is a hard condition that popularity never relaxes. Once the 2-player requirement is met, AI compares difficulty, session length, GameScore and popularity to reduce the risk of clicking in only to find you can't play together.",
+    },
   },
   {
     slug: "5-minute",
@@ -132,6 +198,19 @@ export const SEO_LANDING_PAGES: SeoLandingPage[] = [
     aiExplanation:
       "时长是硬过滤条件，只有画像中的 sessionLengthMax 不超过 5 分钟才会进入列表；随后再按上手成本、评分和实际热度排序。",
     relatedPaths: ["/games/10-minute", "/games/relaxing", "/games/mobile"],
+    en: {
+      title: "Best 5-Minute Web Games | Instant Fun for Short Breaks",
+      description:
+        "Online games with a maximum run length of about 5 minutes. Perfect for commutes, queues and short breaks — no download needed.",
+      heading: "Best 5-Minute Web Games",
+      intro: [
+        "With only a few minutes to spare, what matters is jumping straight into the gameplay and finishing a round before time runs out — not opening a game with a long tutorial. This list filters strictly on the AI-estimated maximum session length.",
+        "Session length is an estimate: your first run may take a bit longer while learning the rules. If you might need to stop at any moment, prefer games with low cognitive load and low pressure.",
+      ],
+      filterLabels: ["Max session: 5 min", "Status: Playable online", "Sort: Rating"],
+      aiExplanation:
+        "Session length is a hard filter — only games whose profiled sessionLengthMax is 5 minutes or less make the list. They are then ranked by ease of pickup, rating and real popularity.",
+    },
   },
   {
     slug: "10-minute",
@@ -149,6 +228,19 @@ export const SEO_LANDING_PAGES: SeoLandingPage[] = [
     aiExplanation:
       "AI 先执行 10 分钟硬过滤，再综合难度、认知负担、平台评分和近期热度。推荐区更偏向能快速理解、短时间内获得完整反馈的作品。",
     relatedPaths: ["/games/5-minute", "/games/relaxing", "/games/roguelike"],
+    en: {
+      title: "Best Web Games Under 10 Minutes | Finish a Round Right Now",
+      description:
+        "Games for when you only have ten minutes. Strictly capped session length, with notes on difficulty, pace and device fit.",
+      heading: "Best Web Games Under 10 Minutes",
+      intro: [
+        "Ten minutes is enough for a round with clear feedback, but not for lengthy tutorials, heavy progression or content that demands continuous investment. This page answers: \"I only have ten minutes — what should I play?\"",
+        "We filter on maximum session length rather than fastest completion time, so a game that's \"5 minutes at best, half an hour normally\" won't sneak in.",
+      ],
+      filterLabels: ["Max session: 10 min", "Status: Playable online", "Sort: Rating"],
+      aiExplanation:
+        "AI applies the 10-minute hard filter first, then weighs difficulty, cognitive load, platform rating and recent popularity. The picks favor games that are quick to understand and deliver complete feedback in a short time.",
+    },
   },
   {
     slug: "relaxing",
@@ -166,6 +258,19 @@ export const SEO_LANDING_PAGES: SeoLandingPage[] = [
     aiExplanation:
       "AI 不只匹配“休闲”关键词，而是读取 mood、认知负担、压力、节奏与玩家反馈。进入本页的游戏必须具有 relaxing 或对应放松画像。",
     relatedPaths: ["/games/5-minute", "/games/10-minute", "/games/puzzle"],
+    en: {
+      title: "Best Relaxing Online Games | Low-Pressure Fun to Unwind",
+      description:
+        "Low-pressure browser games profiled as relaxing or chill, ranked by cognitive load and pace to find what truly helps you unwind.",
+      heading: "Best Relaxing Online Games",
+      intro: [
+        "\"Casual\" is a genre; \"relaxing\" is an experience. A casual game can still be fast-paced with harsh failure penalties, so this page filters directly on the relaxing mood tags from the AI experience profiles.",
+        "If you're exhausted or just want to empty your head, start with low cognitive load, low pressure and slower pace. For a bit of challenge, pick a mid-difficulty game from the recommendations.",
+      ],
+      filterLabels: ["Mood: Relaxing", "Status: Playable online", "Sort: Rating"],
+      aiExplanation:
+        "AI doesn't just match the \"casual\" keyword — it reads mood, cognitive load, pressure, pace and player feedback. Every game on this page carries a relaxing or equivalent chill profile.",
+    },
   },
   {
     slug: "mobile",
@@ -183,6 +288,19 @@ export const SEO_LANDING_PAGES: SeoLandingPage[] = [
     aiExplanation:
       "设备支持是硬条件，不会因游戏热门而放宽。满足手机条件后，AI 再比较单局时长、难度、GameScore 与流行度，优先呈现更适合移动场景的作品。",
     relatedPaths: ["/games/5-minute", "/games/10-minute", "/games/relaxing"],
+    en: {
+      title: "Best Mobile Web Games | Play Instantly, No Download",
+      description:
+        "Browser games that explicitly support mobile devices, balancing touch experience, orientation, session length and real play ratings.",
+      heading: "Best Mobile Web Games",
+      intro: [
+        "Opening in a browser doesn't mean a game works well on a phone. This page filters for games explicitly marked as mobile-friendly by the data source and AI profiles, reducing tiny-button, mouse-only or wrong-aspect-ratio issues.",
+        "On the detail page you can confirm orientation hints and game language. If a third-party player gets blocked by browser privacy protections, the page offers safe fallbacks: reload or open in a new tab.",
+      ],
+      filterLabels: ["Device: Mobile supported", "Status: Playable online", "Sort: Rating"],
+      aiExplanation:
+        "Device support is a hard condition that popularity never relaxes. Once the mobile requirement is met, AI compares session length, difficulty, GameScore and popularity, favoring games that fit mobile scenarios best.",
+    },
   },
 ];
 

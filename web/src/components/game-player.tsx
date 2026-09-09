@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 
 import { trackEvent } from "../analytics/track";
+import { useI18n } from "../i18n";
 import {
   clearGameSave,
   fetchGameSave,
@@ -57,6 +58,7 @@ export function GamePlayer({
     hasSave: boolean;
   } | null>(null);
   const { showToast } = useToast();
+  const { t } = useI18n();
 
   const saveable = isGamePixEmbed(gameUrl);
   /** GamePix 播放器 origin（postMessage targetOrigin / 来源校验） */
@@ -102,7 +104,7 @@ export function GamePlayer({
     if (p == null) return;
     pendingSaveRef.current = null;
     void putGameSave(slug, p).catch(() => {
-      showToast("存档保存失败", "请检查网络后重试");
+      showToast(t("saveFailed"), t("saveFailedSub"));
     });
   };
 
@@ -306,7 +308,7 @@ export function GamePlayer({
           <p
             className={`text-sm drop-shadow ${poster ? "text-white/90" : "text-muted"}`}
           >
-            {portrait ? "建议竖屏体验" : "建议横屏 / 桌面体验"}
+            {portrait ? t("portraitHint") : t("landscapeHint")}
           </p>
           <div className="flex items-center gap-3">
             <button
@@ -314,7 +316,7 @@ export function GamePlayer({
               onClick={() => start(hasSave ? "continue" : "fresh")}
               className="rounded-full bg-primary px-8 py-3 font-medium text-primary-foreground shadow-lg transition-opacity hover:opacity-90"
             >
-              {hasSave ? "▶ 继续游戏" : "▶ 开始游戏"}
+              {hasSave ? t("continueGame") : t("startGame")}
             </button>
             {hasSave ? (
               <button
@@ -322,7 +324,7 @@ export function GamePlayer({
                 onClick={restart}
                 className="rounded-full border border-white/40 px-6 py-3 text-sm font-medium text-white/90 transition-colors hover:border-white hover:text-white"
               >
-                重新开始
+                {t("restart")}
               </button>
             ) : null}
           </div>
@@ -334,14 +336,14 @@ export function GamePlayer({
   if (failed) {
     return (
       <div className={`flex ${frameAspect} w-full flex-col items-center justify-center gap-3 rounded-xl border border-border bg-surface text-center`}>
-        <p className="font-medium">游戏加载失败</p>
-        <p className="text-sm text-muted">可能是网络波动或游戏源暂时不可用</p>
+        <p className="font-medium">{t("playerLoadFailed")}</p>
+        <p className="text-sm text-muted">{t("playerLoadFailedHint")}</p>
         <button
           type="button"
           onClick={() => start("fresh")}
           className="mt-2 rounded-full border border-border px-6 py-2 text-sm transition-colors hover:border-primary hover:text-primary"
         >
-          重试
+          {t("retry")}
         </button>
       </div>
     );
@@ -361,9 +363,9 @@ export function GamePlayer({
       />
       {stalled ? (
         <div className="absolute inset-0 z-20 flex flex-col items-center justify-center gap-3 bg-black/80 p-4 text-center text-white">
-          <p className="text-sm font-semibold">游戏没有启动</p>
+          <p className="text-sm font-semibold">{t("playerStalled")}</p>
           <p className="text-xs leading-relaxed text-white/70">
-            通常是浏览器拦截了游戏源（GamePix）的广告/跟踪脚本（如 Edge 跟踪防护、广告拦截）。关闭拦截后点「重新加载」，或在新标签页直接打开游戏。
+            {t("playerStalledHint")}
           </p>
           <div className="flex items-center gap-2 pt-1">
             <button
@@ -371,14 +373,14 @@ export function GamePlayer({
               onClick={reloadGame}
               className="rounded-full bg-primary px-5 py-2 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90"
             >
-              重新加载
+              {t("reload")}
             </button>
             <button
               type="button"
               onClick={() => window.open(gameUrl, "_blank", "noopener,noreferrer")}
               className="rounded-full border border-white/50 px-5 py-2 text-sm text-white transition-colors hover:border-white"
             >
-              在新标签页打开
+              {t("openNewTab")}
             </button>
           </div>
         </div>
@@ -386,8 +388,8 @@ export function GamePlayer({
       <button
         type="button"
         onClick={toggleFullscreen}
-        aria-label={fullscreen ? "退出全屏" : "进入全屏"}
-        title={fullscreen ? "退出全屏" : "进入全屏"}
+        aria-label={fullscreen ? t("exitFullscreen") : t("enterFullscreen")}
+        title={fullscreen ? t("exitFullscreen") : t("enterFullscreen")}
         className="absolute right-2 top-2 z-10 flex h-9 w-9 items-center justify-center rounded-full bg-black/50 text-white backdrop-blur transition-colors hover:bg-black/70"
       >
         {fullscreen ? (
