@@ -14,7 +14,12 @@
  *
  * 环境变量：GAMEPIX_SID（publisher/site id，商务分配，当前 7E317）
  */
-import { CollectorError, type NormalizedGameRecord, type SourceAdapter } from "./types";
+import {
+  CollectorError,
+  safeSlug,
+  type NormalizedGameRecord,
+  type SourceAdapter,
+} from "./types";
 
 const FEED_BASE_URL =
   process.env.GAMEPIX_FEED_BASE_URL ?? "https://feeds.gamepix.com/v2/json";
@@ -129,7 +134,7 @@ function normalizeItem(raw: RawGamePixItem): NormalizedGameRecord | null {
   return {
     sourceGameId,
     titleOriginal: title,
-    slug: namespace.toLowerCase(),
+    slug: safeSlug(namespace),
     descriptionOriginal: asString(raw.description) ?? "",
     // banner 320px 比 icon 105px 清晰，作为卡片缩略图
     thumbnail: asString(raw.banner_image) ?? asString(raw.image),

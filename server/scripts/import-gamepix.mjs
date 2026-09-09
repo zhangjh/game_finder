@@ -70,9 +70,12 @@ async function fetchPage(page) {
   return res.json();
 }
 
-/** 由 namespace 生成 URL 安全的 slug */
+/** 由 namespace 生成 URL 安全的 slug（折叠连续连字符、去掉首尾连字符） */
 function slugify(ns) {
-  return ns.replace(/[^a-z0-9-]/gi, "-").toLowerCase();
+  return ns
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
 }
 
 try {

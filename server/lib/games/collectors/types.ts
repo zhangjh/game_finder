@@ -42,6 +42,19 @@ export interface NormalizedGameRecord {
   desktop: boolean;
 }
 
+/**
+ * 生成 URL 安全的 kebab-case slug：源码 slug 归一化。
+ * 小写 → 非字母数字折叠为单个连字符 → 去掉首尾连字符。
+ * 保证输出匹配 /^[a-z0-9][a-z0-9-]*$/（全非字母数字输入返回空串，由调用方保证非空）。
+ * 仅在入库新行时生效；已存在游戏的 slug 列不会被 pipeline 重写。
+ */
+export function safeSlug(input: string): string {
+  return input
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
+
 /** Adapter 拉取一页失败时抛出，pipeline 记录错误并中止该源同步 */
 export class CollectorError extends Error {
   constructor(

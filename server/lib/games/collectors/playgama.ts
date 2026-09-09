@@ -15,7 +15,7 @@
  * - PLAYGAMA_CATALOG_PATH：下载的 catalog JSON 文件路径
  */
 import { readFileSync } from "node:fs";
-import type { NormalizedGameRecord, SourceAdapter } from "./types";
+import { safeSlug, type NormalizedGameRecord, type SourceAdapter } from "./types";
 
 /** 内存分页大小：Playgama 是本地文件，一次加载后按批返回 */
 const PAGE_SIZE = 200;
@@ -247,7 +247,7 @@ function normalizeHit(
   return {
     sourceGameId,
     titleOriginal: title,
-    slug: slug.toLowerCase(),
+    slug: safeSlug(slug),
     descriptionOriginal: asString(raw.description) ?? "",
     thumbnail,
     screenshots,

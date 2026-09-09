@@ -193,9 +193,12 @@ async function fetchSeoGames(): Promise<SeoGameMetadata[]> {
     }
 
     for (const game of response.items) {
+      // slug 来自源站（GamePix namespace / Playgama slug），可能含连续连字符（如
+      // "piece-of-cake-merge--bake"）。只要只含 [a-z0-9-] 且以字母/数字开头即对
+      // URL / 文件路径 / 路由均安全；点/斜杠/大写一律拒绝（防路径穿越与重复目录）。
       if (
         game.slug.length > 180 ||
-        !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(game.slug)
+        !/^[a-z0-9][a-z0-9-]*$/.test(game.slug)
       ) {
         throw new Error(`invalid game slug: ${game.slug}`);
       }
