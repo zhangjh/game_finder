@@ -2,7 +2,8 @@
  * 批量清洗低质量游戏（一次性运维脚本，可重复执行）：
  *   1.（仅 GamePix）遍历 feed 全量（order=quality，96/页），按 source_game_id
  *      回填 source_quality_score（0~1 官方质量分）。
- *      Playgama 无需此步：其代理质量分由采集 adapter 计算，同步时已写入。
+ *      Playgama 无需此步：其代理质量分由采集 adapter 计算（backfill-playgama-quality.ts
+ *      或同步时写入）。
  *   2. 将 source_quality_score < 阈值（默认 0.2，只清"极渣尾部"）的已发布游戏批量
  *      下架（status=offline），前台不可见；之后质量重新 > 阈值时，
  *      同步管道会按 isChanged 复活/更新。
@@ -14,10 +15,10 @@
  *   同样用默认阈值 0.2 即可对齐。
  *
  * 用法：
- *   pnpm cleanup:quality                       # GamePix 全量回填 + 下架极渣（阈值 0.2）
- *   pnpm cleanup:quality -- --source playgama  # playgama 只下架极渣（分数已在库，不回填）
- *   pnpm cleanup:quality -- --dry-run          # 只打印将下架的量，不落库
- *   pnpm cleanup:quality -- --threshold 0.5    # 自定义阈值
+ *   pnpm cleanup:quality                      # GamePix 全量回填 + 下架极渣（阈值 0.2）
+ *   pnpm cleanup:quality -- -s playgama       # playgama 只下架极渣（分数已在库，不回填）
+ *   pnpm cleanup:quality -- --dry-run         # 只打印将下架的量，不落库
+ *   pnpm cleanup:quality -- --threshold=0.5   # 自定义阈值（也支持空格形式 --threshold 0.5）
  */
 import { Client } from "pg";
 
@@ -27,13 +28,19 @@ const url =
   process.env.DATABASE_URL ??
   "postgresql://postgres:postgres@postgres:5432/game_discovery";
 
-const sourceArg = process.argv.find((a) => a.startsWith("--source="));
-const SOURCE = sourceArg?.split("=")[1] ?? "gamepix";
 const SID = process.env.GAMEPIX_SID ?? "7E317";
 const FEED = `https://feeds.gamepix.com/v2/json?sid=${SID}&pagination=96&order=quality`;
 
-const thresholdArg = process.argv.find((a) => a.startsWith("--threshold="));
-const THRESHOLD = Number(thresholdArg?.split("=")[1]) || 0.2;
+/** 同时支持 `--name value`（空格）与 `--name=value`（等号）两种写法 */
+const argValue = (name, fallback) => {
+  const i = process.argv.indexOf(name);
+  if (i !== -1 && process.argv[i + 1]) return process.argv[i + 1];
+  const eq = process.argv.find((a) => a.startsWith(`${name}=`));
+  return eq ? eq.slice(name.length + 1) : fallback;
+};
+
+const SOURCE = argValue("--source", "gamepix");
+const THRESHOLD = Number(argValue("--threshold", "0.2")) || 0.2;
 const DRY_RUN = process.argv.includes("--dry-run");
 
 const asQualityScore = (v) =>
@@ -76,13 +83,12 @@ try {
     console.log(`[cleanup] feed 共 ${page} 页，收集到 ${byId.size} 个质量分`);
 
     const ids = [...byId.keys()];
-    const scores = ids.map((id) => byId.get(id));
-
     if (ids.length === 0) {
       console.log("[cleanup] feed 无任何质量分，退出");
       process.exit(0);
     }
 
+    const scores = ids.map((id) => byId.get(id));
     const backfill = await client.query(
       `UPDATE games
        SET source_quality_score = u.score, updated_at = now()
@@ -95,16 +101,6 @@ try {
   }
 
   await client.query("BEGIN");
-
-  const backfill = await client.query(
-    `UPDATE games
-     SET source_quality_score = u.score, updated_at = now()
-     FROM unnest($1::text[], $2::double precision[]) AS u(game_id, score)
-     WHERE games.source_id = $3 AND games.source_game_id = u.game_id
-       AND games.source_quality_score IS DISTINCT FROM u.score`,
-    [ids, scores, src.id],
-  );
-  console.log(`[cleanup] 回填质量分：${backfill.rowCount} 行更新`);
 
   if (DRY_RUN) {
     const { rows } = await client.query(
@@ -129,7 +125,7 @@ try {
   console.log("[cleanup] 完成");
 } catch (err) {
   await client.query("ROLLBACK").catch(() => {});
-  console.error("FAIL:", err.message);
+  console.error("FAIL:", err instanceof Error ? err.message : err);
   process.exit(1);
 } finally {
   await client.end().catch(() => {});
