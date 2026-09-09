@@ -130,7 +130,7 @@ const GENRE_ZH: Record<string, string> = {
 
 /* ---------- 原始 hit 的窄化（JSON 无 schema，逐字段防御） ---------- */
 
-interface RawPlaygamaHit {
+export interface RawPlaygamaHit {
   id?: unknown;
   slug?: unknown;
   title?: unknown;
@@ -168,6 +168,31 @@ function upgradeImageUrl(url: string | null): string | null {
     /* 非法 URL 原样返回 */
   }
   return url;
+}
+
+/**
+ * Playgama 没有官方质量分。用 catalog 元数据代理信号合成 0~1 代理分，
+ * 与 GamePix quality_score 同列（games.source_quality_score），供采集预筛/清洗排序：
+ *   +35  有玩法预览视频（videos 非空；正规商业游戏一般都有）
+ *   +30  图标为源站原创（图片 URL 不含 /backfill/ 占位路径；backfill=平台用占位图补齐）
+ *   +15  含内购（inGamePurchases=Yes；商业级游戏才有）
+ *   +10  多语言（supportedLanguages ∈ [2, ∞)；本地化投入一般的游戏是 en-US 单语言）
+ *   +5   tags ≥ 6（分类体系丰富）
+ *   +5   简介 ≥ 300 字符（描述完整）
+ * 权重合计 100 → 归一化 0~1。全库实测：中位数 ~0.45，bottom 10% ≤ 0.20（即元数据贫乏的
+ * 搬运/低维护条目），与 GamePix 清洗阈值 0.2 对齐。
+ */
+export function proxyQualityScore(raw: RawPlaygamaHit): number {
+  const hasVideo = Array.isArray(raw.videos) && raw.videos.length > 0 ? 35 : 0;
+  const hasOriginalIcon = !asStringArray(raw.images).some((u) => /\/backfill\//.test(u)) ? 30 : 0;
+  const hasIap = String(raw.inGamePurchases) === "Yes" ? 15 : 0;
+  const isMultiLang = asStringArray(raw.supportedLanguages).length >= 2 ? 10 : 0;
+  const richTags = asStringArray(raw.tags).length >= 6 ? 5 : 0;
+  const richDesc = (asString(raw.description)?.length ?? 0) >= 300 ? 5 : 0;
+  return (
+    (hasVideo + hasOriginalIcon + hasIap + isMultiLang + richTags + richDesc) /
+    100
+  );
 }
 
 /** 确保 gameURL 带有 clid 参数（若已带则不重复） */
@@ -257,7 +282,7 @@ function normalizeHit(
     rawTags: [...new Set([...genres, ...tags])],
     releaseDate: null,
     sourceUpdatedAt: null,
-    qualityScore: null,
+    qualityScore: proxyQualityScore(raw),
     portrait,
     landscape,
     mobile,
