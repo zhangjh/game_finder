@@ -3,6 +3,7 @@ import { Link, useParams } from "react-router";
 
 import { fetchGameDetail, fetchSimilarGames } from "../api";
 import { FavoriteButton } from "../components/favorite-button";
+import { FeedbackButton } from "../components/feedback-button";
 import { GameCard } from "../components/game-card";
 import { GamePlayer } from "../components/game-player";
 import { Seo } from "../components/seo";
@@ -219,6 +220,7 @@ export function DetailPage() {
           )}
           <ShareButton game={game} />
           <FavoriteButton game={game} variant="detail" />
+          <FeedbackButton game={game} />
         </div>
       </div>
 

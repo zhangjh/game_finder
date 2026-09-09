@@ -1,5 +1,11 @@
 import { Router } from "express";
 
+import {
+  adminFeedbackOverview,
+  adminListFeedback,
+  adminSetFeedbackStatus,
+  adminTakedownFeedbackGame,
+} from "@/lib/games/feedback-queries";
 import { schedulePagesDeploy } from "@/lib/pages-deploy";
 
 import {
@@ -252,6 +258,88 @@ adminRouter.post("/duplicates/:id/dismiss", async (req, res) => {
     return;
   }
   res.json(result);
+});
+
+// ===== 用户反馈专区（详情页「反馈」入口）=====
+
+const FEEDBACK_STATUSES = ["pending", "resolved", "dismissed"] as const;
+const FEEDBACK_TYPES = ["not_playable", "wrong_language"] as const;
+
+/** GET /api/admin/feedback/overview — 反馈概览（pending 数与类型分布） */
+adminRouter.get("/feedback/overview", async (_req, res) => {
+  res.json(await adminFeedbackOverview());
+});
+
+/** GET /api/admin/feedback — 反馈列表（联查游戏信息，可筛选 status/type） */
+adminRouter.get("/feedback", async (req, res) => {
+  const sp = req.query;
+  const status =
+    typeof sp.status === "string" &&
+    FEEDBACK_STATUSES.includes(sp.status as (typeof FEEDBACK_STATUSES)[number])
+      ? (sp.status as (typeof FEEDBACK_STATUSES)[number])
+      : undefined;
+  const type =
+    typeof sp.type === "string" &&
+    FEEDBACK_TYPES.includes(sp.type as (typeof FEEDBACK_TYPES)[number])
+      ? (sp.type as (typeof FEEDBACK_TYPES)[number])
+      : undefined;
+  res.json(
+    await adminListFeedback({
+      status,
+      type,
+      page:
+        typeof sp.page === "string" && /^\d+$/.test(sp.page)
+          ? Number(sp.page)
+          : 1,
+      pageSize:
+        typeof sp.pageSize === "string" && /^\d+$/.test(sp.pageSize)
+          ? Number(sp.pageSize)
+          : 30,
+    }),
+  );
+});
+
+/** POST /api/admin/feedback/:id/status {status} — 标记已处理 / 驳回 */
+adminRouter.post("/feedback/:id/status", async (req, res) => {
+  const id = Number(req.params.id);
+  const { status } = (req.body ?? {}) as { status?: string };
+  if (
+    !Number.isInteger(id) ||
+    (status !== "resolved" && status !== "dismissed")
+  ) {
+    res.status(400).json({ error: "invalid_params" });
+    return;
+  }
+  const updated = await adminSetFeedbackStatus(id, status);
+  if (!updated) {
+    res.status(404).json({ error: "not_found" });
+    return;
+  }
+  res.json(updated);
+});
+
+/**
+ * POST /api/admin/feedback/:id/takedown — 复核确认问题，直接下架该游戏，
+ * 并把该游戏所有 pending 反馈一并标记 resolved（一团做完，避免二次污染）。
+ */
+adminRouter.post("/feedback/:id/takedown", async (req, res) => {
+  const id = Number(req.params.id);
+  if (!Number.isInteger(id)) {
+    res.status(400).json({ error: "invalid_id" });
+    return;
+  }
+  try {
+    const result = await adminTakedownFeedbackGame(id);
+    if (!result) {
+      res.status(404).json({ error: "not_found" });
+      return;
+    }
+    schedulePagesDeploy("admin-feedback-takedown");
+    res.json(result);
+  } catch (err) {
+    console.error("[api/admin/feedback/:id/takedown] failed:", err);
+    res.status(500).json({ error: "takedown_failed" });
+  }
 });
 
 // ===== 定时任务管理（T3.6 应用内调度） =====

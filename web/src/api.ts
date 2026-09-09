@@ -11,6 +11,8 @@ import type {
   GameSaveResponse,
   RecommendRequestBody,
   RecommendResponse,
+  SubmitGameFeedbackBody,
+  SubmitGameFeedbackResponse,
 } from "@game-finder/shared";
 
 import { API_BASE_URL } from "./api-base";
@@ -170,6 +172,26 @@ export async function clearGameSave(
   const res = await fetch(`${BASE_URL}/api/games/${slug}/save`, {
     method: "DELETE",
     headers: { "x-user-id": uid },
+  });
+  if (!res.ok) throw new Error(`API error: ${res.status}`);
+  return res.json();
+}
+
+/* ===== 游戏质量反馈（详情页「反馈」入口）===== */
+
+/** 提交游戏质量反馈（不可玩 / 语言错误）；带匿名 uid 便于后台去重 */
+export async function submitGameFeedback(
+  slug: string,
+  body: SubmitGameFeedbackBody,
+): Promise<SubmitGameFeedbackResponse> {
+  const uid = getSaveUserId();
+  const res = await fetch(`${BASE_URL}/api/games/${slug}/feedback`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      ...(uid ? { "x-user-id": uid } : {}),
+    },
+    body: JSON.stringify(body),
   });
   if (!res.ok) throw new Error(`API error: ${res.status}`);
   return res.json();

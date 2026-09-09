@@ -228,3 +228,24 @@ export interface GameSavePutBody {
 export interface GameSavePutResponse {
   saved: boolean;
 }
+
+/* ===== 游戏质量反馈（详情页「反馈」入口）===== */
+
+/** 用户反馈类型：游戏不可玩 / 游戏语言错误（英语不属于语言错误） */
+export type GameFeedbackType = "not_playable" | "wrong_language";
+
+/** 后台处理状态 */
+export type GameFeedbackStatus = "pending" | "resolved" | "dismissed";
+
+/** POST /api/games/:slug/feedback 请求体 */
+export interface SubmitGameFeedbackBody {
+  type: GameFeedbackType;
+  /** 可选补充说明，如具体语言（俄语）或问题描述 */
+  note?: string;
+}
+
+export interface SubmitGameFeedbackResponse {
+  ok: boolean;
+  /** 同用户对同游戏已有未处理反馈时为 true（幂等去重） */
+  alreadyReported?: boolean;
+}

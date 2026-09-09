@@ -235,6 +235,25 @@ const zh = {
   ariaAddFav: "收藏",
   ariaRemoveFav: "取消收藏",
 
+  /* 游戏质量反馈 */
+  feedback: "反馈",
+  feedbackAria: "反馈游戏质量问题",
+  feedbackDialogTitle: "反馈问题",
+  feedbackDialogSub: "告诉我们哪里有问题，我们会尽快核实处理。",
+  feedbackTypeNotPlayable: "游戏打不开 / 玩不了",
+  feedbackTypeNotPlayableDesc: "点开始后游戏无法启动、白屏或无响应",
+  feedbackTypeWrongLang: "游戏语言不对",
+  feedbackTypeWrongLangDesc: "既不是中文也不是英文（比如俄语）",
+  feedbackLangHint: "提示：英文游戏是正常的，不属于语言错误",
+  feedbackNotePlaceholder: "补充说明（可选），比如「确定是俄语，看不懂」",
+  feedbackSubmit: "提交反馈",
+  feedbackCancel: "取消",
+  feedbackRequired: "请先选择一个反馈类型",
+  feedbackSubmitted: "反馈已提交",
+  feedbackSubmittedSub: "我们会尽快核实处理，谢谢你！",
+  feedbackAlreadyReported: "已收到过你对这款游戏的反馈",
+  feedbackSubmitFailed: "提交失败，请稍后再试",
+
   /* 语种切换 */
   langToggleAria: "切换语言 / Switch language",
 } as const;
@@ -453,6 +472,25 @@ const en: Record<I18nKey, string> = {
   favRemoved: "Removed from favorites",
   ariaAddFav: "Add to favorites",
   ariaRemoveFav: "Remove from favorites",
+
+  /* Game quality feedback */
+  feedback: "Feedback",
+  feedbackAria: "Report a problem with this game",
+  feedbackDialogTitle: "Report a problem",
+  feedbackDialogSub: "Tell us what's wrong — we'll verify and fix it soon.",
+  feedbackTypeNotPlayable: "Game won't start / unplayable",
+  feedbackTypeNotPlayableDesc: "The game doesn't launch, shows a blank screen, or won't respond after starting",
+  feedbackTypeWrongLang: "Wrong game language",
+  feedbackTypeWrongLangDesc: "It's neither Chinese nor English (e.g. Russian)",
+  feedbackLangHint: "Tip: English games are fine — that's not a language error",
+  feedbackNotePlaceholder: "Anything else? (optional), e.g. \"It's Russian, can't understand\"",
+  feedbackSubmit: "Submit feedback",
+  feedbackCancel: "Cancel",
+  feedbackRequired: "Please pick a problem type first",
+  feedbackSubmitted: "Feedback sent",
+  feedbackSubmittedSub: "We'll verify and handle it soon. Thank you!",
+  feedbackAlreadyReported: "We've already received your feedback on this game",
+  feedbackSubmitFailed: "Failed to send — please try again later",
 
   /* Language toggle */
   langToggleAria: "切换语言 / Switch language",

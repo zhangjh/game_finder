@@ -189,6 +189,84 @@ export function dismissAdminDuplicate(
   return adminFetch(`/duplicates/${pairId}/dismiss`, { method: "POST" });
 }
 
+// ===== 用户反馈专区 =====
+
+export type AdminFeedbackStatus = "pending" | "resolved" | "dismissed";
+export type AdminFeedbackType = "not_playable" | "wrong_language";
+
+export interface AdminFeedbackItem {
+  id: number;
+  feedbackType: AdminFeedbackType;
+  status: AdminFeedbackStatus;
+  note: string | null;
+  userId: string;
+  createdAt: string;
+  gameId: number;
+  gameSlug: string;
+  gameTitle: string;
+  gameTitleOriginal: string;
+  gameThumbnail: string | null;
+  gameStatus: AdminGameStatus;
+  sourceQualityScore: number | null;
+  sourceCode: string;
+}
+
+export interface AdminFeedbackResponse {
+  items: AdminFeedbackItem[];
+  total: number;
+  page: number;
+  pageSize: number;
+}
+
+export interface AdminFeedbackOverview {
+  pending: number;
+  byType: Array<{
+    type: AdminFeedbackType;
+    status: AdminFeedbackStatus;
+    count: number;
+  }>;
+}
+
+export function fetchAdminFeedback(params: {
+  status?: AdminFeedbackStatus;
+  type?: AdminFeedbackType;
+  page?: number;
+  pageSize?: number;
+}): Promise<AdminFeedbackResponse> {
+  const sp = new URLSearchParams();
+  if (params.status) sp.set("status", params.status);
+  if (params.type) sp.set("type", params.type);
+  if (params.page) sp.set("page", String(params.page));
+  if (params.pageSize) sp.set("pageSize", String(params.pageSize));
+  return adminFetch(`/feedback?${sp}`);
+}
+
+export function fetchAdminFeedbackOverview(): Promise<AdminFeedbackOverview> {
+  return adminFetch("/feedback/overview");
+}
+
+export function setAdminFeedbackStatus(
+  id: number,
+  status: "resolved" | "dismissed",
+): Promise<{ id: number; status: AdminFeedbackStatus }> {
+  return adminFetch(`/feedback/${id}/status`, {
+    method: "POST",
+    body: JSON.stringify({ status }),
+  });
+}
+
+/** 复核确认问题：下架该游戏并标记其 pending 反馈为已处理 */
+export function takedownAdminFeedback(
+  id: number,
+): Promise<{
+  gameId: number;
+  gameStatus: AdminGameStatus;
+  feedbackId: number;
+  resolvedCount: number;
+}> {
+  return adminFetch(`/feedback/${id}/takedown`, { method: "POST" });
+}
+
 // ===== 定时任务 =====
 
 export type AdminCronJobType =
