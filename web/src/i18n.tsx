@@ -209,9 +209,8 @@ const zh = {
   retry: "重试",
   playerStalled: "游戏没有启动",
   playerStalledHint:
-    "通常是浏览器拦截了游戏源（GamePix）的广告/跟踪脚本（如 Edge 跟踪防护、广告拦截）。关闭拦截后点「重新加载」，或在新标签页直接打开游戏。",
+    "可能是浏览器拦截了游戏源的广告/跟踪脚本（如 Edge 跟踪防护、广告拦截）。点击右上角可关闭提示继续等待，或关闭拦截后点「重新加载」。",
   reload: "重新加载",
-  openNewTab: "在新标签页打开",
   saveFailed: "存档保存失败",
   saveFailedSub: "请检查网络后重试",
   exitFullscreen: "退出全屏",
@@ -447,9 +446,8 @@ const en: Record<I18nKey, string> = {
   retry: "Retry",
   playerStalled: "The game didn't start",
   playerStalledHint:
-    "Usually your browser blocked the game source's (GamePix) ad/tracking scripts (e.g. Edge tracking prevention or an ad blocker). Disable the blocker and hit \"Reload\", or open the game in a new tab.",
+    "Your browser may have blocked the game source's ad/tracking scripts (e.g. Edge tracking prevention or an ad blocker). Tap the close button to keep waiting, or disable the blocker and hit \"Reload\".",
   reload: "Reload",
-  openNewTab: "Open in new tab",
   saveFailed: "Failed to save progress",
   saveFailedSub: "Check your connection and try again",
   exitFullscreen: "Exit fullscreen",

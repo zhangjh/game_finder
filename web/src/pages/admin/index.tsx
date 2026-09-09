@@ -23,6 +23,12 @@ export function AdminPage() {
     adminCheckSession().then(setAuthed);
   }, []);
 
+  // 未登录/登录中状态下的标签页标题（登录成功后由 AdminShell 接管）
+  useEffect(() => {
+    if (authed) return;
+    document.title = authed === null ? "检查登录状态 | GameFinder Admin" : "登录 | GameFinder Admin";
+  }, [authed]);
+
   if (authed === null) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-neutral-950 text-neutral-400">
@@ -48,9 +54,24 @@ const NAV = [
   { path: "/admin/analytics", label: "数据看板" },
 ];
 
+const PAGE_TITLES: Record<string, string> = {
+  "/admin": "仪表盘 | GameFinder Admin",
+  "/admin/games": "游戏管理 | GameFinder Admin",
+  "/admin/feedback": "用户反馈 | GameFinder Admin",
+  "/admin/sources": "数据源 | GameFinder Admin",
+  "/admin/duplicates": "重复处理 | GameFinder Admin",
+  "/admin/cron-jobs": "定时任务 | GameFinder Admin",
+  "/admin/analytics": "数据看板 | GameFinder Admin",
+};
+
 function AdminShell({ onLogout }: { onLogout: (authed: boolean) => void }) {
   const navigate = useNavigate();
   const location = useLocation();
+
+  // 管理后台不走 Seo 组件，按路由设置浏览器标签页标题（避免残留前台页面标题）
+  useEffect(() => {
+    document.title = PAGE_TITLES[location.pathname] ?? "管理后台 | GameFinder Admin";
+  }, [location.pathname]);
 
   const logout = useCallback(async () => {
     const { adminLogout } = await import("../../admin-api");

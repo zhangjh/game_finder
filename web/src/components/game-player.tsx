@@ -363,6 +363,27 @@ export function GamePlayer({
       />
       {stalled ? (
         <div className="absolute inset-0 z-20 flex flex-col items-center justify-center gap-3 bg-black/80 p-4 text-center text-white">
+          <button
+            type="button"
+            onClick={() => setStalled(false)}
+            className="absolute right-3 top-3 flex h-8 w-8 items-center justify-center rounded-full text-white/70 transition-colors hover:text-white"
+            aria-label="close"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M18 6 6 18" />
+              <path d="m6 6 12 12" />
+            </svg>
+          </button>
           <p className="text-sm font-semibold">{t("playerStalled")}</p>
           <p className="text-xs leading-relaxed text-white/70">
             {t("playerStalledHint")}
@@ -374,13 +395,6 @@ export function GamePlayer({
               className="rounded-full bg-primary px-5 py-2 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90"
             >
               {t("reload")}
-            </button>
-            <button
-              type="button"
-              onClick={() => window.open(gameUrl, "_blank", "noopener,noreferrer")}
-              className="rounded-full border border-white/50 px-5 py-2 text-sm text-white transition-colors hover:border-white"
-            >
-              {t("openNewTab")}
             </button>
           </div>
         </div>
