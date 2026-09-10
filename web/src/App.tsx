@@ -1,6 +1,7 @@
 import { Route, Routes } from "react-router";
 
 import { Layout } from "./components/layout";
+import { ChineseGamesPage } from "./pages/chinese-games";
 import { DetailPage } from "./pages/detail";
 import { FavoritesPage } from "./pages/favorites";
 import { GamesPage } from "./pages/games";
@@ -21,6 +22,7 @@ export function App() {
         <Route index element={<HomePage />} />
         <Route path="games" element={<GamesPage />} />
         <Route path="games/:landingSlug" element={<LandingPage />} />
+        <Route path="chinese-games" element={<ChineseGamesPage />} />
         <Route path="high-quality" element={<HighQualityPage />} />
         <Route path="game/:slug" element={<DetailPage />} />
         <Route path="search" element={<SearchPage />} />

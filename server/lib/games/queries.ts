@@ -21,6 +21,8 @@ export type GameListFilters = {
    * - en：不加语种过滤（英文原始字段 title_original 恒存在，全部可展示）
    */
   lang?: "zh" | "en";
+  /** 数据源 code（如 local），匹配 game_sources.code */
+  source?: string;
   genre?: string;
   /** 单局时长上限（分钟）：session_length_max <= max */
   durationMax?: number;
@@ -44,6 +46,11 @@ function buildConditions(filters: GameListFilters): SQL[] {
 
   // 中文界面只展示有中文元数据的游戏；英文界面展示全部（原始英文字段恒存在）
   if (filters.lang === "zh") conds.push(eq(games.metadataLanguage, "zh"));
+  if (filters.source) {
+    conds.push(
+      sql`${games.sourceId} IN (SELECT id FROM game_sources WHERE code = ${filters.source})`,
+    );
+  }
   if (filters.genre) conds.push(eq(games.genre, filters.genre));
   if (filters.durationMax != null)
     conds.push(lte(games.sessionLengthMax, filters.durationMax));

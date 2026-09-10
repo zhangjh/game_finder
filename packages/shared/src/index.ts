@@ -83,6 +83,8 @@ export interface GameListQuery {
    * - en：返回全部已发布游戏（英文原始字段 title_original 恒存在）
    */
   lang?: "zh" | "en";
+  /** 数据源 code（如 local=本地部署、gamepix=GamePix） */
+  source?: string;
   genre?: string;
   /** 单局时长上限（分钟） */
   duration?: number;

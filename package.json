@@ -13,6 +13,9 @@
     "db:migrate": "pnpm --filter server db:migrate",
     "db:seed": "pnpm --filter server db:seed",
     "import:gamepix": "pnpm --filter server import:gamepix",
+    "build:local-catalog": "pnpm --filter server build:local-catalog",
+    "import:local": "pnpm --filter server import:local",
+    "publish:local-games": "pnpm --filter server publish:local-games",
     "cleanup:quality": "pnpm --filter server cleanup:quality",
     "db:studio": "pnpm --filter server db:studio"
   },

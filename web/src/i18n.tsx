@@ -39,6 +39,7 @@ const zh = {
   searchPlaceholder: "搜游戏、玩法或描述你的需求…",
   favorites: "收藏",
   catHighQuality: "高品质",
+  catChineseGems: "中文精品",
   catCasual: "休闲",
   catTowerDefense: "塔防",
   catRoguelike: "Roguelike",
@@ -184,6 +185,16 @@ const zh = {
   hqCountPaged: "共 {total} 款 · 第 {page}/{totalPages} 页",
   hqEmpty: "暂未发现 {n} 分以上的游戏，等下次采集同步后回来看看",
 
+  /* 中文精品专区 */
+  zhSeoTitle: "中文精品小游戏专区 | 玩什么 PlayWhat",
+  zhSeoDesc:
+    "精选本地部署的中文 H5 小游戏，无需下载、打开即玩，无论棋牌、消除还是动作小游戏都能直接开始。",
+  zhTitle: "中文精品游戏专区",
+  zhHint: "本地部署的中文 H5 小游戏，源码随站点托管，打开即玩",
+  zhCount: "共 {total} 款",
+  zhCountPaged: "共 {total} 款 · 第 {page}/{totalPages} 页",
+  zhEmpty: "专区暂未收录游戏，等目录导入后回来看看",
+
   /* 游戏卡片 */
   playNow: "立即玩",
   qualityBadge: "质量分",
@@ -275,6 +286,7 @@ const en: Record<I18nKey, string> = {
   searchPlaceholder: "Search games or describe what you feel like…",
   favorites: "Favorites",
   catHighQuality: "Top rated",
+  catChineseGems: "Chinese",
   catCasual: "Casual",
   catTowerDefense: "Tower Defense",
   catRoguelike: "Roguelike",
@@ -420,6 +432,16 @@ const en: Record<I18nKey, string> = {
   hqCount: "{total} games",
   hqCountPaged: "{total} games · Page {page}/{totalPages}",
   hqEmpty: "No games above {n} yet — check back after the next sync",
+
+  /* Chinese games zone */
+  zhSeoTitle: "Premium Chinese Web Games | PlayWhat",
+  zhSeoDesc:
+    "Hand-picked, locally hosted Chinese H5 games — no download, play instantly. From board games and match-3 to action mini-games.",
+  zhTitle: "Premium Chinese games",
+  zhHint: "Locally hosted Chinese H5 games — bundled with the site, play instantly",
+  zhCount: "{total} games",
+  zhCountPaged: "{total} games · Page {page}/{totalPages}",
+  zhEmpty: "No games in this zone yet — check back after the catalog import",
 
   /* Game card */
   playNow: "Play now",

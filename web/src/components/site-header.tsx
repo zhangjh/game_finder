@@ -6,6 +6,7 @@ import { useI18n } from "../i18n";
 /** 分类入口：genre 链接值保持 DB 中文值（服务端按中文值过滤），仅翻译展示 */
 const CATEGORIES = [
   { key: "catHighQuality", href: "/high-quality" },
+  { key: "catChineseGems", href: "/chinese-games" },
   { key: "catCasual", href: "/games?genre=休闲" },
   { key: "catTowerDefense", href: "/games?genre=塔防" },
   { key: "catRoguelike", href: "/games?genre=Roguelike" },

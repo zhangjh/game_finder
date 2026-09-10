@@ -56,12 +56,13 @@ gamesRouter.get("/seo/export", async (req, res) => {
  * 参数与 @game-finder/shared GameListQuery 对齐。
  */
 gamesRouter.get("/", async (req, res) => {
-  const { genre, duration, players, platform, mood, q, sort, page, pageSize, minQualityScore, lang } =
+  const { genre, duration, players, platform, mood, q, sort, page, pageSize, minQualityScore, lang, source } =
     req.query;
 
   const filters: GameListFilters = {
     // 界面语种（T1.7）：zh=只看中文元数据游戏，en=全部（原始英文字段恒存在）
     lang: lang === "zh" || lang === "en" ? lang : undefined,
+    source: typeof source === "string" ? source : undefined,
     genre: typeof genre === "string" ? genre : undefined,
     durationMax: num(typeof duration === "string" ? duration : undefined),
     players:

@@ -26,6 +26,8 @@ export type GameListQueryParams = {
    * 缺省时服务端不过滤。
    */
   lang?: "zh" | "en";
+  /** 数据源 code（如 local=本地部署） */
+  source?: string;
   genre?: string;
   duration?: number;
   players?: number | "multi";
@@ -44,6 +46,7 @@ export async function fetchGames(
 ): Promise<GameListResponse> {
   const sp = new URLSearchParams();
   if (params.lang) sp.set("lang", params.lang);
+  if (params.source) sp.set("source", params.source);
   if (params.genre) sp.set("genre", params.genre);
   if (params.duration) sp.set("duration", String(params.duration));
   if (params.players) sp.set("players", String(params.players));
