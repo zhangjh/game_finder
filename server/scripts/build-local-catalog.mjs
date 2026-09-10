@@ -2,25 +2,31 @@
  * 构建「本地部署」中文 H5 游戏目录（本地游戏专区）。
  *
  * 工作内容：
- * 1. 把源目录 4 个合集整体拷贝到 web/public/local-games/collection-0?/（
- *    Vite 会把 public/ 拷贝进 dist/，由 Cloudflare Pages 静态托管）。
+ * 1. 把源目录 4 个合集（MY-Games-01）整体拷贝到 web/public/local-games/collection-0?/，
+ *    并把 MY-Games-02 的单层游戏目录拷到 collection-05/（Vite 会把 public/
+ *    拷贝进 dist/，由 Cloudflare Pages 静态托管）。
  * 2. 解析各合集的 README / link/0.html / index*.html / <title>，生成
  *    server/data/local-games.json（导入脚本 import-local-games.mjs 消费）。
  *
  * 用法：
  *   pnpm build:local-catalog
- *   LOCAL_GAMES_SOURCE_DIR="D:/xxx" pnpm build:local-catalog   # 覆盖源目录
+ *   LOCAL_GAMES_SOURCE_DIR="D:/xxx"  pnpm build:local-catalog   # 覆盖 MY-01 源目录
+ *   LOCAL_GAMES_SOURCE_DIR_2="D:/yyy" pnpm build:local-catalog  # 覆盖 MY-02 源目录
  *
  * 幂等：整目录覆盖拷贝，可重复执行（会刷新 local-games.json）。
  */
-import { cp, mkdir, readdir, readFile, writeFile } from "node:fs/promises";
+import { cp, mkdir, readdir, readFile, rename, rm, writeFile } from "node:fs/promises";
 import { existsSync } from "node:fs";
 import path from "node:path";
+import { createHash } from "node:crypto";
 
 const WORKSPACE_ROOT = path.resolve(import.meta.dirname, "../..");
 const SOURCE_ROOT =
   process.env.LOCAL_GAMES_SOURCE_DIR ??
   "C:/Users/cn-dantezhang/dev/MY-Games-01";
+const SOURCE_ROOT_2 =
+  process.env.LOCAL_GAMES_SOURCE_DIR_2 ??
+  "C:/Users/cn-dantezhang/dev/MY-Games-02";
 const TARGET_ROOT = path.join(WORKSPACE_ROOT, "web", "public", "local-games");
 const OUT_JSON = path.join(WORKSPACE_ROOT, "server", "data", "local-games.json");
 
@@ -272,6 +278,120 @@ async function parseCollection04() {
   return entries;
 }
 
+/* ===== MY-Games-02：README 清单（标题+描述+路径+类型）+ 单层游戏目录 =====
+ * 中文目录名无法进 URL，用一个稳定的 ASCII 映射做 collection-05 下的目录名；
+ * copy 用 ASCII 名（游戏内部均为相对引用，改名不影响运行），URL 保持干净。
+ * 统一入口：拷贝后把非 index.html 的入口文件重命名为 index.html，
+ * 保证上传/库里所有本地游戏入口都是 index.html，代码层无需特判入口文件名。
+ */
+const MY2_ID_MAP = {
+  "2048": "2048",
+  "8球桌球": "8-ball",
+  "像素大卡车": "pixel-truck",
+  "四色牌": "uno",
+  "小黑屋": "a-dark-room",
+  "我的世界网页版（简化版）": "minecraft-lite",
+  "植物大战僵尸-v1.3": "pvz-v1-3",
+  "植物大战僵尸-v1.6": "pvz-v1-6",
+  "火柴人跑酷": "stickman-runner",
+  "炒股模拟器": "stock-simulator",
+};
+
+const MY2_README_ENTRY_RE = /###\s*\d+\.\s*(.+?)\s*\n([\s\S]*?)(?=\n###\s|\n##\s|$)/g;
+const MY2_PATH_RE = /-\s*\*\*文件路径\*\*:\s*`([^`]+)`/;
+const MY2_TYPE_RE = /-\s*\*\*游戏类型\*\*:\s*(.+)/;
+
+async function parseCollection05() {
+  const root = SOURCE_ROOT_2;
+  if (!existsSync(root)) {
+    console.log(`[c5] 跳过（源目录不存在）：${root}`);
+    return [];
+  }
+  const targetBase = path.join(TARGET_ROOT, "collection-05");
+  const readme = await readUtf8(path.join(root, "README.md"));
+  const entries = [];
+  const skipCopy = process.env.LOCAL_CATALOG_SKIP_COPY === "1";
+
+  let m;
+  while ((m = MY2_README_ENTRY_RE.exec(readme))) {
+    const title = m[1].trim();
+    const body = m[2];
+    const desc =
+      body
+        .split("\n")
+        .map((l) => l.trim())
+        .find((l) => l && !/^[-*#]/.test(l)) ??
+      templateDesc(title);
+    const type = MY2_TYPE_RE.exec(body)?.[1]?.trim() ?? null;
+
+    const rel = MY2_PATH_RE.exec(body)?.[1]?.replace(/\\/g, "/") ?? null;
+    const dirName = rel?.split("/")?.[0] ?? null;
+    const entryFromReadme = rel?.split("/").slice(1).join("/") ?? null;
+
+    if (!dirName || !existsSync(path.join(root, dirName))) {
+      console.log(`[c5] skip ${title}（找不到源目录：${rel ?? "?"}）`);
+      continue;
+    }
+
+    const id =
+      MY2_ID_MAP[dirName] ??
+      (() => {
+        const fallback = createHash("sha1").update(dirName).digest("hex").slice(0, 8);
+        console.warn(
+          `[c5] ${dirName} 未收录在 MY2_ID_MAP，使用回退 ID c5-${fallback}（建议补一行映射）`,
+        );
+        return fallback;
+      })();
+
+    // 真实入口 html：优先 README 指定的文件，否则目录根唯一 .html
+    let entry = entryFromReadme || "index.html";
+    if (!existsSync(path.join(root, dirName, entry))) {
+      const htmls = (await readdir(path.join(root, dirName))).filter((f) =>
+        f.toLowerCase().endsWith(".html"),
+      );
+      if (htmls.length === 1) entry = htmls[0];
+      else {
+        console.log(`[c5] skip ${dirName}（入口 ${entry} 不存在且目录 html 不唯一）`);
+        continue;
+      }
+    }
+
+    if (!skipCopy) {
+      await copyCollection(path.join(root, dirName), path.join(targetBase, id));
+      // 统一入口为 index.html：非 index.html 的入口重命名（如 2048/2048.html）
+      if (entry !== "index.html") {
+        const entryPath = path.join(targetBase, id, entry);
+        if (existsSync(entryPath)) {
+          await rm(path.join(targetBase, id, "index.html"), { force: true });
+          await rename(entryPath, path.join(targetBase, id, "index.html"));
+          console.log(`[c5] ${id}：入口 ${entry} → index.html`);
+        }
+      }
+    }
+
+    const srcDir = path.join(root, dirName);
+    let thumbnail = null;
+    for (const cand of ["icon.png", "images/icon.png", "favicon.ico"]) {
+      if (existsSync(path.join(srcDir, cand))) {
+        thumbnail = assetUrl("collection-05", `${id}/${cand}`);
+        break;
+      }
+    }
+
+    entries.push({
+      sourceGameId: `c5-${id}`,
+      slug: slugify(`c5-${id}`),
+      title,
+      description: desc,
+      genre: inferGenre(`${title} ${type ?? ""}`),
+      thumbnail,
+      gameUrl: assetUrl("collection-05", `${id}/index.html`),
+    });
+  }
+  console.log(`[c5] README 解析到 ${entries.length} 款游戏`);
+  return entries;
+}
+
 async function main() {
   if (!existsSync(SOURCE_ROOT)) {
     console.error(`源目录不存在：${SOURCE_ROOT}`);
@@ -280,6 +400,7 @@ async function main() {
   }
 
   console.log(`源目录：${SOURCE_ROOT}`);
+  console.log(`源目录2：${SOURCE_ROOT_2}`);
   console.log(`拷贝目标：${TARGET_ROOT}`);
   console.log("");
 
@@ -304,10 +425,11 @@ async function main() {
   const c2 = await parseCollection02();
   const c3 = await parseCollection03();
   const c4 = await parseCollection04();
+  const c5 = await parseCollection05();
 
   // 3. 统一 slug：全部带 local- 前缀且唯一
   const used = new Set();
-  const final = [...c1, ...c2, ...c3, ...c4].map((g) => {
+  const final = [...c1, ...c2, ...c3, ...c4, ...c5].map((g) => {
     let slug = `local-${g.slug}`;
     let n = 2;
     while (used.has(slug)) slug = `local-${g.slug}-${n++}`;
@@ -318,13 +440,13 @@ async function main() {
   await mkdir(path.dirname(OUT_JSON), { recursive: true });
   await writeFile(OUT_JSON, JSON.stringify(final, null, 2) + "\n", "utf8");
 
-  const perColl = { "c1-": 0, "c2-": 0, "c3-": 0, "c4-": 0 };
+  const perColl = { "c1-": 0, "c2-": 0, "c3-": 0, "c4-": 0, "c5-": 0 };
   for (const g of final) {
     const prefix = g.sourceGameId.slice(0, 3);
     if (prefix in perColl) perColl[prefix]++;
   }
   console.log("");
-  console.log(`catalog: 共 ${final.length} 款游戏（c1=${perColl["c1-"]} c2=${perColl["c2-"]} c3=${perColl["c3-"]} c4=${perColl["c4-"]}）`);
+  console.log(`catalog: 共 ${final.length} 款游戏（c1=${perColl["c1-"]} c2=${perColl["c2-"]} c3=${perColl["c3-"]} c4=${perColl["c4-"]} c5=${perColl["c5-"]}）`);
   console.log(`已写入 ${OUT_JSON}`);
   console.log(`下一步：pnpm --filter server import:local 导入数据库`);
 }

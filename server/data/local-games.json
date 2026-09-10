@@ -3796,5 +3796,95 @@
     "genre": null,
     "thumbnail": null,
     "gameUrl": "/local-games/collection-04/qingwa/index.html"
+  },
+  {
+    "sourceGameId": "c5-2048",
+    "slug": "local-c5-2048",
+    "title": "2048",
+    "description": "经典的数字合成益智游戏，通过滑动方块合成更大的数字。",
+    "genre": "益智",
+    "thumbnail": "/local-games/collection-05/2048/favicon.ico",
+    "gameUrl": "/local-games/collection-05/2048/index.html"
+  },
+  {
+    "sourceGameId": "c5-8-ball",
+    "slug": "local-c5-8-ball",
+    "title": "8球桌球",
+    "description": "逼真的台球游戏体验，支持单人和多人模式。",
+    "genre": null,
+    "thumbnail": null,
+    "gameUrl": "/local-games/collection-05/8-ball/index.html"
+  },
+  {
+    "sourceGameId": "c5-pixel-truck",
+    "slug": "local-c5-pixel-truck",
+    "title": "像素大卡车",
+    "description": "像素风格的卡车驾驶游戏，挑战各种地形。",
+    "genre": null,
+    "thumbnail": null,
+    "gameUrl": "/local-games/collection-05/pixel-truck/index.html"
+  },
+  {
+    "sourceGameId": "c5-uno",
+    "slug": "local-c5-uno",
+    "title": "四色牌 (UNO)",
+    "description": "经典的UNO纸牌游戏，支持2-4人游戏。",
+    "genre": "纸牌",
+    "thumbnail": "/local-games/collection-05/uno/favicon.ico",
+    "gameUrl": "/local-games/collection-05/uno/index.html"
+  },
+  {
+    "sourceGameId": "c5-a-dark-room",
+    "slug": "local-c5-a-dark-room",
+    "title": "小黑屋 (A Dark Room)",
+    "description": "文字冒险游戏，从一个黑暗的房间开始你的冒险。",
+    "genre": null,
+    "thumbnail": "/local-games/collection-05/a-dark-room/favicon.ico",
+    "gameUrl": "/local-games/collection-05/a-dark-room/index.html"
+  },
+  {
+    "sourceGameId": "c5-minecraft-lite",
+    "slug": "local-c5-minecraft-lite",
+    "title": "我的世界网页版（简化版）",
+    "description": "简化版的我的世界，在浏览器中体验方块世界。",
+    "genre": null,
+    "thumbnail": null,
+    "gameUrl": "/local-games/collection-05/minecraft-lite/index.html"
+  },
+  {
+    "sourceGameId": "c5-pvz-v1-3",
+    "slug": "local-c5-pvz-v1-3",
+    "title": "植物大战僵尸 v1.3",
+    "description": "经典的塔防游戏，使用植物抵御僵尸入侵。",
+    "genre": null,
+    "thumbnail": "/local-games/collection-05/pvz-v1-3/favicon.ico",
+    "gameUrl": "/local-games/collection-05/pvz-v1-3/index.html"
+  },
+  {
+    "sourceGameId": "c5-pvz-v1-6",
+    "slug": "local-c5-pvz-v1-6",
+    "title": "植物大战僵尸 v1.6",
+    "description": "植物大战僵尸的升级版本，增加了更多内容。",
+    "genre": null,
+    "thumbnail": "/local-games/collection-05/pvz-v1-6/favicon.ico",
+    "gameUrl": "/local-games/collection-05/pvz-v1-6/index.html"
+  },
+  {
+    "sourceGameId": "c5-stickman-runner",
+    "slug": "local-c5-stickman-runner",
+    "title": "火柴人跑酷",
+    "description": "火柴人风格的跑酷游戏，挑战各种障碍。",
+    "genre": "跑酷",
+    "thumbnail": null,
+    "gameUrl": "/local-games/collection-05/stickman-runner/index.html"
+  },
+  {
+    "sourceGameId": "c5-stock-simulator",
+    "slug": "local-c5-stock-simulator",
+    "title": "炒股模拟器",
+    "description": "股票交易模拟游戏，学习投资理财知识。",
+    "genre": null,
+    "thumbnail": null,
+    "gameUrl": "/local-games/collection-05/stock-simulator/index.html"
   }
 ]
