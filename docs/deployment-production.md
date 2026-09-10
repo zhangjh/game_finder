@@ -321,6 +321,43 @@ docker run --rm --env-file .env --network server_default -v ~/dev/game_finder:/a
 > 脚本幂等可重复跑；回填后日常由 `sync_games` 定时任务按 `source_updated_at`
 > 变更自动刷新质量分，无需再手动执行。默认阈值 0.2。
 
+### 6.2 本地部署游戏更新（中文游戏库 → R2 → 导入）
+
+本地中文 H5 游戏**不进入 git**、**不落服务器**，托管在 Cloudflare R2 公开桶：
+
+- **源码托管**：R2 公开桶（如 `r2.playwhat.cc`），游戏目录入口统一为 `index.html`。
+- **元数据**：catalog JSON（`server/data/local-games.json`，build 生成）**随仓库提交**。
+- **DB 地址**：`thumbnail` / `game_url` 存 R2 绝对 URL（导入时用 `LOCAL_GAMES_BASE_URL` 拼接）。
+
+两条执行路径分别在不同机器：
+
+**开发机（有游戏源码 MY-Games-01 / MY-Games-02）：**
+
+```bash
+pnpm build:local-catalog     # 拷贝+解析 → web/public/local-games/ + server/data/local-games.json
+pnpm publish:local-games     # 上传到 R2（幂等：HEAD 对比 size，只传新增/变更；凭据读 server/.env）
+```
+
+- `build:local-catalog` 默认源：`C:/Users/<你>/dev/MY-Games-01`（合集 01-04，c1-c4）与 `.../MY-Games-02`（c5）。
+- 覆盖路径用 `LOCAL_GAMES_SOURCE_DIR`（MY-01）/ `LOCAL_GAMES_SOURCE_DIR_2`（MY-02）；`LOCAL_CATALOG_SKIP_COPY=1` 只重建 JSON 不拷贝。
+- 入口统一规则：非 `index.html` 的入口（如 `2048/2048.html`）在 build 拷贝后自动重命名为 `index.html`。
+- catalog 变更后记得 `git add server/data/local-games.json && git commit && git push`（VPS 导入依赖它）。
+
+**VPS（生产 DB 在内网 docker，无游戏源码，不跑 build/publish）：**
+
+```bash
+cd ~/dev/game_finder && git pull origin master
+docker run --rm --env-file .env --network server_default \
+  -v ~/dev/game_finder:/app -w /app/server \
+  -e DATABASE_URL="postgresql://postgres:postgres@postgres:5432/game_discovery" \
+  -e LOCAL_GAMES_BASE_URL="https://r2.playwhat.cc" \
+  node:22 sh -c "node scripts/seed.mjs && node scripts/import-local-games.mjs"
+```
+
+- `import:local` 幂等 upsert（按 `(source_id, source_game_id)`）：仅新增自动 `published`，已存在的保留后台上下架状态；不动 `play_count`；结束时通过 `CLOUDFLARE_PAGES_DEPLOY_HOOK_URL` 触发 Pages 重建（本地游戏详情页 + chinese-games.html）。
+
+前置配置（见 `server/.env.example`）：`R2_ACCOUNT_ID` / `R2_BUCKET` / `R2_ACCESS_KEY_ID` / `R2_SECRET_ACCESS_KEY`（R2 S3 凭据）、`LOCAL_GAMES_BASE_URL`（桶公开域名，不带末尾斜杠）。R2 密钥若泄露务必轮换并同步更新 `.env`。
+
 ### 回滚
 
 镜像不删，保留上一 tag（构建时给 tag，便于回滚）：
@@ -360,6 +397,7 @@ docker compose up -d server
 - [ ] `3001`/`5432` 未直接暴露公网，仅 `443` 可达
 - [ ] `.env` 权限 600、`ALLOWED_ORIGINS`/`ADMIN_PASSWORD`/`SEO_EXPORT_TOKEN`/`CLOUDFLARE_PAGES_DEPLOY_HOOK_URL` 已设
 - [ ] 发布新 slug 后 Pages 自动重建且详情进入 sitemap；下线后自动重建且详情返回 404 并从 sitemap 移除
+- [ ] 本地游戏更新走完整链路：开发机 `build:local-catalog` → `publish:local-games` → 提交 catalog → VPS `import:local`（见 6.2）
 - [ ] 每日备份 cron 已生效，且能恢复
 - [ ] 镜像已打稳定 tag（非 `latest`），升级有回滚路径
 
