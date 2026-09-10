@@ -15,6 +15,7 @@
     "import:gamepix": "node scripts/import-gamepix.mjs",
     "import:playgama": "node --import tsx scripts/import-playgama.ts",
     "build:local-catalog": "node scripts/build-local-catalog.mjs",
+    "capture:local-thumbs": "node scripts/capture-local-thumbnails.mjs",
     "import:local": "node scripts/import-local-games.mjs",
     "publish:local-games": "node scripts/publish-local-games.mjs",
     "backfill:playgama": "node --import tsx scripts/backfill-playgama-quality.ts",

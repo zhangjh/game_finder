@@ -5,7 +5,7 @@
     "title": "canvas纸飞机",
     "description": "经典中文 H5 小游戏《canvas纸飞机》，HTML5 实现，无需下载、即开即玩。",
     "genre": null,
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-01/canvasplane/_thumb.png",
     "gameUrl": "/local-games/collection-01/canvasplane/index.html"
   },
   {
@@ -14,7 +14,7 @@
     "title": "中国象棋",
     "description": "经典中文 H5 小游戏《中国象棋》，HTML5 实现，无需下载、即开即玩。",
     "genre": "棋盘",
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-01/chess/_thumb.png",
     "gameUrl": "/local-games/collection-01/chess/index.html"
   },
   {
@@ -23,7 +23,7 @@
     "title": "驴子跳跳",
     "description": "经典中文 H5 小游戏《驴子跳跳》，HTML5 实现，无需下载、即开即玩。",
     "genre": null,
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-01/donkeyjump/images/system/background.jpg",
     "gameUrl": "/local-games/collection-01/donkeyjump/index.html"
   },
   {
@@ -32,7 +32,7 @@
     "title": "flybird虐心游戏",
     "description": "经典中文 H5 小游戏《flybird虐心游戏》，HTML5 实现，无需下载、即开即玩。",
     "genre": null,
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-01/flybird/img/bg1.jpg",
     "gameUrl": "/local-games/collection-01/flybird/index.html"
   },
   {
@@ -41,7 +41,7 @@
     "title": "水果忍者",
     "description": "经典中文 H5 小游戏《水果忍者》，HTML5 实现，无需下载、即开即玩。",
     "genre": null,
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-01/fruitninjia/images/logo.png",
     "gameUrl": "/local-games/collection-01/fruitninjia/index.html"
   },
   {
@@ -50,7 +50,7 @@
     "title": "五子棋",
     "description": "经典中文 H5 小游戏《五子棋》，HTML5 实现，无需下载、即开即玩。",
     "genre": "棋盘",
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-01/gobang/picture/bak.jpg",
     "gameUrl": "/local-games/collection-01/gobang/index.html"
   },
   {
@@ -59,7 +59,7 @@
     "title": "魔塔",
     "description": "经典中文 H5 小游戏《魔塔》，HTML5 实现，无需下载、即开即玩。",
     "genre": "冒险",
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-01/magictower/images/bg.png",
     "gameUrl": "/local-games/collection-01/magictower/index.html"
   },
   {
@@ -68,7 +68,7 @@
     "title": "飞机大战",
     "description": "经典中文 H5 小游戏《飞机大战》，HTML5 实现，无需下载、即开即玩。",
     "genre": null,
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-01/planebattle/img/bg_1.jpg",
     "gameUrl": "/local-games/collection-01/planebattle/index.html"
   },
   {
@@ -77,7 +77,7 @@
     "title": "奔跑吧兔子",
     "description": "经典中文 H5 小游戏《奔跑吧兔子》，HTML5 实现，无需下载、即开即玩。",
     "genre": null,
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-01/rabbitrun/images/background0.jpg",
     "gameUrl": "/local-games/collection-01/rabbitrun/index.html"
   },
   {
@@ -86,7 +86,7 @@
     "title": "蜘蛛纸牌",
     "description": "经典中文 H5 小游戏《蜘蛛纸牌》，HTML5 实现，无需下载、即开即玩。",
     "genre": "纸牌",
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-01/spiderpoker/_thumb.png",
     "gameUrl": "/local-games/collection-01/spiderpoker/index.html"
   },
   {
@@ -95,7 +95,7 @@
     "title": "废柴勇士",
     "description": "经典中文 H5 小游戏《废柴勇士》，HTML5 实现，无需下载、即开即玩。",
     "genre": null,
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-01/tapkill/res/bg1.jpg",
     "gameUrl": "/local-games/collection-01/tapkill/index.html"
   },
   {
@@ -113,7 +113,7 @@
     "title": "一个都不能死",
     "description": "分为4个模式，看看你的反应能力和手速怎么样吧",
     "genre": null,
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-02/yxmb/2/_thumb.png",
     "gameUrl": "/local-games/collection-02/yxmb/2/index.html"
   },
   {
@@ -122,7 +122,7 @@
     "title": "捕鱼达人",
     "description": "一共有七档，界面还原，赶快试试吧",
     "genre": null,
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-02/yxmb/3/images/startbg.jpg",
     "gameUrl": "/local-games/collection-02/yxmb/3/index.html"
   },
   {
@@ -131,7 +131,7 @@
     "title": "3D魔方",
     "description": "鼠标点击操作，三阶魔方形状通常是正方体",
     "genre": null,
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-02/yxmb/5/_thumb.png",
     "gameUrl": "/local-games/collection-02/yxmb/5/index.html"
   },
   {
@@ -140,7 +140,7 @@
     "title": "青蛙吃苍蝇",
     "description": "兼容PC端和移动端，背景音乐开关功能，白天晚上两种背景",
     "genre": null,
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-02/yxmb/6/_thumb.png",
     "gameUrl": "/local-games/collection-02/yxmb/6/index.html"
   },
   {
@@ -149,7 +149,7 @@
     "title": "蜘蛛纸牌",
     "description": "游戏的目标以最少的移动次数将牌面中的十叠牌及待发的五组",
     "genre": "纸牌",
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-02/yxmb/7/_thumb.png",
     "gameUrl": "/local-games/collection-02/yxmb/7/index.html"
   },
   {
@@ -158,7 +158,7 @@
     "title": "贪吃蛇",
     "description": "贪吃蛇游戏是一款经典的益智游戏",
     "genre": null,
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-02/yxmb/8/_thumb.png",
     "gameUrl": "/local-games/collection-02/yxmb/8/index.html"
   },
   {
@@ -167,7 +167,7 @@
     "title": "水果消除",
     "description": "jQuery水果消除基于jquery制作",
     "genre": null,
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-02/yxmb/9/images/f.png",
     "gameUrl": "/local-games/collection-02/yxmb/9/index.html"
   },
   {
@@ -176,7 +176,7 @@
     "title": "2048中文版",
     "description": "2048中文版小游戏基于jquery.1.10.2.min.js制作",
     "genre": "益智",
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-02/yxmb/10/_thumb.png",
     "gameUrl": "/local-games/collection-02/yxmb/10/index.html"
   },
   {
@@ -185,7 +185,7 @@
     "title": "大鱼吃小鱼",
     "description": "大鱼吃小鱼冒险游戏、手机小游戏",
     "genre": null,
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-02/yxmb/11/images/gamelogo-sheet0.png",
     "gameUrl": "/local-games/collection-02/yxmb/11/index.html"
   },
   {
@@ -194,7 +194,7 @@
     "title": "飞机大战",
     "description": "JS飞机大战网页版小游戏，鼠标控制战机攻击敌人",
     "genre": null,
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-02/yxmb/12/img/bj.jpg",
     "gameUrl": "/local-games/collection-02/yxmb/12/index.html"
   },
   {
@@ -203,7 +203,7 @@
     "title": "跑酷小游戏",
     "description": "HTML5跑酷小游戏，按键盘空格键跳跃",
     "genre": "跑酷",
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-02/yxmb/13/_thumb.png",
     "gameUrl": "/local-games/collection-02/yxmb/13/index.html"
   },
   {
@@ -212,7 +212,7 @@
     "title": "贪吃蛇2.0",
     "description": "JS网页版贪吃蛇小游戏，原生JS",
     "genre": null,
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-02/yxmb/14/images/backGroundImg.png",
     "gameUrl": "/local-games/collection-02/yxmb/14/index.html"
   },
   {
@@ -221,7 +221,7 @@
     "title": "射击鸭子",
     "description": "HTML5 canvas射击鸭子小游戏",
     "genre": null,
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-02/yxmb/15/sprites/bg_game.jpg",
     "gameUrl": "/local-games/collection-02/yxmb/15/index.html"
   },
   {
@@ -230,7 +230,7 @@
     "title": "激流勇进",
     "description": "HTML5 canvas激流勇进小游戏代码，迷宫逃生小游戏",
     "genre": null,
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-02/yxmb/16/images/123.jpg",
     "gameUrl": "/local-games/collection-02/yxmb/16/index.html"
   },
   {
@@ -239,7 +239,7 @@
     "title": "天天消消乐",
     "description": "让三个及以上的同色小动物横竖相连即可消除",
     "genre": "益智",
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-02/yxmb/17/_thumb.png",
     "gameUrl": "/local-games/collection-02/yxmb/17/index.html"
   },
   {
@@ -248,7 +248,7 @@
     "title": "别踩白块",
     "description": "只要不是白块，一个个点吧，游戏速度随着时间增加而加快",
     "genre": null,
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-02/yxmb/18/_thumb.png",
     "gameUrl": "/local-games/collection-02/yxmb/18/index.html"
   },
   {
@@ -257,7 +257,7 @@
     "title": "线条生存",
     "description": "线条生存躲避游戏，移动鼠标，拖动线条，躲避白点，获得积分",
     "genre": null,
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-02/yxmb/19/p9mUO.jpg",
     "gameUrl": "/local-games/collection-02/yxmb/19/index.html"
   },
   {
@@ -266,7 +266,7 @@
     "title": "打砖块射击",
     "description": "HTML5 canvas打砖块射击小游戏，颜色爆炸射击游戏",
     "genre": null,
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-02/yxmb/20/_thumb.png",
     "gameUrl": "/local-games/collection-02/yxmb/20/index.html"
   },
   {
@@ -275,7 +275,7 @@
     "title": "保卫星球射击",
     "description": "星球防御游戏，太空战机为阻止星球遭遇小行星撞击",
     "genre": null,
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-02/yxmb/21/img/space.jpg",
     "gameUrl": "/local-games/collection-02/yxmb/21/index.html"
   },
   {
@@ -284,7 +284,7 @@
     "title": "吃豆人",
     "description": "按［空格］开始或暂停、继续，键盘方向键进行游戏",
     "genre": null,
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-02/yxmb/22/favicon.png",
     "gameUrl": "/local-games/collection-02/yxmb/22/index.html"
   },
   {
@@ -293,7 +293,7 @@
     "title": "开心消消乐",
     "description": "支持PC端和移动端，一款三消游戏，游戏画面精美",
     "genre": "益智",
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-02/yxmb/23/bitmap/title.png",
     "gameUrl": "/local-games/collection-02/yxmb/23/index.html"
   },
   {
@@ -302,7 +302,7 @@
     "title": "俄罗斯方块",
     "description": "界面简洁，难度可选：简单、一般、困难，键盘操作",
     "genre": null,
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-02/yxmb/24/_thumb.png",
     "gameUrl": "/local-games/collection-02/yxmb/24/index.html"
   },
   {
@@ -311,7 +311,7 @@
     "title": "2048方块版",
     "description": "HTML5数字方块2048小游戏，兼容PC端和移动端",
     "genre": "益智",
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-02/yxmb/25/_thumb.png",
     "gameUrl": "/local-games/collection-02/yxmb/25/index.html"
   },
   {
@@ -320,7 +320,7 @@
     "title": "看图猜词",
     "description": "【不兼容PC端】更好体验请使用手机，多个关卡小游戏",
     "genre": null,
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-02/yxmb/26/_thumb.png",
     "gameUrl": "/local-games/collection-02/yxmb/26/index.html"
   },
   {
@@ -329,7 +329,7 @@
     "title": "弹球打砖块",
     "description": "弹球打砖块，左、右箭头键或移动鼠标，控制小球打砖块",
     "genre": null,
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-02/yxmb/27/images/background.jpg",
     "gameUrl": "/local-games/collection-02/yxmb/27/index.html"
   },
   {
@@ -347,7 +347,7 @@
     "title": "双人五子棋",
     "description": "自适应分辨率，可随意调整棋盘大小，可设定棋盘规格（双人游戏）",
     "genre": "棋盘",
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-02/yxmb/29/_thumb.png",
     "gameUrl": "/local-games/collection-02/yxmb/29/index.html"
   },
   {
@@ -356,7 +356,7 @@
     "title": "射箭小游戏",
     "description": "TweenMax.min.js制作，鼠标控制射箭游戏，画一个箭头并发射它",
     "genre": null,
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-02/yxmb/30/_thumb.png",
     "gameUrl": "/local-games/collection-02/yxmb/30/index.html"
   },
   {
@@ -365,7 +365,7 @@
     "title": "飞机大战2.0",
     "description": "飞机大战小游戏，电脑和手机都可以玩，飞机自动发射子弹",
     "genre": null,
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-02/yxmb/31/image/bg_01.jpg",
     "gameUrl": "/local-games/collection-02/yxmb/31/index.html"
   },
   {
@@ -374,7 +374,7 @@
     "title": "简单闯关游戏",
     "description": "简单JS闯关小游戏，4个关卡，键盘上下左右操作闯关小游戏",
     "genre": null,
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-02/yxmb/32/_thumb.png",
     "gameUrl": "/local-games/collection-02/yxmb/32/index.html"
   },
   {
@@ -383,7 +383,7 @@
     "title": "重力球滚动",
     "description": "重力球滚动，用鼠标倾斜屏幕，将球体移动到正方形，当心地下的洞",
     "genre": null,
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-02/yxmb/33/_thumb.png",
     "gameUrl": "/local-games/collection-02/yxmb/33/index.html"
   },
   {
@@ -392,7 +392,7 @@
     "title": "头像迷阵消除",
     "description": "人物头像迷阵消除游戏，类似《宝石迷阵》类的方块消除类型小游戏",
     "genre": null,
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-02/yxmb/34/_img/sys/bg0.jpg",
     "gameUrl": "/local-games/collection-02/yxmb/34/index.html"
   },
   {
@@ -401,7 +401,7 @@
     "title": "变色弹球跳台阶",
     "description": "HTML5变色弹球跳台阶小游戏，点击台阶可变换红，黄，紫等颜色台阶",
     "genre": null,
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-02/yxmb/35/_thumb.png",
     "gameUrl": "/local-games/collection-02/yxmb/35/index.html"
   },
   {
@@ -410,7 +410,7 @@
     "title": "最强眼力",
     "description": "很经典的猜谜小游戏，有三个杯子，猜猜金币在哪个杯子里",
     "genre": null,
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-02/yxmb/36/2000-1.png",
     "gameUrl": "/local-games/collection-02/yxmb/36/index.html"
   },
   {
@@ -419,7 +419,7 @@
     "title": "俄罗斯方块2.0",
     "description": "俄罗斯方块2.0面向对象方式写的，彩色俄罗斯方块游戏",
     "genre": null,
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-02/yxmb/37/images/1.jpg",
     "gameUrl": "/local-games/collection-02/yxmb/37/index.html"
   },
   {
@@ -428,7 +428,7 @@
     "title": "双人五子棋2.0",
     "description": "自适应分辨率，原生js和canvas实现五子棋小游戏（双人游戏）",
     "genre": "棋盘",
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-02/yxmb/38/picture/bak.jpg",
     "gameUrl": "/local-games/collection-02/yxmb/38/index.html"
   },
   {
@@ -437,7 +437,7 @@
     "title": "小人推箱子",
     "description": "原生JS编写，移动小人，把箱子全部推到小球的位置即可过关",
     "genre": null,
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-02/yxmb/39/_thumb.png",
     "gameUrl": "/local-games/collection-02/yxmb/39/index.html"
   },
   {
@@ -446,7 +446,7 @@
     "title": "经典扫雷",
     "description": "扫雷基于jquery.1.10.2.min.js制作，计时，有十面红旗标注雷区",
     "genre": null,
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-02/yxmb/40/img/bg.jpg",
     "gameUrl": "/local-games/collection-02/yxmb/40/index.html"
   },
   {
@@ -455,7 +455,7 @@
     "title": "英雄宝石块消消乐",
     "description": "上手简单，只需让三个及以上的同色人物横竖相连即可消除",
     "genre": "益智",
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-02/yxmb/41/_img/bg/bg000.png",
     "gameUrl": "/local-games/collection-02/yxmb/41/index.html"
   },
   {
@@ -464,7 +464,7 @@
     "title": "赛车游戏",
     "description": "HTML5 Canvas赛车游戏动画，赛车游戏动画演示",
     "genre": null,
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-02/yxmb/42/_thumb.png",
     "gameUrl": "/local-games/collection-02/yxmb/42/index.html"
   },
   {
@@ -473,7 +473,7 @@
     "title": "大家来找茬",
     "description": "一款经典的游戏，在限定时间内，找出两幅图的不同之处",
     "genre": null,
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-02/yxmb/43/img/1.png",
     "gameUrl": "/local-games/collection-02/yxmb/43/index.html"
   },
   {
@@ -482,7 +482,7 @@
     "title": "经典扫雷2.0",
     "description": "最短的时间内点击格子出现的数字找出所有非雷格子，同时避免踩雷",
     "genre": null,
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-02/yxmb/44/_thumb.png",
     "gameUrl": "/local-games/collection-02/yxmb/44/index.html"
   },
   {
@@ -491,7 +491,7 @@
     "title": "锅打灰太狼",
     "description": "游戏时间:60s，拼手速，殴打灰太狼+10分，殴打小灰灰-10分",
     "genre": null,
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-02/yxmb/45/img/game_bg.jpg",
     "gameUrl": "/local-games/collection-02/yxmb/45/index.html"
   },
   {
@@ -500,7 +500,7 @@
     "title": "3D飞机躲避障",
     "description": "3D飞机躲避障碍游戏，鼠标控制飞行的飞机，躲避障碍",
     "genre": null,
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-02/yxmb/46/_thumb.png",
     "gameUrl": "/local-games/collection-02/yxmb/46/index.html"
   },
   {
@@ -509,7 +509,7 @@
     "title": "兔子吃月饼",
     "description": "HTML5兔子吃月饼小游戏，适应手机端，用鼠标操控进行游戏",
     "genre": null,
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-02/yxmb/47/static/img/startbg.png",
     "gameUrl": "/local-games/collection-02/yxmb/47/index.html"
   },
   {
@@ -518,7 +518,7 @@
     "title": "接金币",
     "description": "HTML5接金币小游戏，鼠标控制人物左右移动进行操作",
     "genre": null,
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-02/yxmb/48/images/bj.jpg",
     "gameUrl": "/local-games/collection-02/yxmb/48/index.html"
   },
   {
@@ -527,7 +527,7 @@
     "title": "灌篮高手",
     "description": "樱木花道的篮球主场30秒投篮，按住屏幕，力度条在红色区域时松手投篮",
     "genre": null,
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-02/yxmb/49/img/bg1.jpg",
     "gameUrl": "/local-games/collection-02/yxmb/49/index.html"
   },
   {
@@ -536,7 +536,7 @@
     "title": "疯狂打企鹅",
     "description": "HTML5疯狂打企鹅手机游戏",
     "genre": null,
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-02/yxmb/50/img/start.png",
     "gameUrl": "/local-games/collection-02/yxmb/50/index.html"
   },
   {
@@ -545,7 +545,7 @@
     "title": "吃月饼大赛",
     "description": "中秋吃月饼大赛游戏，鼠标点击进行游戏，在一定的时间内看谁吃的多",
     "genre": null,
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-02/yxmb/51/_thumb.png",
     "gameUrl": "/local-games/collection-02/yxmb/51/index.html"
   },
   {
@@ -554,7 +554,7 @@
     "title": "坦克大战",
     "description": "以坦克战斗及保卫基地为主题，可一人游戏或两人进行游戏",
     "genre": null,
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-02/yxmb/52/images/menu.gif",
     "gameUrl": "/local-games/collection-02/yxmb/52/index.html"
   },
   {
@@ -563,7 +563,7 @@
     "title": "图像之谜拼图",
     "description": "游戏分为简单、中等、困难，三个难度等级，记录操作步骤，纯html编写",
     "genre": null,
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-02/yxmb/53/images/london-bridge.jpg",
     "gameUrl": "/local-games/collection-02/yxmb/53/index.html"
   },
   {
@@ -572,7 +572,7 @@
     "title": "消除QQ表情",
     "description": "消除QQ表情小游戏，你的手速有多快？",
     "genre": null,
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-02/yxmb/54/_thumb.png",
     "gameUrl": "/local-games/collection-02/yxmb/54/index.html"
   },
   {
@@ -590,7 +590,7 @@
     "title": "3D熊出没",
     "description": "3D熊出没手机游戏基于HTML5 canvas制作，手机触屏操作更好",
     "genre": null,
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-02/yxmb/56/ber/title_3d_en.jpg",
     "gameUrl": "/local-games/collection-02/yxmb/56/index.html"
   },
   {
@@ -599,7 +599,7 @@
     "title": "3D拼图魔方",
     "description": "3D拼图魔方游戏基于HTML5 canvas制作，一共12关",
     "genre": null,
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-02/yxmb/57/assets/background.png",
     "gameUrl": "/local-games/collection-02/yxmb/57/index.html"
   },
   {
@@ -608,7 +608,7 @@
     "title": "3D拳王拳击",
     "description": "3D拳王拳击游戏基于HTML5 canvas制作，支持鼠标操作",
     "genre": null,
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-02/yxmb/58/bxg/title.jpg",
     "gameUrl": "/local-games/collection-02/yxmb/58/index.html"
   },
   {
@@ -617,7 +617,7 @@
     "title": "围住神经猫",
     "description": "基于HTML5 canvas、egret_loader.js和jquery.min.js等技术制作",
     "genre": null,
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-02/yxmb/59/images/bg.jpg",
     "gameUrl": "/local-games/collection-02/yxmb/59/index.html"
   },
   {
@@ -626,7 +626,7 @@
     "title": "2048军旗版",
     "description": "2048军旗版游戏，基于html5+js制作。键盘上下左右按键，开始游戏",
     "genre": "益智",
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-02/yxmb/60/_thumb.png",
     "gameUrl": "/local-games/collection-02/yxmb/60/index.html"
   },
   {
@@ -635,7 +635,7 @@
     "title": "打地鼠",
     "description": "打地鼠小游戏是基于HTML5 Canvas和Audio开发的小游戏",
     "genre": null,
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-02/yxmb/61/images/icon.png",
     "gameUrl": "/local-games/collection-02/yxmb/61/index.html"
   },
   {
@@ -644,7 +644,7 @@
     "title": "驴子跳跳",
     "description": "很漂亮的一款HTML5+CSS3游戏，还配有音乐，很酷很刺激",
     "genre": null,
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-02/yxmb/62/images/system/background.jpg",
     "gameUrl": "/local-games/collection-02/yxmb/62/index.html"
   },
   {
@@ -653,7 +653,7 @@
     "title": "像素小鸟飞行",
     "description": "游戏中玩家必须控制一只胖乎乎的小鸟，跨越由各种不同长度水管组成的障碍",
     "genre": null,
-    "thumbnail": "/local-games/collection-02/yxmb/64/icon.png",
+    "thumbnail": "/local-games/collection-02/yxmb/64/_thumb.png",
     "gameUrl": "/local-games/collection-02/yxmb/64/index.html"
   },
   {
@@ -662,7 +662,7 @@
     "title": "中国象棋",
     "description": "HTML5+JS编写，效果很逼真，一点也不会出现卡的情况效果相当不错",
     "genre": "棋盘",
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-02/yxmb/65/img/stype_2/bg.png",
     "gameUrl": "/local-games/collection-02/yxmb/65/index.html"
   },
   {
@@ -671,7 +671,7 @@
     "title": "经典飞机大战",
     "description": "经典飞机大战是一款JS模仿微信打飞机游戏",
     "genre": null,
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-02/yxmb/66/image/background_1.png",
     "gameUrl": "/local-games/collection-02/yxmb/66/index.html"
   },
   {
@@ -680,7 +680,7 @@
     "title": "简约打地鼠",
     "description": "一款锻炼反应能力的打地鼠手机小游戏（只适应手机端）",
     "genre": null,
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-02/yxmb/67/ds.png",
     "gameUrl": "/local-games/collection-02/yxmb/67/index.html"
   },
   {
@@ -689,7 +689,7 @@
     "title": "切积木",
     "description": "切积木益智游戏是一款基于canvas画布制作切换积木立方体游戏",
     "genre": null,
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-02/yxmb/68/_thumb.png",
     "gameUrl": "/local-games/collection-02/yxmb/68/index.html"
   },
   {
@@ -698,7 +698,7 @@
     "title": "见缝插口红",
     "description": "见缝插口红手机游戏是一款口红西瓜见缝插针手机游戏（直男福利）",
     "genre": null,
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-02/yxmb/69/img/level_1_main.jpg",
     "gameUrl": "/local-games/collection-02/yxmb/69/index.html"
   },
   {
@@ -707,7 +707,7 @@
     "title": "记忆小游戏",
     "description": "记忆小游戏代码是一款基于svg卡通图标匹配记忆游戏",
     "genre": null,
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-02/yxmb/70/_thumb.png",
     "gameUrl": "/local-games/collection-02/yxmb/70/index.html"
   },
   {
@@ -716,7 +716,7 @@
     "title": "看图猜词2.0",
     "description": "给你一张图片，在下列文字里选择组合一个成语，答对进入下一关（手机端更好）",
     "genre": null,
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-02/yxmb/71/img/001.jpg",
     "gameUrl": "/local-games/collection-02/yxmb/71/index.html"
   },
   {
@@ -725,7 +725,7 @@
     "title": "萝卜载兔子飞行",
     "description": "基于canvas绘制的3D兔子载着胡萝卜飞行穿过云层的游戏，单击鼠标拖动控制方向",
     "genre": null,
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-02/yxmb/72/_thumb.png",
     "gameUrl": "/local-games/collection-02/yxmb/72/index.html"
   },
   {
@@ -734,7 +734,7 @@
     "title": "16宫格翻牌匹配",
     "description": "一款16宫格的翻牌图标匹配游戏，翻开两个图标一样，进行匹配小游戏",
     "genre": null,
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-02/yxmb/73/_thumb.png",
     "gameUrl": "/local-games/collection-02/yxmb/73/index.html"
   },
   {
@@ -743,7 +743,7 @@
     "title": "一笔连珠",
     "description": "点击每个圆珠来让线段进行连接，不可重复点亮，全部点亮即闯关成功",
     "genre": null,
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-02/yxmb/74/Aqua+Labyrinth_files/images/main.png",
     "gameUrl": "/local-games/collection-02/yxmb/74/index.html"
   },
   {
@@ -752,7 +752,7 @@
     "title": "森林协奏曲",
     "description": "鼠标点击消除箱子等物体使动物们团圆，游戏加载完毕点击开始游戏（50个关卡）",
     "genre": null,
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-02/yxmb/75/images/1.5/back.jpg",
     "gameUrl": "/local-games/collection-02/yxmb/75/index.html"
   },
   {
@@ -761,7 +761,7 @@
     "title": "斗地主",
     "description": "由三人玩，地主是一方，其余两家为另一方，双方对战，先出完的一方胜",
     "genre": "纸牌",
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-02/yxmb/76/img/bg1.png",
     "gameUrl": "/local-games/collection-02/yxmb/76/index.html"
   },
   {
@@ -770,7 +770,7 @@
     "title": "飞机加减速",
     "description": "一款基于HTML5 Canvas实现的小游戏，圆形的加速，方形减速（手机端更好）",
     "genre": null,
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-02/yxmb/77/_thumb.png",
     "gameUrl": "/local-games/collection-02/yxmb/77/index.html"
   },
   {
@@ -788,7 +788,7 @@
     "title": "天降红包雨",
     "description": "疯狂抢红包，天降红包雨，看看你的手速怎么样？抢到手软",
     "genre": null,
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-02/yxmb/79/img/bg.png",
     "gameUrl": "/local-games/collection-02/yxmb/79/index.html"
   },
   {
@@ -797,7 +797,7 @@
     "title": "健康消消乐",
     "description": "一款三消类休闲游戏，游戏画面精美、上手简单（手机端更好）",
     "genre": "益智",
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-02/yxmb/80/images/background.jpg",
     "gameUrl": "/local-games/collection-02/yxmb/80/index.html"
   },
   {
@@ -914,7 +914,7 @@
     "title": "暴打神经猫",
     "description": "《暴打神经猫》中文 H5 小游戏，即开即玩。",
     "genre": null,
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-03/games/bdsjm/images/2000.png",
     "gameUrl": "/local-games/collection-03/games/bdsjm/index.html"
   },
   {
@@ -923,7 +923,7 @@
     "title": "魂之利刃",
     "description": "《魂之利刃》中文 H5 小游戏，即开即玩。",
     "genre": null,
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-03/games/bdxpg/bdxpg.jpg",
     "gameUrl": "/local-games/collection-03/games/bdxpg/index.html"
   },
   {
@@ -932,7 +932,7 @@
     "title": "疯狂飙车",
     "description": "《疯狂飙车》中文 H5 小游戏，即开即玩。",
     "genre": null,
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-03/games/biaoche/t01446f068c0ca06efa.png",
     "gameUrl": "/local-games/collection-03/games/biaoche/index.html"
   },
   {
@@ -959,7 +959,7 @@
     "title": "帮龙叔捞儿子",
     "description": "《帮龙叔捞儿子》中文 H5 小游戏，即开即玩。",
     "genre": null,
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-03/games/blglez/resource/assets/logo.png",
     "gameUrl": "/local-games/collection-03/games/blglez/index.html"
   },
   {
@@ -1013,7 +1013,7 @@
     "title": "冰桶挑战-2B版",
     "description": "《冰桶挑战-2B版》中文 H5 小游戏，即开即玩。",
     "genre": null,
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-03/games/bttz/share.png",
     "gameUrl": "/local-games/collection-03/games/bttz/index.html"
   },
   {
@@ -1031,7 +1031,7 @@
     "title": "一个都不能死",
     "description": "《一个都不能死》中文 H5 小游戏，即开即玩。",
     "genre": null,
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-03/games/bunengsi/2000.png",
     "gameUrl": "/local-games/collection-03/games/bunengsi/index.html"
   },
   {
@@ -1067,7 +1067,7 @@
     "title": "行且珍惜，测出轨有多易？",
     "description": "《行且珍惜，测出轨有多易？》中文 H5 小游戏，即开即玩。",
     "genre": null,
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-03/games/ccgl/images/share.png",
     "gameUrl": "/local-games/collection-03/games/ccgl/index.html"
   },
   {
@@ -1103,7 +1103,7 @@
     "title": "厕纸挑战",
     "description": "《厕纸挑战》中文 H5 小游戏，即开即玩。",
     "genre": null,
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-03/games/chezhi/vapp/43/bumf_texture_0.png",
     "gameUrl": "/local-games/collection-03/games/chezhi/index.html"
   },
   {
@@ -1130,7 +1130,7 @@
     "title": "超级染色体",
     "description": "《超级染色体》中文 H5 小游戏，即开即玩。",
     "genre": null,
-    "thumbnail": "/local-games/collection-03/games/cjrst/icon.png",
+    "thumbnail": "/local-games/collection-03/games/cjrst/_thumb.png",
     "gameUrl": "/local-games/collection-03/games/cjrst/index.html"
   },
   {
@@ -1157,7 +1157,7 @@
     "title": "财神",
     "description": "《财神》中文 H5 小游戏，即开即玩。",
     "genre": null,
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-03/games/cs/bg.jpg",
     "gameUrl": "/local-games/collection-03/games/cs/index.html"
   },
   {
@@ -1166,7 +1166,7 @@
     "title": "测试你的出轨率",
     "description": "《测试你的出轨率》中文 H5 小游戏，即开即玩。",
     "genre": null,
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-03/games/cscg/vapp/16/bg.png",
     "gameUrl": "/local-games/collection-03/games/cscg/index.html"
   },
   {
@@ -1175,7 +1175,7 @@
     "title": "变态俄罗斯方块",
     "description": "《变态俄罗斯方块》中文 H5 小游戏，即开即玩。",
     "genre": null,
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-03/games/cube/_thumb.png",
     "gameUrl": "/local-games/collection-03/games/cube/index.html"
   },
   {
@@ -1211,7 +1211,7 @@
     "title": "打老虎",
     "description": "《打老虎》中文 H5 小游戏，即开即玩。",
     "genre": null,
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-03/games/dalaohu/vapp/49/share.png",
     "gameUrl": "/local-games/collection-03/games/dalaohu/index.html"
   },
   {
@@ -1247,7 +1247,7 @@
     "title": "找大便",
     "description": "《找大便》中文 H5 小游戏，即开即玩。",
     "genre": null,
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-03/games/ddb/_thumb.png",
     "gameUrl": "/local-games/collection-03/games/ddb/index.html"
   },
   {
@@ -1274,7 +1274,7 @@
     "title": "最强电灯泡",
     "description": "《最强电灯泡》中文 H5 小游戏，即开即玩。",
     "genre": null,
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-03/games/diandeng/img/share.png",
     "gameUrl": "/local-games/collection-03/games/diandeng/index.html"
   },
   {
@@ -1283,7 +1283,7 @@
     "title": "钓鱼",
     "description": "《钓鱼》中文 H5 小游戏，即开即玩。",
     "genre": null,
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-03/games/diaoyu/fishman.png",
     "gameUrl": "/local-games/collection-03/games/diaoyu/index.html"
   },
   {
@@ -1301,7 +1301,7 @@
     "title": "大力射X",
     "description": "《大力射X》中文 H5 小游戏，即开即玩。",
     "genre": null,
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-03/games/dlss/images/rand/title.png",
     "gameUrl": "/local-games/collection-03/games/dlss/index.html"
   },
   {
@@ -1310,7 +1310,7 @@
     "title": "强力小方块",
     "description": "《强力小方块》中文 H5 小游戏，即开即玩。",
     "genre": null,
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-03/games/dlxfk/assets/score_title.png",
     "gameUrl": "/local-games/collection-03/games/dlxfk/index.html"
   },
   {
@@ -1319,7 +1319,7 @@
     "title": "打企鹅",
     "description": "《打企鹅》中文 H5 小游戏，即开即玩。",
     "genre": null,
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-03/games/dqe/img/start.png",
     "gameUrl": "/local-games/collection-03/games/dqe/index.html"
   },
   {
@@ -1328,7 +1328,7 @@
     "title": "动态视力",
     "description": "《动态视力》中文 H5 小游戏，即开即玩。",
     "genre": null,
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-03/games/dtsl/res/he_logo.jpg",
     "gameUrl": "/local-games/collection-03/games/dtsl/index.html"
   },
   {
@@ -1346,7 +1346,7 @@
     "title": "看你有多老",
     "description": "《看你有多老》中文 H5 小游戏，即开即玩。",
     "genre": null,
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-03/games/duolao/src/share.png",
     "gameUrl": "/local-games/collection-03/games/duolao/index.html"
   },
   {
@@ -1355,7 +1355,7 @@
     "title": "神奇读心术",
     "description": "《神奇读心术》中文 H5 小游戏，即开即玩。",
     "genre": null,
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-03/games/duxinshu/images/2.jpg",
     "gameUrl": "/local-games/collection-03/games/duxinshu/index.html"
   },
   {
@@ -1382,7 +1382,7 @@
     "title": "打蚊子",
     "description": "《打蚊子》中文 H5 小游戏，即开即玩。",
     "genre": null,
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-03/games/dwz/01.jpg",
     "gameUrl": "/local-games/collection-03/games/dwz/index.html"
   },
   {
@@ -1427,7 +1427,7 @@
     "title": "测测你下半年的发财关键！",
     "description": "经典中文 H5 小游戏《测测你下半年的发财关键！》，HTML5 实现，无需下载、即开即玩。",
     "genre": null,
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-03/games/fcl/images/wenyao.jpg",
     "gameUrl": "/local-games/collection-03/games/fcl/index.html"
   },
   {
@@ -1472,7 +1472,7 @@
     "title": "放开房祖名",
     "description": "《放开房祖名》中文 H5 小游戏，即开即玩。",
     "genre": null,
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-03/games/fkfzm/img/start_page.jpg",
     "gameUrl": "/local-games/collection-03/games/fkfzm/index.html"
   },
   {
@@ -1481,7 +1481,7 @@
     "title": "粉绿男女",
     "description": "《粉绿男女》中文 H5 小游戏，即开即玩。",
     "genre": null,
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-03/games/flnu/share.png",
     "gameUrl": "/local-games/collection-03/games/flnu/index.html"
   },
   {
@@ -1508,7 +1508,7 @@
     "title": "挑战繁体字",
     "description": "《挑战繁体字》中文 H5 小游戏，即开即玩。",
     "genre": null,
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-03/games/ftz/ftz.jpg",
     "gameUrl": "/local-games/collection-03/games/ftz/index.html"
   },
   {
@@ -1553,7 +1553,7 @@
     "title": "功夫猫",
     "description": "《功夫猫》中文 H5 小游戏，即开即玩。",
     "genre": null,
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-03/games/gongfumao/share.png",
     "gameUrl": "/local-games/collection-03/games/gongfumao/index.html"
   },
   {
@@ -1562,7 +1562,7 @@
     "title": "哥，请挺住18秒！",
     "description": "《哥，请挺住18秒！》中文 H5 小游戏，即开即玩。",
     "genre": null,
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-03/games/gqtz/res/background.jpg",
     "gameUrl": "/local-games/collection-03/games/gqtz/index.html"
   },
   {
@@ -1580,7 +1580,7 @@
     "title": "股票你大爷",
     "description": "《股票你大爷》中文 H5 小游戏，即开即玩。",
     "genre": null,
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-03/games/gudaye/vapp/background.gif",
     "gameUrl": "/local-games/collection-03/games/gudaye/index.html"
   },
   {
@@ -1598,7 +1598,7 @@
     "title": "横冲直闯",
     "description": "《横冲直闯》中文 H5 小游戏，即开即玩。",
     "genre": null,
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-03/games/hczz/hczz.png",
     "gameUrl": "/local-games/collection-03/games/hczz/index.html"
   },
   {
@@ -1607,7 +1607,7 @@
     "title": "黑白块",
     "description": "《黑白块》中文 H5 小游戏，即开即玩。",
     "genre": null,
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-03/games/heibai/_thumb.png",
     "gameUrl": "/local-games/collection-03/games/heibai/index.html"
   },
   {
@@ -1625,7 +1625,7 @@
     "title": "黄金矿工",
     "description": "《黄金矿工》中文 H5 小游戏，即开即玩。",
     "genre": null,
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-03/games/hjkg/dse.jpg",
     "gameUrl": "/local-games/collection-03/games/hjkg/index.html"
   },
   {
@@ -1652,7 +1652,7 @@
     "title": "红还是绿",
     "description": "《红还是绿》中文 H5 小游戏，即开即玩。",
     "genre": null,
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-03/games/honghaishilv/f.png",
     "gameUrl": "/local-games/collection-03/games/honghaishilv/index.html"
   },
   {
@@ -1688,7 +1688,7 @@
     "title": "冰桶挑战",
     "description": "《冰桶挑战》中文 H5 小游戏，即开即玩。",
     "genre": null,
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-03/games/ice_bucket/img/start.jpg",
     "gameUrl": "/local-games/collection-03/games/ice_bucket/index.html"
   },
   {
@@ -1697,7 +1697,7 @@
     "title": "智商测试",
     "description": "《智商测试》中文 H5 小游戏，即开即玩。",
     "genre": null,
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-03/games/iq/2.png",
     "gameUrl": "/local-games/collection-03/games/iq/index.html"
   },
   {
@@ -1715,7 +1715,7 @@
     "title": "激光战警",
     "description": "《激光战警》中文 H5 小游戏，即开即玩。",
     "genre": null,
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-03/games/jg/ds/title.jpg",
     "gameUrl": "/local-games/collection-03/games/jg/index.html"
   },
   {
@@ -1724,7 +1724,7 @@
     "title": "贱人配对",
     "description": "《贱人配对》中文 H5 小游戏，即开即玩。",
     "genre": null,
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-03/games/jianren/img/bg.png",
     "gameUrl": "/local-games/collection-03/games/jianren/index.html"
   },
   {
@@ -1733,7 +1733,7 @@
     "title": "一夜几次郎",
     "description": "《一夜几次郎》中文 H5 小游戏，即开即玩。",
     "genre": null,
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-03/games/jicilang/bj.jpg",
     "gameUrl": "/local-games/collection-03/games/jicilang/index.html"
   },
   {
@@ -1751,7 +1751,7 @@
     "title": "拯救精子",
     "description": "《拯救精子》中文 H5 小游戏，即开即玩。",
     "genre": null,
-    "thumbnail": "/local-games/collection-03/games/jingzi/icon.png",
+    "thumbnail": "/local-games/collection-03/games/jingzi/_thumb.png",
     "gameUrl": "/local-games/collection-03/games/jingzi/index.html"
   },
   {
@@ -1769,7 +1769,7 @@
     "title": "解开绳子",
     "description": "《解开绳子》中文 H5 小游戏，即开即玩。",
     "genre": null,
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-03/games/jksz/logo.png",
     "gameUrl": "/local-games/collection-03/games/jksz/index.html"
   },
   {
@@ -1841,7 +1841,7 @@
     "title": "监狱风云",
     "description": "《监狱风云》中文 H5 小游戏，即开即玩。",
     "genre": null,
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-03/games/jyfy/vapp/bg.png",
     "gameUrl": "/local-games/collection-03/games/jyfy/index.html"
   },
   {
@@ -1859,7 +1859,7 @@
     "title": "开心消消乐",
     "description": "《开心消消乐》中文 H5 小游戏，即开即玩。",
     "genre": "益智",
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-03/games/kaixinlian/bitmap/title.png",
     "gameUrl": "/local-games/collection-03/games/kaixinlian/index.html"
   },
   {
@@ -1868,7 +1868,7 @@
     "title": "砍树",
     "description": "《砍树》中文 H5 小游戏，即开即玩。",
     "genre": null,
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-03/games/kanshu/img/back0.jpg",
     "gameUrl": "/local-games/collection-03/games/kanshu/index.html"
   },
   {
@@ -1895,7 +1895,7 @@
     "title": "快跑",
     "description": "《快跑》中文 H5 小游戏，即开即玩。",
     "genre": null,
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-03/games/kuaipao/game_start.jpg",
     "gameUrl": "/local-games/collection-03/games/kuaipao/index.html"
   },
   {
@@ -1913,7 +1913,7 @@
     "title": "宇宙激战",
     "description": "《宇宙激战》中文 H5 小游戏，即开即玩。",
     "genre": null,
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-03/games/ld/library/iphonestartup.png",
     "gameUrl": "/local-games/collection-03/games/ld/index.html"
   },
   {
@@ -1922,7 +1922,7 @@
     "title": "连连看",
     "description": "《连连看》中文 H5 小游戏，即开即玩。",
     "genre": null,
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-03/games/liankan/vapp/shares.png",
     "gameUrl": "/local-games/collection-03/games/liankan/index.html"
   },
   {
@@ -1931,7 +1931,7 @@
     "title": "萝莉来了",
     "description": "《萝莉来了》中文 H5 小游戏，即开即玩。",
     "genre": null,
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-03/games/llll/share.png",
     "gameUrl": "/local-games/collection-03/games/llll/index.html"
   },
   {
@@ -1967,7 +1967,7 @@
     "title": "看你有多花",
     "description": "《看你有多花》中文 H5 小游戏，即开即玩。",
     "genre": null,
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-03/games/maomi/img/share.png",
     "gameUrl": "/local-games/collection-03/games/maomi/index.html"
   },
   {
@@ -1976,7 +1976,7 @@
     "title": "全民抢房子",
     "description": "《全民抢房子》中文 H5 小游戏，即开即玩。",
     "genre": null,
-    "thumbnail": "/local-games/collection-03/games/maxarea/icon.png",
+    "thumbnail": "/local-games/collection-03/games/maxarea/_thumb.png",
     "gameUrl": "/local-games/collection-03/games/maxarea/index.html"
   },
   {
@@ -1994,7 +1994,7 @@
     "title": "么么哒",
     "description": "《么么哒》中文 H5 小游戏，即开即玩。",
     "genre": null,
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-03/games/memeda/assets/img/2000.jpeg",
     "gameUrl": "/local-games/collection-03/games/memeda/index.html"
   },
   {
@@ -2003,7 +2003,7 @@
     "title": "命悬一线",
     "description": "《命悬一线》中文 H5 小游戏，即开即玩。",
     "genre": null,
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-03/games/mingxuanyixian/img/logo.png",
     "gameUrl": "/local-games/collection-03/games/mingxuanyixian/index.html"
   },
   {
@@ -2021,7 +2021,7 @@
     "title": "密室逃亡",
     "description": "《密室逃亡》中文 H5 小游戏，即开即玩。",
     "genre": null,
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-03/games/mishi/1.jpg",
     "gameUrl": "/local-games/collection-03/games/mishi/index.html"
   },
   {
@@ -2057,7 +2057,7 @@
     "title": "萌萌跳跳兔",
     "description": "《萌萌跳跳兔》中文 H5 小游戏，即开即玩。",
     "genre": null,
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-03/games/mmttt/resource/assets/cake_icon.png",
     "gameUrl": "/local-games/collection-03/games/mmttt/index.html"
   },
   {
@@ -2084,7 +2084,7 @@
     "title": "捡钱大战",
     "description": "《捡钱大战》中文 H5 小游戏，即开即玩。",
     "genre": null,
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-03/games/money/img/81345eabgw1ei0jyahwhwj20gp0qzt9s.jpg",
     "gameUrl": "/local-games/collection-03/games/money/index.html"
   },
   {
@@ -2093,7 +2093,7 @@
     "title": "微信抢桃",
     "description": "《微信抢桃》中文 H5 小游戏，即开即玩。",
     "genre": null,
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-03/games/monkey/images/monkey.png",
     "gameUrl": "/local-games/collection-03/games/monkey/index.html"
   },
   {
@@ -2147,7 +2147,7 @@
     "title": "梦想成真",
     "description": "《梦想成真》中文 H5 小游戏，即开即玩。",
     "genre": null,
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-03/games/mxcz/images/mlylogo.jpg",
     "gameUrl": "/local-games/collection-03/games/mxcz/index.html"
   },
   {
@@ -2156,7 +2156,7 @@
     "title": "名字大作战",
     "description": "《名字大作战》中文 H5 小游戏，即开即玩。",
     "genre": null,
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-03/games/mzpk/img/bg1.jpg",
     "gameUrl": "/local-games/collection-03/games/mzpk/index.html"
   },
   {
@@ -2165,7 +2165,7 @@
     "title": "疯狂挠痒痒",
     "description": "《疯狂挠痒痒》中文 H5 小游戏，即开即玩。",
     "genre": null,
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-03/games/naoyangyang/naoyang.jpg",
     "gameUrl": "/local-games/collection-03/games/naoyangyang/index.html"
   },
   {
@@ -2174,7 +2174,7 @@
     "title": "能打多少下",
     "description": "《能打多少下》中文 H5 小游戏，即开即玩。",
     "genre": null,
-    "thumbnail": "/local-games/collection-03/games/nddsc/icon.png",
+    "thumbnail": "/local-games/collection-03/games/nddsc/_thumb.png",
     "gameUrl": "/local-games/collection-03/games/nddsc/index.html"
   },
   {
@@ -2183,7 +2183,7 @@
     "title": "你的童年让狗吃了吗？",
     "description": "《你的童年让狗吃了吗？》中文 H5 小游戏，即开即玩。",
     "genre": null,
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-03/games/ndtnrgclm/share.png",
     "gameUrl": "/local-games/collection-03/games/ndtnrgclm/index.html"
   },
   {
@@ -2201,7 +2201,7 @@
     "title": "小猪宝宝",
     "description": "《小猪宝宝》中文 H5 小游戏，即开即玩。",
     "genre": null,
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-03/games/pigbaby/img/logo.png",
     "gameUrl": "/local-games/collection-03/games/pigbaby/index.html"
   },
   {
@@ -2210,7 +2210,7 @@
     "title": "敢摸大老虎屁股吗",
     "description": "《敢摸大老虎屁股吗》中文 H5 小游戏，即开即玩。",
     "genre": null,
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-03/games/pigu/css/bg_cover.png",
     "gameUrl": "/local-games/collection-03/games/pigu/index.html"
   },
   {
@@ -2237,7 +2237,7 @@
     "title": "泼醒小房子",
     "description": "《泼醒小房子》中文 H5 小游戏，即开即玩。",
     "genre": null,
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-03/games/pxfzm/vapp/start.jpg",
     "gameUrl": "/local-games/collection-03/games/pxfzm/index.html"
   },
   {
@@ -2255,7 +2255,7 @@
     "title": "企鹅大复仇",
     "description": "《企鹅大复仇》中文 H5 小游戏，即开即玩。",
     "genre": null,
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-03/games/qedfc/vapp/start.png",
     "gameUrl": "/local-games/collection-03/games/qedfc/index.html"
   },
   {
@@ -2264,7 +2264,7 @@
     "title": "疯狂打企鹅",
     "description": "《疯狂打企鹅》中文 H5 小游戏，即开即玩。",
     "genre": null,
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-03/games/qie/img/start.png",
     "gameUrl": "/local-games/collection-03/games/qie/index.html"
   },
   {
@@ -2273,7 +2273,7 @@
     "title": "切西瓜",
     "description": "《切西瓜》中文 H5 小游戏，即开即玩。",
     "genre": null,
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-03/games/qiexigua/images/startscreenbg-sheet0.png",
     "gameUrl": "/local-games/collection-03/games/qiexigua/index.html"
   },
   {
@@ -2282,7 +2282,7 @@
     "title": "为云南鲁甸县祈",
     "description": "《为云南鲁甸县祈》中文 H5 小游戏，即开即玩。",
     "genre": null,
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-03/games/qifu/img/bg01.jpg",
     "gameUrl": "/local-games/collection-03/games/qifu/index.html"
   },
   {
@@ -2291,7 +2291,7 @@
     "title": "小青蛙过河",
     "description": "《小青蛙过河》中文 H5 小游戏，即开即玩。",
     "genre": null,
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-03/games/qingwa/2000.jpg",
     "gameUrl": "/local-games/collection-03/games/qingwa/index.html"
   },
   {
@@ -2300,7 +2300,7 @@
     "title": "七夕七夕",
     "description": "《七夕七夕》中文 H5 小游戏，即开即玩。",
     "genre": null,
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-03/games/qixi/img/start_page.jpg",
     "gameUrl": "/local-games/collection-03/games/qixi/index.html"
   },
   {
@@ -2309,7 +2309,7 @@
     "title": "七夕跳跳跳",
     "description": "《七夕跳跳跳》中文 H5 小游戏，即开即玩。",
     "genre": null,
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-03/games/qixi1/images/logo.jpg",
     "gameUrl": "/local-games/collection-03/games/qixi1/index.html"
   },
   {
@@ -2318,7 +2318,7 @@
     "title": "全民冰桶挑战",
     "description": "《全民冰桶挑战》中文 H5 小游戏，即开即玩。",
     "genre": null,
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-03/games/qmbttz/vapp/logo.png",
     "gameUrl": "/local-games/collection-03/games/qmbttz/index.html"
   },
   {
@@ -2336,7 +2336,7 @@
     "title": "全民寻找房祖名",
     "description": "《全民寻找房祖名》中文 H5 小游戏，即开即玩。",
     "genre": null,
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-03/games/qmxzfzm/share.png",
     "gameUrl": "/local-games/collection-03/games/qmxzfzm/index.html"
   },
   {
@@ -2345,7 +2345,7 @@
     "title": "摇一摇寻找房祖名",
     "description": "《摇一摇寻找房祖名》中文 H5 小游戏，即开即玩。",
     "genre": null,
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-03/games/qmxzfzm2/share.png",
     "gameUrl": "/local-games/collection-03/games/qmxzfzm2/index.html"
   },
   {
@@ -2354,7 +2354,7 @@
     "title": "全民寻摇可乐",
     "description": "《全民寻摇可乐》中文 H5 小游戏，即开即玩。",
     "genre": null,
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-03/games/qmykl/images/icons.png",
     "gameUrl": "/local-games/collection-03/games/qmykl/index.html"
   },
   {
@@ -2363,7 +2363,7 @@
     "title": "强迫校正辊",
     "description": "《强迫校正辊》中文 H5 小游戏，即开即玩。",
     "genre": null,
-    "thumbnail": "/local-games/collection-03/games/qpjzg/icon.png",
+    "thumbnail": "/local-games/collection-03/games/qpjzg/_thumb.png",
     "gameUrl": "/local-games/collection-03/games/qpjzg/index.html"
   },
   {
@@ -2372,7 +2372,7 @@
     "title": "气球砰砰砰",
     "description": "《气球砰砰砰》中文 H5 小游戏，即开即玩。",
     "genre": null,
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-03/games/qqppp/images/background.jpg",
     "gameUrl": "/local-games/collection-03/games/qqppp/index.html"
   },
   {
@@ -2408,7 +2408,7 @@
     "title": "扔鸡蛋",
     "description": "《扔鸡蛋》中文 H5 小游戏，即开即玩。",
     "genre": null,
-    "thumbnail": "/local-games/collection-03/games/rjd/icon.png",
+    "thumbnail": "/local-games/collection-03/games/rjd/_thumb.png",
     "gameUrl": "/local-games/collection-03/games/rjd/index.html"
   },
   {
@@ -2480,7 +2480,7 @@
     "title": "色魔",
     "description": "《色魔》中文 H5 小游戏，即开即玩。",
     "genre": null,
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-03/games/semo/logo.jpg",
     "gameUrl": "/local-games/collection-03/games/semo/index.html"
   },
   {
@@ -2498,7 +2498,7 @@
     "title": "神经猫-装逼版",
     "description": "《神经猫-装逼版》中文 H5 小游戏，即开即玩。",
     "genre": null,
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-03/games/shenjingmao-zhuangbiban/resource/assets/logo.png",
     "gameUrl": "/local-games/collection-03/games/shenjingmao-zhuangbiban/index.html"
   },
   {
@@ -2507,7 +2507,7 @@
     "title": "围住神经猫II-基友版",
     "description": "《围住神经猫II-基友版》中文 H5 小游戏，即开即玩。",
     "genre": null,
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-03/games/shenjingmao2/static/images/logo.png",
     "gameUrl": "/local-games/collection-03/games/shenjingmao2/index.html"
   },
   {
@@ -2516,7 +2516,7 @@
     "title": "射球",
     "description": "《射球》中文 H5 小游戏，即开即玩。",
     "genre": null,
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-03/games/sheqiu/css/start-txt-1.png",
     "gameUrl": "/local-games/collection-03/games/sheqiu/index.html"
   },
   {
@@ -2525,7 +2525,7 @@
     "title": "炸屎奇遇记",
     "description": "《炸屎奇遇记》中文 H5 小游戏，即开即玩。",
     "genre": null,
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-03/games/shit/vapp/share.png",
     "gameUrl": "/local-games/collection-03/games/shit/index.html"
   },
   {
@@ -2552,7 +2552,7 @@
     "title": "神枪手",
     "description": "《神枪手》中文 H5 小游戏，即开即玩。",
     "genre": null,
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-03/games/sqs/img/home.png",
     "gameUrl": "/local-games/collection-03/games/sqs/index.html"
   },
   {
@@ -2561,7 +2561,7 @@
     "title": "数钱数到手抽筋",
     "description": "《数钱数到手抽筋》中文 H5 小游戏，即开即玩。",
     "genre": null,
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-03/games/sqsdscj/img/splashtitle.png",
     "gameUrl": "/local-games/collection-03/games/sqsdscj/index.html"
   },
   {
@@ -2597,7 +2597,7 @@
     "title": "色域迷惑人",
     "description": "《色域迷惑人》中文 H5 小游戏，即开即玩。",
     "genre": null,
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-03/games/symh/images/sf_bold.png",
     "gameUrl": "/local-games/collection-03/games/symh/index.html"
   },
   {
@@ -2615,7 +2615,7 @@
     "title": "糖果乐园",
     "description": "《糖果乐园》中文 H5 小游戏，即开即玩。",
     "genre": null,
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-03/games/tangguo/assets/main menu ep2.jpg",
     "gameUrl": "/local-games/collection-03/games/tangguo/index.html"
   },
   {
@@ -2678,7 +2678,7 @@
     "title": "小兔子快快跑",
     "description": "《小兔子快快跑》中文 H5 小游戏，即开即玩。",
     "genre": null,
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-03/games/tuzi/images/EN/title1.png",
     "gameUrl": "/local-games/collection-03/games/tuzi/index.html"
   },
   {
@@ -2687,7 +2687,7 @@
     "title": "挑战憋屁",
     "description": "《挑战憋屁》中文 H5 小游戏，即开即玩。",
     "genre": null,
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-03/games/tzbp/res/avatar_02.png",
     "gameUrl": "/local-games/collection-03/games/tzbp/index.html"
   },
   {
@@ -2696,7 +2696,7 @@
     "title": "挖鼻孔",
     "description": "《挖鼻孔》中文 H5 小游戏，即开即玩。",
     "genre": null,
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-03/games/wbk/res/bikong.png",
     "gameUrl": "/local-games/collection-03/games/wbk/index.html"
   },
   {
@@ -2723,7 +2723,7 @@
     "title": "小鸟飞飞飞",
     "description": "《小鸟飞飞飞》中文 H5 小游戏，即开即玩。",
     "genre": null,
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-03/games/xiaoniaofeifei/img/bg1.jpg",
     "gameUrl": "/local-games/collection-03/games/xiaoniaofeifei/index.html"
   },
   {
@@ -2732,7 +2732,7 @@
     "title": "小苹果",
     "description": "《小苹果》中文 H5 小游戏，即开即玩。",
     "genre": null,
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-03/games/xiaopingguo/2000.png",
     "gameUrl": "/local-games/collection-03/games/xiaopingguo/index.html"
   },
   {
@@ -2741,7 +2741,7 @@
     "title": "她是小三吗",
     "description": "《她是小三吗》中文 H5 小游戏，即开即玩。",
     "genre": null,
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-03/games/xiaosan/static/bg.jpg",
     "gameUrl": "/local-games/collection-03/games/xiaosan/index.html"
   },
   {
@@ -2750,7 +2750,7 @@
     "title": "飞翔吧小帅",
     "description": "《飞翔吧小帅》中文 H5 小游戏，即开即玩。",
     "genre": null,
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-03/games/xiaoshuai/vapp/7/background2.png",
     "gameUrl": "/local-games/collection-03/games/xiaoshuai/index.html"
   },
   {
@@ -2759,7 +2759,7 @@
     "title": "3D熊出没",
     "description": "《3D熊出没》中文 H5 小游戏，即开即玩。",
     "genre": null,
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-03/games/xiongchumo/2000.png",
     "gameUrl": "/local-games/collection-03/games/xiongchumo/index.html"
   },
   {
@@ -2777,7 +2777,7 @@
     "title": "胸口碎大石",
     "description": "《胸口碎大石》中文 H5 小游戏，即开即玩。",
     "genre": null,
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-03/games/xksds/res/good_start.png",
     "gameUrl": "/local-games/collection-03/games/xksds/index.html"
   },
   {
@@ -2840,7 +2840,7 @@
     "title": "寻找120",
     "description": "《寻找120》中文 H5 小游戏，即开即玩。",
     "genre": null,
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-03/games/xz120/img/start.png",
     "gameUrl": "/local-games/collection-03/games/xz120/index.html"
   },
   {
@@ -2858,7 +2858,7 @@
     "title": "挠挠我",
     "description": "《挠挠我》中文 H5 小游戏，即开即玩。",
     "genre": null,
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-03/games/yang/share.png",
     "gameUrl": "/local-games/collection-03/games/yang/index.html"
   },
   {
@@ -2867,7 +2867,7 @@
     "title": "疯狂摇一摇",
     "description": "《疯狂摇一摇》中文 H5 小游戏，即开即玩。",
     "genre": null,
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-03/games/yao/share.png",
     "gameUrl": "/local-games/collection-03/games/yao/index.html"
   },
   {
@@ -2903,7 +2903,7 @@
     "title": "一根筋玩到底",
     "description": "《一根筋玩到底》中文 H5 小游戏，即开即玩。",
     "genre": null,
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-03/games/ygj/resources/share.png",
     "gameUrl": "/local-games/collection-03/games/ygj/index.html"
   },
   {
@@ -2912,7 +2912,7 @@
     "title": "烟花",
     "description": "《烟花》中文 H5 小游戏，即开即玩。",
     "genre": null,
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-03/games/yh/logo.JPG",
     "gameUrl": "/local-games/collection-03/games/yh/index.html"
   },
   {
@@ -2921,7 +2921,7 @@
     "title": "一笔画",
     "description": "《一笔画》中文 H5 小游戏，即开即玩。",
     "genre": null,
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-03/games/yibihua/460.jpg",
     "gameUrl": "/local-games/collection-03/games/yibihua/index.html"
   },
   {
@@ -2930,7 +2930,7 @@
     "title": "樱木花道在主场",
     "description": "《樱木花道在主场》中文 H5 小游戏，即开即玩。",
     "genre": null,
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-03/games/ymhddzc/img/bg1.jpg",
     "gameUrl": "/local-games/collection-03/games/ymhddzc/index.html"
   },
   {
@@ -2939,7 +2939,7 @@
     "title": "吃月饼大赛",
     "description": "《吃月饼大赛》中文 H5 小游戏，即开即玩。",
     "genre": null,
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-03/games/yuebing/_thumb.png",
     "gameUrl": "/local-games/collection-03/games/yuebing/index.html"
   },
   {
@@ -2948,7 +2948,7 @@
     "title": "微信杂志效果",
     "description": "《微信杂志效果》中文 H5 小游戏，即开即玩。",
     "genre": null,
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-03/games/zazhi/success/images/s1.jpg",
     "gameUrl": "/local-games/collection-03/games/zazhi/index.html"
   },
   {
@@ -2957,7 +2957,7 @@
     "title": "纸飞机",
     "description": "《纸飞机》中文 H5 小游戏，即开即玩。",
     "genre": null,
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-03/games/zfj/img/winBg.jpg",
     "gameUrl": "/local-games/collection-03/games/zfj/index.html"
   },
   {
@@ -2966,7 +2966,7 @@
     "title": "微信找你妹",
     "description": "《微信找你妹》中文 H5 小游戏，即开即玩。",
     "genre": null,
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-03/games/zhaonimei/share.png",
     "gameUrl": "/local-games/collection-03/games/zhaonimei/index.html"
   },
   {
@@ -2984,7 +2984,7 @@
     "title": "抓抓抓！",
     "description": "《抓抓抓！》中文 H5 小游戏，即开即玩。",
     "genre": null,
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-03/games/zhua/logo.jpg",
     "gameUrl": "/local-games/collection-03/games/zhua/index.html"
   },
   {
@@ -2993,7 +2993,7 @@
     "title": "捉鬼",
     "description": "《捉鬼》中文 H5 小游戏，即开即玩。",
     "genre": null,
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-03/games/zhuogui/catch_gui/bg.jpg",
     "gameUrl": "/local-games/collection-03/games/zhuogui/index.html"
   },
   {
@@ -3002,7 +3002,7 @@
     "title": "转你妹",
     "description": "《转你妹》中文 H5 小游戏，即开即玩。",
     "genre": null,
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-03/games/znm/_thumb.png",
     "gameUrl": "/local-games/collection-03/games/znm/index.html"
   },
   {
@@ -3020,7 +3020,7 @@
     "title": "最强大脑",
     "description": "《最强大脑》中文 H5 小游戏，即开即玩。",
     "genre": null,
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-03/games/zqdn/res/about.png",
     "gameUrl": "/local-games/collection-03/games/zqdn/index.html"
   },
   {
@@ -3047,7 +3047,7 @@
     "title": "最强眼力",
     "description": "《最强眼力》中文 H5 小游戏，即开即玩。",
     "genre": null,
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-03/games/zuiqiangyanli/2.png",
     "gameUrl": "/local-games/collection-03/games/zuiqiangyanli/index.html"
   },
   {
@@ -3056,7 +3056,7 @@
     "title": "滚滚足球",
     "description": "《滚滚足球》中文 H5 小游戏，即开即玩。",
     "genre": null,
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-03/games/zuqiu/assets/soccerassets.png",
     "gameUrl": "/local-games/collection-03/games/zuqiu/index.html"
   },
   {
@@ -3074,7 +3074,7 @@
     "title": "Galactians",
     "description": "《Galactians》中文 H5 小游戏，即开即玩。",
     "genre": null,
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-03/games/zz/library/titleback.png",
     "gameUrl": "/local-games/collection-03/games/zz/index.html"
   },
   {
@@ -3083,7 +3083,7 @@
     "title": "涨姿势",
     "description": "《涨姿势》中文 H5 小游戏，即开即玩。",
     "genre": null,
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-03/games/zzs/images/loading-logo.png",
     "gameUrl": "/local-games/collection-03/games/zzs/index.html"
   },
   {
@@ -3101,7 +3101,7 @@
     "title": "穿越无尽的河流",
     "description": "经典中文 H5 小游戏《穿越无尽的河流》，HTML5 实现，无需下载、即开即玩。",
     "genre": null,
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-03/games1/endless-lake/media/assets/bandera.png",
     "gameUrl": "/local-games/collection-03/games1/endless-lake/index.html"
   },
   {
@@ -3110,7 +3110,7 @@
     "title": "微信经典飞机大战",
     "description": "经典中文 H5 小游戏《微信经典飞机大战》，HTML5 实现，无需下载、即开即玩。",
     "genre": null,
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-03/games1/weixinfeiji/image/background_1.png",
     "gameUrl": "/local-games/collection-03/games1/weixinfeiji/index.html"
   },
   {
@@ -3119,7 +3119,7 @@
     "title": "HTML5扑克牌",
     "description": "经典中文 H5 小游戏《HTML5扑克牌》，HTML5 实现，无需下载、即开即玩。",
     "genre": "纸牌",
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-03/games-desktop/dezhoupuke/img/Table.png",
     "gameUrl": "/local-games/collection-03/games-desktop/dezhoupuke/index.html"
   },
   {
@@ -3128,7 +3128,7 @@
     "title": "HTML5ʵ���й�������Ϸ - վ���ز�",
     "description": "经典中文 H5 小游戏《HTML5ʵ���й�������Ϸ - վ���ز�》，HTML5 实现，无需下载、即开即玩。",
     "genre": null,
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-03/games-desktop/html5-chinese-chess/img/stype_2/bg.png",
     "gameUrl": "/local-games/collection-03/games-desktop/html5-chinese-chess/index.html"
   },
   {
@@ -3137,7 +3137,7 @@
     "title": "HTML5捕鱼达人网页游戏源代码下载 - JS代码网",
     "description": "经典中文 H5 小游戏《HTML5捕鱼达人网页游戏源代码下载 - JS代码网》，HTML5 实现，无需下载、即开即玩。",
     "genre": null,
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-03/games-desktop/html5-fishjoy/images/startbg.jpg",
     "gameUrl": "/local-games/collection-03/games-desktop/html5-fishjoy/index.html"
   },
   {
@@ -3146,7 +3146,7 @@
     "title": "奇葩版Flappy Bird,HTML5 Flappy Text游戏在线演示",
     "description": "经典中文 H5 小游戏《奇葩版Flappy Bird,HTML5 Flappy Text游戏在线演示》，HTML5 实现，无需下载、即开即玩。",
     "genre": null,
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-03/games-desktop/html5-flappy-text/_thumb.png",
     "gameUrl": "/local-games/collection-03/games-desktop/html5-flappy-text/index.html"
   },
   {
@@ -3155,7 +3155,7 @@
     "title": "水果忍者HTML5网页版在线游戏",
     "description": "经典中文 H5 小游戏《水果忍者HTML5网页版在线游戏》，HTML5 实现，无需下载、即开即玩。",
     "genre": null,
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-03/games-desktop/html5-fruit-ninja/images/logo.png",
     "gameUrl": "/local-games/collection-03/games-desktop/html5-fruit-ninja/index.html"
   },
   {
@@ -3164,7 +3164,7 @@
     "title": "HTML5��������",
     "description": "经典中文 H5 小游戏《HTML5��������》，HTML5 实现，无需下载、即开即玩。",
     "genre": null,
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-03/games-desktop/html5-mario/images/title.gif",
     "gameUrl": "/local-games/collection-03/games-desktop/html5-mario/index.html"
   },
   {
@@ -3173,7 +3173,7 @@
     "title": "Pac-Man 吃豆游戏",
     "description": "经典中文 H5 小游戏《Pac-Man 吃豆游戏》，HTML5 实现，无需下载、即开即玩。",
     "genre": null,
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-03/games-desktop/pac-man/_thumb.png",
     "gameUrl": "/local-games/collection-03/games-desktop/pac-man/index.html"
   },
   {
@@ -3200,7 +3200,7 @@
     "title": "微信游戏",
     "description": "经典中文 H5 小游戏《微信游戏》，HTML5 实现，无需下载、即开即玩。",
     "genre": null,
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-04/bbjx/res/texture.png",
     "gameUrl": "/local-games/collection-04/bbjx/index.html"
   },
   {
@@ -3209,7 +3209,7 @@
     "title": "暴打神经猫- 微信HTML5在线朋友圈游戏",
     "description": "经典中文 H5 小游戏《暴打神经猫- 微信HTML5在线朋友圈游戏》，HTML5 实现，无需下载、即开即玩。",
     "genre": null,
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-04/bdsjm/images/2000.png",
     "gameUrl": "/local-games/collection-04/bdsjm/index.html"
   },
   {
@@ -3218,7 +3218,7 @@
     "title": "飙车追妹子",
     "description": "经典中文 H5 小游戏《飙车追妹子》，HTML5 实现，无需下载、即开即玩。",
     "genre": null,
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-04/biaoche/t01446f068c0ca06efa.png",
     "gameUrl": "/local-games/collection-04/biaoche/index.html"
   },
   {
@@ -3227,7 +3227,7 @@
     "title": "每日游戏",
     "description": "经典中文 H5 小游戏《每日游戏》，HTML5 实现，无需下载、即开即玩。",
     "genre": null,
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-04/blglez/resource/assets/logo.png",
     "gameUrl": "/local-games/collection-04/blglez/index.html"
   },
   {
@@ -3236,7 +3236,7 @@
     "title": "99%的人都被逼疯了，制作新消息头像，一起逼死强迫症！",
     "description": "经典中文 H5 小游戏《99%的人都被逼疯了，制作新消息头像，一起逼死强迫症！》，HTML5 实现，无需下载、即开即玩。",
     "genre": null,
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-04/bsqpz/figuremsg/bg.png",
     "gameUrl": "/local-games/collection-04/bsqpz/index.html"
   },
   {
@@ -3245,7 +3245,7 @@
     "title": "微信游戏",
     "description": "经典中文 H5 小游戏《微信游戏》，HTML5 实现，无需下载、即开即玩。",
     "genre": null,
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-04/bttz/share.png",
     "gameUrl": "/local-games/collection-04/bttz/index.html"
   },
   {
@@ -3254,7 +3254,7 @@
     "title": "一个都不能死",
     "description": "经典中文 H5 小游戏《一个都不能死》，HTML5 实现，无需下载、即开即玩。",
     "genre": null,
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-04/bunengsi/2000.png",
     "gameUrl": "/local-games/collection-04/bunengsi/index.html"
   },
   {
@@ -3281,7 +3281,7 @@
     "title": "超级染色体",
     "description": "经典中文 H5 小游戏《超级染色体》，HTML5 实现，无需下载、即开即玩。",
     "genre": null,
-    "thumbnail": "/local-games/collection-04/cjrst/icon.png",
+    "thumbnail": "/local-games/collection-04/cjrst/_thumb.png",
     "gameUrl": "/local-games/collection-04/cjrst/index.html"
   },
   {
@@ -3299,7 +3299,7 @@
     "title": "Money Money Om!",
     "description": "经典中文 H5 小游戏《Money Money Om!》，HTML5 实现，无需下载、即开即玩。",
     "genre": null,
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-04/cs/bg.jpg",
     "gameUrl": "/local-games/collection-04/cs/index.html"
   },
   {
@@ -3308,7 +3308,7 @@
     "title": "且行且珍惜，测出轨有多易？",
     "description": "经典中文 H5 小游戏《且行且珍惜，测出轨有多易？》，HTML5 实现，无需下载、即开即玩。",
     "genre": null,
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-04/cscg/vapp/16/bg.png",
     "gameUrl": "/local-games/collection-04/cscg/index.html"
   },
   {
@@ -3317,7 +3317,7 @@
     "title": "变态方块游戏，纯粹找虐",
     "description": "经典中文 H5 小游戏《变态方块游戏，纯粹找虐》，HTML5 实现，无需下载、即开即玩。",
     "genre": null,
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-04/cube/_thumb.png",
     "gameUrl": "/local-games/collection-04/cube/index.html"
   },
   {
@@ -3326,7 +3326,7 @@
     "title": "岛国么么答",
     "description": "经典中文 H5 小游戏《岛国么么答》，HTML5 实现，无需下载、即开即玩。",
     "genre": null,
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-04/daoguo/static/img_s/start.png",
     "gameUrl": "/local-games/collection-04/daoguo/index.html"
   },
   {
@@ -3335,7 +3335,7 @@
     "title": "Playing Twins Match-Up",
     "description": "经典中文 H5 小游戏《Playing Twins Match-Up》，HTML5 实现，无需下载、即开即玩。",
     "genre": null,
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-04/ddb/_thumb.png",
     "gameUrl": "/local-games/collection-04/ddb/index.html"
   },
   {
@@ -3344,7 +3344,7 @@
     "title": "最强电灯泡",
     "description": "经典中文 H5 小游戏《最强电灯泡》，HTML5 实现，无需下载、即开即玩。",
     "genre": null,
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-04/diandeng/img/share.png",
     "gameUrl": "/local-games/collection-04/diandeng/index.html"
   },
   {
@@ -3353,7 +3353,7 @@
     "title": "史上最寂寞的游戏-微信HTML5在线朋友圈游戏-46465",
     "description": "经典中文 H5 小游戏《史上最寂寞的游戏-微信HTML5在线朋友圈游戏-46465》，HTML5 实现，无需下载、即开即玩。",
     "genre": null,
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-04/diaoyu/fishman.png",
     "gameUrl": "/local-games/collection-04/diaoyu/index.html"
   },
   {
@@ -3362,7 +3362,7 @@
     "title": "微信游戏",
     "description": "经典中文 H5 小游戏《微信游戏》，HTML5 实现，无需下载、即开即玩。",
     "genre": null,
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-04/dlss/images/rand/title.png",
     "gameUrl": "/local-games/collection-04/dlss/index.html"
   },
   {
@@ -3371,7 +3371,7 @@
     "title": "弹力小方块-微信游戏",
     "description": "经典中文 H5 小游戏《弹力小方块-微信游戏》，HTML5 实现，无需下载、即开即玩。",
     "genre": null,
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-04/dlxfk/assets/score_title.png",
     "gameUrl": "/local-games/collection-04/dlxfk/index.html"
   },
   {
@@ -3380,7 +3380,7 @@
     "title": "火爆朋友圈",
     "description": "经典中文 H5 小游戏《火爆朋友圈》，HTML5 实现，无需下载、即开即玩。",
     "genre": null,
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-04/dqe/img/start.png",
     "gameUrl": "/local-games/collection-04/dqe/index.html"
   },
   {
@@ -3398,7 +3398,7 @@
     "title": "看看你有多老",
     "description": "经典中文 H5 小游戏《看看你有多老》，HTML5 实现，无需下载、即开即玩。",
     "genre": null,
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-04/duolao/src/share.png",
     "gameUrl": "/local-games/collection-04/duolao/index.html"
   },
   {
@@ -3407,7 +3407,7 @@
     "title": "读心小博士",
     "description": "经典中文 H5 小游戏《读心小博士》，HTML5 实现，无需下载、即开即玩。",
     "genre": null,
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-04/duxinshu/images/2.jpg",
     "gameUrl": "/local-games/collection-04/duxinshu/index.html"
   },
   {
@@ -3425,7 +3425,7 @@
     "title": "灭蚊大作战-微信HTML5在线朋友圈游戏-46465",
     "description": "经典中文 H5 小游戏《灭蚊大作战-微信HTML5在线朋友圈游戏-46465》，HTML5 实现，无需下载、即开即玩。",
     "genre": null,
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-04/dwz/01.jpg",
     "gameUrl": "/local-games/collection-04/dwz/index.html"
   },
   {
@@ -3452,7 +3452,7 @@
     "title": "微信游戏",
     "description": "经典中文 H5 小游戏《微信游戏》，HTML5 实现，无需下载、即开即玩。",
     "genre": null,
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-04/fkfzm/img/start_page.jpg",
     "gameUrl": "/local-games/collection-04/fkfzm/index.html"
   },
   {
@@ -3470,7 +3470,7 @@
     "title": "功夫猫-微信HTML5在线朋友圈游戏-46465",
     "description": "经典中文 H5 小游戏《功夫猫-微信HTML5在线朋友圈游戏-46465》，HTML5 实现，无需下载、即开即玩。",
     "genre": null,
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-04/gongfumao/share.png",
     "gameUrl": "/local-games/collection-04/gongfumao/index.html"
   },
   {
@@ -3479,7 +3479,7 @@
     "title": "哥，挺住18秒！躲开条子",
     "description": "经典中文 H5 小游戏《哥，挺住18秒！躲开条子》，HTML5 实现，无需下载、即开即玩。",
     "genre": null,
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-04/gqtz/res/background.jpg",
     "gameUrl": "/local-games/collection-04/gqtz/index.html"
   },
   {
@@ -3488,7 +3488,7 @@
     "title": "合集04游戏 gudaye",
     "description": "经典中文 H5 小游戏《合集04游戏 gudaye》，HTML5 实现，无需下载、即开即玩。",
     "genre": null,
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-04/gudaye/vapp/background.gif",
     "gameUrl": "/local-games/collection-04/gudaye/index.html"
   },
   {
@@ -3497,7 +3497,7 @@
     "title": "横冲直撞",
     "description": "经典中文 H5 小游戏《横冲直撞》，HTML5 实现，无需下载、即开即玩。",
     "genre": null,
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-04/hczz/hczz.png",
     "gameUrl": "/local-games/collection-04/hczz/index.html"
   },
   {
@@ -3506,7 +3506,7 @@
     "title": "看谁踩方块多",
     "description": "经典中文 H5 小游戏《看谁踩方块多》，HTML5 实现，无需下载、即开即玩。",
     "genre": null,
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-04/heibai/logo.png",
     "gameUrl": "/local-games/collection-04/heibai/index.html"
   },
   {
@@ -3515,7 +3515,7 @@
     "title": "最坑人的辨色大比拼!",
     "description": "经典中文 H5 小游戏《最坑人的辨色大比拼!》，HTML5 实现，无需下载、即开即玩。",
     "genre": null,
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-04/honghaishilv/f.png",
     "gameUrl": "/local-games/collection-04/honghaishilv/index.html"
   },
   {
@@ -3524,7 +3524,7 @@
     "title": "冰桶挑战",
     "description": "经典中文 H5 小游戏《冰桶挑战》，HTML5 实现，无需下载、即开即玩。",
     "genre": null,
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-04/ice_bucket/img/start.jpg",
     "gameUrl": "/local-games/collection-04/ice_bucket/index.html"
   },
   {
@@ -3533,7 +3533,7 @@
     "title": "古埃及对称填图智商测试，太邪门了",
     "description": "经典中文 H5 小游戏《古埃及对称填图智商测试，太邪门了》，HTML5 实现，无需下载、即开即玩。",
     "genre": null,
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-04/iq/2.png",
     "gameUrl": "/local-games/collection-04/iq/index.html"
   },
   {
@@ -3542,7 +3542,7 @@
     "title": "合集04游戏 jg",
     "description": "经典中文 H5 小游戏《合集04游戏 jg》，HTML5 实现，无需下载、即开即玩。",
     "genre": null,
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-04/jg/ds/title.jpg",
     "gameUrl": "/local-games/collection-04/jg/index.html"
   },
   {
@@ -3551,7 +3551,7 @@
     "title": "贱人配对",
     "description": "经典中文 H5 小游戏《贱人配对》，HTML5 实现，无需下载、即开即玩。",
     "genre": null,
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-04/jianren/img/bg.png",
     "gameUrl": "/local-games/collection-04/jianren/index.html"
   },
   {
@@ -3560,7 +3560,7 @@
     "title": "一夜N次郎",
     "description": "经典中文 H5 小游戏《一夜N次郎》，HTML5 实现，无需下载、即开即玩。",
     "genre": null,
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-04/jicilang/bj.jpg",
     "gameUrl": "/local-games/collection-04/jicilang/index.html"
   },
   {
@@ -3596,7 +3596,7 @@
     "title": "是男人就啪啪啪！微信HTML5在线朋友圈游戏",
     "description": "经典中文 H5 小游戏《是男人就啪啪啪！微信HTML5在线朋友圈游戏》，HTML5 实现，无需下载、即开即玩。",
     "genre": null,
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-04/kanshu/img/back0.jpg",
     "gameUrl": "/local-games/collection-04/kanshu/index.html"
   },
   {
@@ -3605,7 +3605,7 @@
     "title": "OLA����",
     "description": "经典中文 H5 小游戏《OLA����》，HTML5 实现，无需下载、即开即玩。",
     "genre": null,
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-04/kuaipao/game_start.jpg",
     "gameUrl": "/local-games/collection-04/kuaipao/index.html"
   },
   {
@@ -3623,7 +3623,7 @@
     "title": "连圈圈大作战",
     "description": "经典中文 H5 小游戏《连圈圈大作战》，HTML5 实现，无需下载、即开即玩。",
     "genre": null,
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-04/liankan/vapp/shares.png",
     "gameUrl": "/local-games/collection-04/liankan/index.html"
   },
   {
@@ -3632,7 +3632,7 @@
     "title": "美女秀秀么么哒-微信HTML5在线朋友圈游戏-46465",
     "description": "经典中文 H5 小游戏《美女秀秀么么哒-微信HTML5在线朋友圈游戏-46465》，HTML5 实现，无需下载、即开即玩。",
     "genre": null,
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-04/memeda/img/15.jpg",
     "gameUrl": "/local-games/collection-04/memeda/index.html"
   },
   {
@@ -3641,7 +3641,7 @@
     "title": "新疆微电影微信小游戏",
     "description": "经典中文 H5 小游戏《新疆微电影微信小游戏》，HTML5 实现，无需下载、即开即玩。",
     "genre": null,
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-04/mingxuanyixian/img/logo.png",
     "gameUrl": "/local-games/collection-04/mingxuanyixian/index.html"
   },
   {
@@ -3650,7 +3650,7 @@
     "title": "密室逃脱",
     "description": "经典中文 H5 小游戏《密室逃脱》，HTML5 实现，无需下载、即开即玩。",
     "genre": null,
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-04/mishi/1.jpg",
     "gameUrl": "/local-games/collection-04/mishi/index.html"
   },
   {
@@ -3659,7 +3659,7 @@
     "title": "中秋传说",
     "description": "经典中文 H5 小游戏《中秋传说》，HTML5 实现，无需下载、即开即玩。",
     "genre": null,
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-04/mmttt/resource/assets/cake_icon.png",
     "gameUrl": "/local-games/collection-04/mmttt/index.html"
   },
   {
@@ -3686,7 +3686,7 @@
     "title": "合集04游戏 monkey",
     "description": "经典中文 H5 小游戏《合集04游戏 monkey》，HTML5 实现，无需下载、即开即玩。",
     "genre": null,
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-04/monkey/images/monkey.png",
     "gameUrl": "/local-games/collection-04/monkey/index.html"
   },
   {
@@ -3704,7 +3704,7 @@
     "title": "挑战梦想！- 微信HTML5在线朋友圈游戏",
     "description": "经典中文 H5 小游戏《挑战梦想！- 微信HTML5在线朋友圈游戏》，HTML5 实现，无需下载、即开即玩。",
     "genre": null,
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-04/mxcz/images/mlylogo.jpg",
     "gameUrl": "/local-games/collection-04/mxcz/index.html"
   },
   {
@@ -3713,7 +3713,7 @@
     "title": "名字大作战",
     "description": "经典中文 H5 小游戏《名字大作战》，HTML5 实现，无需下载、即开即玩。",
     "genre": null,
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-04/mzpk/img/bg1.jpg",
     "gameUrl": "/local-games/collection-04/mzpk/index.html"
   },
   {
@@ -3722,7 +3722,7 @@
     "title": "能打多少次",
     "description": "经典中文 H5 小游戏《能打多少次》，HTML5 实现，无需下载、即开即玩。",
     "genre": null,
-    "thumbnail": "/local-games/collection-04/nddsc/icon.png",
+    "thumbnail": "/local-games/collection-04/nddsc/_thumb.png",
     "gameUrl": "/local-games/collection-04/nddsc/index.html"
   },
   {
@@ -3731,7 +3731,7 @@
     "title": "你的童年让狗吃了吗-微信游戏",
     "description": "经典中文 H5 小游戏《你的童年让狗吃了吗-微信游戏》，HTML5 实现，无需下载、即开即玩。",
     "genre": null,
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-04/ndtnrgclm/share.png",
     "gameUrl": "/local-games/collection-04/ndtnrgclm/index.html"
   },
   {
@@ -3749,7 +3749,7 @@
     "title": "一个都不能掉  微信HTML5在线朋友圈游戏",
     "description": "经典中文 H5 小游戏《一个都不能掉  微信HTML5在线朋友圈游戏》，HTML5 实现，无需下载、即开即玩。",
     "genre": null,
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-04/pigbaby/img/logo.png",
     "gameUrl": "/local-games/collection-04/pigbaby/index.html"
   },
   {
@@ -3758,7 +3758,7 @@
     "title": "大老虎是谁？快来摸大老虎屁股_有趣的事",
     "description": "经典中文 H5 小游戏《大老虎是谁？快来摸大老虎屁股_有趣的事》，HTML5 实现，无需下载、即开即玩。",
     "genre": null,
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-04/pigu/css/bg_cover.png",
     "gameUrl": "/local-games/collection-04/pigu/index.html"
   },
   {
@@ -3767,7 +3767,7 @@
     "title": "企鹅的复仇",
     "description": "经典中文 H5 小游戏《企鹅的复仇》，HTML5 实现，无需下载、即开即玩。",
     "genre": null,
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-04/qedfc/vapp/start.png",
     "gameUrl": "/local-games/collection-04/qedfc/index.html"
   },
   {
@@ -3776,7 +3776,7 @@
     "title": "微信游戏",
     "description": "经典中文 H5 小游戏《微信游戏》，HTML5 实现，无需下载、即开即玩。",
     "genre": null,
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-04/qie/img/start.png",
     "gameUrl": "/local-games/collection-04/qie/index.html"
   },
   {
@@ -3785,7 +3785,7 @@
     "title": "忍者切水果- 微信HTML5在线朋友圈游戏",
     "description": "经典中文 H5 小游戏《忍者切水果- 微信HTML5在线朋友圈游戏》，HTML5 实现，无需下载、即开即玩。",
     "genre": null,
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-04/qiexigua/images/startscreenbg-sheet0.png",
     "gameUrl": "/local-games/collection-04/qiexigua/index.html"
   },
   {
@@ -3794,7 +3794,7 @@
     "title": "小青蛙过河",
     "description": "经典中文 H5 小游戏《小青蛙过河》，HTML5 实现，无需下载、即开即玩。",
     "genre": null,
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-04/qingwa/2000.jpg",
     "gameUrl": "/local-games/collection-04/qingwa/index.html"
   },
   {
@@ -3812,7 +3812,7 @@
     "title": "8球桌球",
     "description": "逼真的台球游戏体验，支持单人和多人模式。",
     "genre": null,
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-05/8-ball/assets/img/title.png",
     "gameUrl": "/local-games/collection-05/8-ball/index.html"
   },
   {
@@ -3821,7 +3821,7 @@
     "title": "像素大卡车",
     "description": "像素风格的卡车驾驶游戏，挑战各种地形。",
     "genre": null,
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-05/pixel-truck/webapp/cover.jpg",
     "gameUrl": "/local-games/collection-05/pixel-truck/index.html"
   },
   {
@@ -3839,7 +3839,7 @@
     "title": "小黑屋 (A Dark Room)",
     "description": "文字冒险游戏，从一个黑暗的房间开始你的冒险。",
     "genre": null,
-    "thumbnail": "/local-games/collection-05/a-dark-room/favicon.ico",
+    "thumbnail": "/local-games/collection-05/a-dark-room/_thumb.png",
     "gameUrl": "/local-games/collection-05/a-dark-room/index.html"
   },
   {
@@ -3848,7 +3848,7 @@
     "title": "我的世界网页版（简化版）",
     "description": "简化版的我的世界，在浏览器中体验方块世界。",
     "genre": null,
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-05/minecraft-lite/_thumb.png",
     "gameUrl": "/local-games/collection-05/minecraft-lite/index.html"
   },
   {
@@ -3875,7 +3875,7 @@
     "title": "火柴人跑酷",
     "description": "火柴人风格的跑酷游戏，挑战各种障碍。",
     "genre": "跑酷",
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-05/stickman-runner/_thumb.png",
     "gameUrl": "/local-games/collection-05/stickman-runner/index.html"
   },
   {
@@ -3884,7 +3884,7 @@
     "title": "炒股模拟器",
     "description": "股票交易模拟游戏，学习投资理财知识。",
     "genre": null,
-    "thumbnail": null,
+    "thumbnail": "/local-games/collection-05/stock-simulator/_thumb.png",
     "gameUrl": "/local-games/collection-05/stock-simulator/index.html"
   }
 ]

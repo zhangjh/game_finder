@@ -334,13 +334,15 @@ docker run --rm --env-file .env --network server_default -v ~/dev/game_finder:/a
 **开发机（有游戏源码 MY-Games-01 / MY-Games-02）：**
 
 ```bash
-pnpm build:local-catalog     # 拷贝+解析 → web/public/local-games/ + server/data/local-games.json
+pnpm build:local-catalog     # 拷贝+解析（智能选图）→ web/public/local-games/ + server/data/local-games.json
+pnpm capture:local-thumbs    # 截图兜底：仍缺缩略图的游戏用 Edge 无头截图，产物 _thumb.png 并回填 JSON
 pnpm publish:local-games     # 上传到 R2（幂等：HEAD 对比 size，只传新增/变更；凭据读 server/.env）
 ```
 
 - `build:local-catalog` 默认源：`C:/Users/<你>/dev/MY-Games-01`（合集 01-04，c1-c4）与 `.../MY-Games-02`（c5）。
 - 覆盖路径用 `LOCAL_GAMES_SOURCE_DIR`（MY-01）/ `LOCAL_GAMES_SOURCE_DIR_2`（MY-02）；`LOCAL_CATALOG_SKIP_COPY=1` 只重建 JSON 不拷贝。
 - 入口统一规则：非 `index.html` 的入口（如 `2048/2048.html`）在 build 拷贝后自动重命名为 `index.html`。
+- 缩略图三级策略：`icon.png` 等现成图标 → 智能选图（文件名+尺寸评分挑封面素材）→ Edge 无头截图兜底（`capture:local-thumbs`，需本机装 Edge，可用 `EDGE_PATH` 指定路径，`THUMB_CAPTURE_ONLY=<id>` 单独重截）。截图写入 `web/public/local-games/<游戏目录>/_thumb.png` 并回填 JSON；下次 `build:local-catalog` 会经 `capturedThumbUrl()` 优先复用，重建 JSON 不丢失。
 - catalog 变更后记得 `git add server/data/local-games.json && git commit && git push`（VPS 导入依赖它）。
 
 **VPS（生产 DB 在内网 docker，无游戏源码，不跑 build/publish）：**

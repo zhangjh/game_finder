@@ -16,9 +16,11 @@
  * 幂等：整目录覆盖拷贝，可重复执行（会刷新 local-games.json）。
  */
 import { cp, mkdir, readdir, readFile, rename, rm, writeFile } from "node:fs/promises";
-import { existsSync } from "node:fs";
+import fs from "node:fs";
 import path from "node:path";
 import { createHash } from "node:crypto";
+
+const existsSync = fs.existsSync;
 
 const WORKSPACE_ROOT = path.resolve(import.meta.dirname, "../..");
 const SOURCE_ROOT =
@@ -58,6 +60,123 @@ function firstExisting(root, collection, candidates) {
     if (existsSync(path.join(root, rel))) return assetUrl(collection, rel);
   }
   return null;
+}
+
+/* ===== 智能选图：无 icon.png 时从游戏目录挑「最像封面」的素材 =====
+ * 思路：文件名打分（cover/logo/banner 优先，sprite/anim 扣分）
+ * + 图片头尺寸校验（太小是图标、长条是精灵图、超大降权）。
+ */
+
+const SMART_IMG_EXTS = new Set([".png", ".jpg", ".jpeg", ".gif", ".webp"]);
+
+/** 读图片头部解析像素尺寸（PNG/GIF/JPEG；失败返回 null） */
+function probeImageSize(file) {
+  let buf;
+  try {
+    const fd = fs.openSync(file, "r");
+    buf = Buffer.alloc(65536);
+    const bytes = fs.readSync(fd, buf, 0, buf.length, 0);
+    buf = buf.subarray(0, bytes);
+    fs.closeSync(fd);
+  } catch {
+    return null;
+  }
+  if (buf.length > 24 && buf[0] === 0x89 && buf[1] === 0x50) {
+    return { w: buf.readUInt32BE(16), h: buf.readUInt32BE(20) };
+  }
+  if (buf.length > 10 && buf.toString("ascii", 0, 3) === "GIF") {
+    return { w: buf.readUInt16LE(6), h: buf.readUInt16LE(8) };
+  }
+  if (buf.length > 4 && buf[0] === 0xff && buf[1] === 0xd8) {
+    let off = 2;
+    while (off + 9 < buf.length) {
+      if (buf[off] !== 0xff) {
+        off++;
+        continue;
+      }
+      const marker = buf[off + 1];
+      if (marker >= 0xc0 && marker <= 0xcf && ![0xc4, 0xc8, 0xcc].includes(marker)) {
+        return { h: buf.readUInt16BE(off + 5), w: buf.readUInt16BE(off + 7) };
+      }
+      if (marker === 0xd8 || (marker >= 0xd0 && marker <= 0xd9)) {
+        off += 2;
+        continue;
+      }
+      off += 2 + buf.readUInt16BE(off + 2);
+    }
+  }
+  return null;
+}
+
+function scoreImage(name, size, dirBase, relPath) {
+  const n = name.toLowerCase();
+  const stem = n.replace(/\.[^.]+$/, "");
+  let s = 0;
+  if (/(cover|logo|banner|poster|thumb|title|main|start)/.test(n)) s += 100;
+  else if (/icon/.test(n)) s += 80;
+  // 文件名与游戏目录同名：基本就是作者放的封面/主视觉
+  if (dirBase && stem === dirBase) s += 80;
+  if (/(bg|background)/.test(n)) s += 60;
+  // 素材图集 / 贴图目录（如 minecraft 的 texture/gui.png）：不是封面
+  if (/(sheet|sprite|anim|atlas|tile|btn|button|num|font)/.test(n)) s -= 60;
+  if (/(^|\/)(texture|textures|ui|hud|atlas|sprites?)(\/|$)/i.test(relPath ?? "")) s -= 80;
+  if (/^(gui|ui|hud|bar)s?[\._-]/.test(n)) s -= 80;
+  if (size) {
+    const { w, h } = size;
+    if (w < 200 || h < 120) s -= 100;
+    const ratio = w / h;
+    if (ratio > 3 || ratio < 1 / 3) s -= 80;
+    if (w >= 480 && h >= 270) s += 30;
+    if (w >= 1600 || h >= 1600) s -= 10;
+  }
+  return s;
+}
+
+function listImages(dir, depth = 0, out = [], root = dir) {
+  let entries;
+  try {
+    entries = fs.readdirSync(dir, { withFileTypes: true });
+  } catch {
+    return out;
+  }
+  for (const e of entries) {
+    if (e.name.startsWith(".")) continue;
+    const p = path.join(dir, e.name);
+    if (e.isDirectory()) {
+      if (depth < 2) listImages(p, depth + 1, out, root);
+    } else if (SMART_IMG_EXTS.has(path.extname(e.name).toLowerCase())) {
+      out.push({ name: e.name, abs: p, rel: path.relative(root, p).replace(/\\/g, "/") });
+    }
+  }
+  return out;
+}
+
+/** 挑出得分达标的最佳图片，返回其公开 URL（相对 /local-games/）；无合适素材返回 null */
+const smartPickStats = { picked: 0, none: 0 };
+function pickSmartThumbnail(gameDir, urlPrefix) {
+  const files = listImages(gameDir);
+  const dirBase = path.basename(gameDir).toLowerCase();
+  let best = null;
+  for (const f of files) {
+    const s = scoreImage(f.name, probeImageSize(f.abs), dirBase, f.rel);
+    if (s < 0) continue;
+    if (!best || s > best.s) best = { s, f };
+  }
+  if (!best) {
+    smartPickStats.none++;
+    return null;
+  }
+  smartPickStats.picked++;
+  const rel = path.relative(gameDir, best.f.abs).replace(/\\/g, "/");
+  return `${urlPrefix}/${rel}`;
+}
+
+/** capture-local-thumbnails.mjs 截图兜底的产物（_thumb.png 已在 public 树里） */
+function capturedThumbUrl(collection, relDir) {
+  const rel = relDir.replace(/\\/g, "/");
+  return existsSync(path.join(TARGET_ROOT, collection, rel, "_thumb.png"))
+    ? `/local-games/${collection}/${rel}/_thumb.png`
+    : null;
 }
 
 function inferGenre(title) {
@@ -112,10 +231,16 @@ async function parseCollection01() {
       title,
       description: templateDesc(title),
       genre: inferGenre(title),
-      thumbnail: firstExisting(root, "collection-01", [
-        `${dirName}/icon.png`,
-        `${dirName}/images/icon.png`,
-      ]),
+      thumbnail:
+        firstExisting(root, "collection-01", [
+          `${dirName}/icon.png`,
+          `${dirName}/images/icon.png`,
+        ]) ??
+        capturedThumbUrl("collection-01", dirName) ??
+        pickSmartThumbnail(
+          path.join(root, dirName),
+          `/local-games/collection-01/${dirName}`,
+        ),
       gameUrl: assetUrl("collection-01", `${dirName}/index.html`),
     });
   }
@@ -164,7 +289,13 @@ async function parseCollection02() {
       title,
       description: info.desc || templateDesc(title),
       genre: inferGenre(title),
-      thumbnail: firstExisting(root, "collection-02", [`${rel}/icon.png`]),
+      thumbnail:
+        firstExisting(root, "collection-02", [`${rel}/icon.png`]) ??
+        capturedThumbUrl("collection-02", rel) ??
+        pickSmartThumbnail(
+          path.join(root, rel),
+          `/local-games/collection-02/${rel.replace(/\\/g, "/")}`,
+        ),
       gameUrl: assetUrl("collection-02", `${rel}/index.html`),
     });
   }
@@ -229,6 +360,14 @@ async function parseCollection03() {
           thumbnail = `/local-games/collection-03/${relIcon.replace(/\\/g, "/")}`;
         }
       }
+      if (!thumbnail) {
+        thumbnail =
+          capturedThumbUrl("collection-03", rel) ??
+          pickSmartThumbnail(
+            path.join(root, rel),
+            `/local-games/collection-03/${rel}`,
+          );
+      }
 
       entries.push({
         sourceGameId: `c3-${d.name}`,
@@ -271,7 +410,13 @@ async function parseCollection04() {
       title,
       description: templateDesc(title),
       genre: inferGenre(title),
-      thumbnail: firstExisting(root, "collection-04", [`${d.name}/icon.png`]),
+      thumbnail:
+        firstExisting(root, "collection-04", [`${d.name}/icon.png`]) ??
+        capturedThumbUrl("collection-04", d.name) ??
+        pickSmartThumbnail(
+          path.join(root, d.name),
+          `/local-games/collection-04/${d.name}`,
+        ),
       gameUrl: assetUrl("collection-04", `${d.name}/index.html`),
     });
   }
@@ -377,6 +522,11 @@ async function parseCollection05() {
         break;
       }
     }
+    if (!thumbnail) {
+      thumbnail =
+        capturedThumbUrl("collection-05", id) ??
+        pickSmartThumbnail(srcDir, `/local-games/collection-05/${id}`);
+    }
 
     entries.push({
       sourceGameId: `c5-${id}`,
@@ -447,6 +597,13 @@ async function main() {
   }
   console.log("");
   console.log(`catalog: 共 ${final.length} 款游戏（c1=${perColl["c1-"]} c2=${perColl["c2-"]} c3=${perColl["c3-"]} c4=${perColl["c4-"]} c5=${perColl["c5-"]}）`);
+  const missingThumb = final.filter((g) => !g.thumbnail);
+  console.log(
+    `缩略图：智能选图补 ${smartPickStats.picked} 款，仍缺 ${missingThumb.length} 款` +
+      (missingThumb.length
+        ? `（可跑 pnpm capture:local-thumbs 截图兜底：${missingThumb.map((g) => g.sourceGameId).slice(0, 8).join(", ")}${missingThumb.length > 8 ? " …" : ""}）`
+        : ""),
+  );
   console.log(`已写入 ${OUT_JSON}`);
   console.log(`下一步：pnpm --filter server import:local 导入数据库`);
 }
