@@ -51,11 +51,43 @@ function saveRecent(list: string[]): void {
   }
 }
 
-/** 热门搜索词（点击直接走搜索管线；zh 与站内分类标签一致） */
-const HOT_SEARCHES: Record<UiLang, string[]> = {
-  zh: ["塔防", "Roguelike", "解谜", "双人", "休闲", "对战"],
-  en: ["Roguelike", "Puzzle", "Casual", "Strategy", "Shooter", "Idle"],
+/** 语义搜索示例：自然语言长句，点击命中 isAiQuery 走 AI 推荐管线 */
+const SEMANTIC_EXAMPLES: Record<UiLang, string[]> = {
+  zh: [
+    "只有10分钟，想玩一局就停",
+    "今天有点累，想玩点放松治愈的",
+    "想玩烧脑一点的解谜游戏",
+    "和朋友两个人能对战的",
+    "手机上能玩的休闲小游戏",
+    "不要那种很肝需要天天签到的",
+    "类似植物大战僵尸的塔防",
+    "随便推荐一个好玩的",
+  ],
+  en: [
+    "Only 10 minutes, want a quick round",
+    "Tired today, something chill and relaxing",
+    "A brain-teasing puzzle game",
+    "A 2-player versus game for me and a friend",
+    "Casual games that play well on mobile",
+    "Nothing grindy that needs daily check-ins",
+    "A tower defense like Plants vs Zombies",
+    "Surprise me with something fun",
+  ],
 };
+
+/** ✨ 图标（随文字色变化） */
+function Sparkle({ className }: { className?: string }) {
+  return (
+    <svg
+      className={className}
+      viewBox="0 0 24 24"
+      fill="currentColor"
+      aria-hidden="true"
+    >
+      <path d="M12 2 L13.6 9.4 L21 11 L13.6 12.6 L12 20 L10.4 12.6 L3 11 L10.4 9.4 Z" />
+    </svg>
+  );
+}
 
 /** 当前展示结果的管线：keyword=关键词 / ai=直接 AI / semantic=关键词 miss 后的语义兜底 */
 type ResultMode = "keyword" | "ai" | "semantic";
@@ -395,13 +427,14 @@ export function SearchPage() {
                 {t("tryOtherSearches")}
               </p>
               <div className="mt-4 flex flex-wrap justify-center gap-2">
-                {HOT_SEARCHES[lang].map((word) => (
+                {SEMANTIC_EXAMPLES[lang].map((word) => (
                   <button
                     key={word}
                     type="button"
                     onClick={() => goSearch(word)}
-                    className="rounded-full border border-border px-3 py-1 text-sm text-muted transition-colors hover:border-primary hover:text-primary"
+                    className="inline-flex items-center gap-1.5 rounded-full border border-border px-3 py-1 text-sm text-muted transition-colors hover:border-primary hover:text-primary"
                   >
+                    <Sparkle className="h-3.5 w-3.5 shrink-0" />
                     {word}
                   </button>
                 ))}
@@ -480,19 +513,20 @@ export function SearchPage() {
             </section>
           ) : null}
 
-          {/* 热门搜索 */}
+          {/* 语义搜索示例 */}
           <section className="mt-8">
             <h2 className="text-sm font-semibold text-muted">
-              {t("hotSearches")}
+              {t("semanticExamples")}
             </h2>
             <div className="mt-3 flex flex-wrap gap-2">
-              {HOT_SEARCHES[lang].map((word) => (
+              {SEMANTIC_EXAMPLES[lang].map((word) => (
                 <button
                   key={word}
                   type="button"
                   onClick={() => goSearch(word)}
-                  className="rounded-full border border-border px-3 py-1 text-sm text-muted transition-colors hover:border-primary hover:text-primary"
+                  className="inline-flex items-center gap-1.5 rounded-full border border-border px-3 py-1 text-sm text-muted transition-colors hover:border-primary hover:text-primary"
                 >
+                  <Sparkle className="h-3.5 w-3.5 shrink-0" />
                   {word}
                 </button>
               ))}
