@@ -226,6 +226,10 @@ const zh = {
   saveFailedSub: "请检查网络后重试",
   exitFullscreen: "退出全屏",
   enterFullscreen: "进入全屏",
+  rotateToLandscape: "切换横屏",
+  rotateGuide: "请旋转手机至横屏",
+  rotateGuideHint:
+    "如需横屏游玩，请旋转手机；旋转后会自动继续，点击右上角可关闭提示。",
 
   /* 分享 */
   share: "分享",
@@ -474,6 +478,10 @@ const en: Record<I18nKey, string> = {
   saveFailedSub: "Check your connection and try again",
   exitFullscreen: "Exit fullscreen",
   enterFullscreen: "Enter fullscreen",
+  rotateToLandscape: "Rotate screen",
+  rotateGuide: "Please rotate your phone to landscape",
+  rotateGuideHint:
+    "Rotate your phone to play in landscape. The game continues automatically once you rotate — tap the top-right corner to dismiss.",
 
   /* Share */
   share: "Share",

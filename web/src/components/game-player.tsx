@@ -282,6 +282,50 @@ export function GamePlayer({
     }
   };
 
+  /** 触屏设备（pointer: coarse）：仅移动端展示横屏旋转引导 */
+  const isTouch = useRef(
+    typeof window !== "undefined" &&
+      window.matchMedia("(pointer: coarse)").matches,
+  ).current;
+  /** 当前屏幕是否竖屏：触屏竖屏视口时展示「切换横屏」按钮 */
+  const [screenPortrait, setScreenPortrait] = useState(false);
+  /** 「请旋转手机」引导遮罩：浏览器不支持自动锁定横屏时的兜底 */
+  const [showRotateGuide, setShowRotateGuide] = useState(false);
+
+  // 不依赖游戏的 portrait 标注（可能分析错误）：旋转与否完全交给用户判断。
+  useEffect(() => {
+    if (!isTouch) return;
+    const mq = window.matchMedia("(orientation: portrait)");
+    const update = () => {
+      setScreenPortrait(mq.matches);
+      // 用户已横屏 → 自动收起引导遮罩
+      if (!mq.matches) setShowRotateGuide(false);
+    };
+    update();
+    mq.addEventListener("change", update);
+    return () => mq.removeEventListener("change", update);
+  }, [isTouch]);
+
+  /** 「切换横屏」按钮（用户主动触发）：优先自动锁定方向（需全屏，未全屏则先补全屏）；
+   * 不支持或失败时（如 iOS Safari）弹出旋转手机引导遮罩，用户物理旋转后自动消失。 */
+  const rotateToLandscape = async () => {
+    const orientation = screen.orientation as ScreenOrientation & {
+      lock?: (o: string) => Promise<void>;
+    };
+    try {
+      if (!document.fullscreenElement && iframeRef.current) {
+        await iframeRef.current.requestFullscreen().catch(() => {});
+      }
+      if (orientation?.lock) {
+        await orientation.lock("landscape");
+        return;
+      }
+    } catch {
+      /* 锁定失败 → 落入引导遮罩 */
+    }
+    setShowRotateGuide(true);
+  };
+
   /** 停顿后重新加载：重建 iframe 并重新注入 LOAD_DATA */
   const reloadGame = () => {
     bootSignaledRef.current = false;
@@ -397,6 +441,78 @@ export function GamePlayer({
               {t("reload")}
             </button>
           </div>
+        </div>
+      ) : null}
+      {/* 触屏竖屏视口：提供「切换横屏」入口（不依赖游戏方向标注，用户自行判断） */}
+      {screenPortrait ? (
+        <button
+          type="button"
+          onClick={() => void rotateToLandscape()}
+          aria-label={t("rotateToLandscape")}
+          title={t("rotateToLandscape")}
+          className="absolute left-2 top-2 z-10 flex h-9 items-center gap-1.5 rounded-full bg-black/50 px-3 text-xs font-medium text-white backdrop-blur transition-colors hover:bg-black/70"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            aria-hidden="true"
+          >
+            <rect x="9" y="7" width="6" height="10" rx="1.5" />
+            <path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8" />
+            <path d="M21 3v5h-5" />
+          </svg>
+          {t("rotateToLandscape")}
+        </button>
+      ) : null}
+      {/* 浏览器不支持自动锁定横屏时的引导遮罩：物理旋转后自动消失 */}
+      {showRotateGuide ? (
+        <div className="absolute inset-0 z-30 flex flex-col items-center justify-center gap-4 bg-black/80 p-4 text-center text-white">
+          <button
+            type="button"
+            onClick={() => setShowRotateGuide(false)}
+            className="absolute right-3 top-3 flex h-8 w-8 items-center justify-center rounded-full text-white/70 transition-colors hover:text-white"
+            aria-label="close"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M18 6 6 18" />
+              <path d="m6 6 12 12" />
+            </svg>
+          </button>
+          <svg
+            className="animate-rotate-phone h-16 w-16"
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            aria-hidden="true"
+          >
+            <rect x="7" y="2" width="10" height="20" rx="2" />
+            <path d="M12 18h.01" />
+          </svg>
+          <p className="text-sm font-semibold">{t("rotateGuide")}</p>
+          <p className="max-w-[16rem] text-xs leading-relaxed text-white/70">
+            {t("rotateGuideHint")}
+          </p>
         </div>
       ) : null}
       <button

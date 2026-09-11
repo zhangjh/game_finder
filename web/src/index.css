@@ -32,6 +32,26 @@
   --color-border: var(--border);
 }
 
+/* 横屏引导遮罩：手机图标往复旋转 0°↔90° */
+@keyframes rotate-phone {
+  0%,
+  10% {
+    transform: rotate(0deg);
+  }
+  40%,
+  60% {
+    transform: rotate(90deg);
+  }
+  90%,
+  100% {
+    transform: rotate(0deg);
+  }
+}
+
+.animate-rotate-phone {
+  animation: rotate-phone 2.4s ease-in-out infinite;
+}
+
 body {
   margin: 0;
   background: var(--background);
