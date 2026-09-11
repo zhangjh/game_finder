@@ -2,7 +2,7 @@
  * 游戏查询层：列表（筛选/排序/分页）+ slug 详情。
  * server 内部使用，返回类型与 @game-finder/shared 的 API 契约对齐。
  */
-import { and, desc, eq, gt, gte, ilike, lte, or, sql, type SQL } from "drizzle-orm";
+import { and, desc, eq, gt, gte, ilike, inArray, lte, or, sql, type SQL } from "drizzle-orm";
 
 import { db } from "@/lib/db";
 import { games, gameScores } from "@/lib/db/schema";
@@ -41,6 +41,16 @@ export type GameListFilters = {
 
 const publishedOnly = eq(games.status, "published");
 
+/**
+ * 筛选 genre 语义组：UI 筛选值 → 实际匹配的 DB genre 集合。
+ * 背景：「对战」在 DB 中几乎没有精确命中（源站仅 1 条且未发布），
+ * 对战类游戏实际分布在「IO 对战」「格斗」等 genre，故按组匹配。
+ * 未配置组的值仍按精确匹配。
+ */
+const GENRE_GROUPS: Record<string, string[]> = {
+  对战: ["对战", "IO 对战", "格斗"],
+};
+
 function buildConditions(filters: GameListFilters): SQL[] {
   const conds: SQL[] = [publishedOnly];
 
@@ -51,7 +61,8 @@ function buildConditions(filters: GameListFilters): SQL[] {
       sql`${games.sourceId} IN (SELECT id FROM game_sources WHERE code = ${filters.source})`,
     );
   }
-  if (filters.genre) conds.push(eq(games.genre, filters.genre));
+  if (filters.genre)
+    conds.push(inArray(games.genre, GENRE_GROUPS[filters.genre] ?? [filters.genre]));
   if (filters.durationMax != null)
     conds.push(lte(games.sessionLengthMax, filters.durationMax));
   if (filters.players === "multi") conds.push(eq(games.multiplayer, true));
