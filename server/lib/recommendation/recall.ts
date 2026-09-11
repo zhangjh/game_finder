@@ -190,16 +190,19 @@ export async function keywordRecall(
   const words = keywords.map((w) => w.trim()).filter((w) => w.length >= 2);
   if (words.length === 0) return [];
 
-  const like = `%${words[0]}%`;
+  // 多关键词 OR 匹配（每个关键词匹配 title/tags/description）
+  const likeConds = words.slice(0, 5).flatMap((w) => {
+    const like = `%${w}%`;
+    return [
+      ilike(games.title, like),
+      ilike(games.titleOriginal, like),
+      ilike(games.tags, like),
+      ilike(games.description, like),
+    ];
+  });
+
   return selectCandidates(
-    [
-      or(
-        ilike(games.title, like),
-        ilike(games.titleOriginal, like),
-        ilike(games.tags, like),
-        ilike(games.description, like),
-      )!,
-    ],
+    [or(...likeConds)!],
     desc(games.playCount),
     RECALL_QUOTA.keyword,
     lang,
@@ -409,6 +412,29 @@ export async function relationsRecall(
 
 /* ===== 合并 ===== */
 
+/** 从 rawInput 中提取关键词用于 ILIKE 召回（心情/类型/玩法词） */
+function extractInputKeywords(rawInput: string): string[] {
+  const text = rawInput.trim();
+  if (!text) return [];
+
+  // 中文心情/类型关键词 → 用于 tags/description ILIKE 匹配
+  const KEYWORD_MAP: Record<string, string> = {
+    轻松: "休闲", 放松: "休闲", 解压: "休闲", 治愈: "治愈",
+    休闲: "休闲", 益智: "解谜", 烧脑: "烧脑", 刺激: "刺激",
+    竞技: "竞技", 怀旧: "怀旧", 恐怖: "恐怖", 吓人: "恐怖",
+    战争: "战争", 僵尸: "僵尸", 赛车: "赛车", 跑酷: "跑酷",
+    塔防: "塔防", 射击: "射击", 格斗: "格斗", 消除: "消除",
+    养成: "养成", 模拟: "模拟", 策略: "策略", 冒险: "冒险",
+    解谜: "解谜", 音乐: "音乐", 体育: "体育", 棋牌: "棋牌",
+  };
+
+  const found: string[] = [];
+  for (const [word, keyword] of Object.entries(KEYWORD_MAP)) {
+    if (text.includes(word)) found.push(keyword);
+  }
+  return [...new Set(found)];
+}
+
 export interface RecallResult {
   candidates: RecallCandidate[];
   vectorAvailable: boolean;
@@ -424,8 +450,14 @@ export async function recallAll(
   const keywords: string[] = [];
   if (intent.similarTo) keywords.push(intent.similarTo);
   if (intent.genre) keywords.push(intent.genre);
+
+  // 从 rawInput 提取关键词用于 ILIKE 匹配（中文心情/类型词）
+  const inputKeywords = extractInputKeywords(rawInput);
+  keywords.push(...inputKeywords);
+
   // 短输入（≤6 字）整体作为关键词，如"塔防 双人"
-  if (rawInput.trim().length <= 6) keywords.unshift(rawInput.trim());
+  const trimmed = rawInput.trim();
+  if (trimmed.length <= 6 && trimmed.length >= 2) keywords.unshift(trimmed);
 
   const [sqlRes, kwRes, vecRes, popRes, relRes] = await Promise.allSettled([
     sqlRecall(intent, lang),

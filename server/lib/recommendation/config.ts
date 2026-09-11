@@ -22,6 +22,9 @@ export const RANKING_WEIGHTS = {
 /** random 场景的返回数量（"随便推荐" 无需长列表；常规搜索按语义阈值决定数量） */
 export const TOP_N = 5;
 
+/** AI 解析不确定时的返回数量（intent 为空，按总分排序，不卡语义阈值） */
+export const UNCERTAIN_TOP_N = 8;
+
 /** 一律保证的最少返回数量（阈值过滤不足时兜底，PRD §42 绝不空转） */
 export const MIN_RESULTS = 3;
 

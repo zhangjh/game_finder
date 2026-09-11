@@ -31,6 +31,60 @@ export interface RecommendInput {
 }
 
 /**
+ * LLM 解析失败时的启发式意图兜底：从原文提取心情/难度/设备/人数等
+ * 基础条件，避免 intent 全空导致推荐退化为纯热门（PRD §43 绝不空转）。
+ */
+function extractHeuristicIntent(rawInput: string): GameIntent {
+  const text = rawInput.trim();
+  const intent: GameIntent = {};
+
+  // 心情（优先级从强到弱，命中后跳过后续）
+  if (/(轻松|放松|解压|不想动脑|不想烧脑|打发)/.test(text)) {
+    intent.mood = ["relaxing"];
+    if (intent.cognitiveLoadMax == null) intent.cognitiveLoadMax = 2;
+    if (intent.complexityMax == null) intent.complexityMax = 2;
+  } else if (/(治愈|暖暖|温馨)/.test(text)) {
+    intent.mood = ["chill"];
+  } else if (/(休闲|随便玩|消遣)/.test(text)) {
+    intent.mood = ["casual"];
+  } else if (/(益智|烧脑|动脑|挑战|脑力)/.test(text)) {
+    intent.mood = ["focus"];
+    if (intent.cognitiveLoadMin == null) intent.cognitiveLoadMin = 3;
+  } else if (/(刺激|紧张|心跳|爽快)/.test(text)) {
+    intent.mood = ["exciting"];
+  } else if (/(竞技|对战|排位)/.test(text)) {
+    intent.mood = ["competitive"];
+  } else if (/(怀旧|童年|小时候)/.test(text)) {
+    intent.mood = ["nostalgic"];
+  }
+
+  // 难度/复杂度
+  if (/(简单|不要太难|新手友好|轻松)/.test(text)) {
+    if (intent.difficultyMax == null) intent.difficultyMax = 2;
+    if (intent.complexityMax == null) intent.complexityMax = 2;
+  } else if (/(难|硬核|高手|极限)/.test(text)) {
+    if (intent.difficultyMin == null) intent.difficultyMin = 4;
+  }
+
+  // 设备
+  if (/(手机|移动端|手机上)/.test(text)) intent.platform = "mobile";
+  else if (/(电脑|桌面|PC|端游)/.test(text)) intent.platform = "desktop";
+
+  // 人数
+  if (/(双人|两人|两个人|和朋友|两人玩)/.test(text)) intent.players = 2;
+  else if (/(多人|组队|联机)/.test(text)) intent.players = 4;
+
+  // 单局时长
+  const durMatch = text.match(/(\d+)\s*分钟/);
+  if (durMatch) {
+    const dur = Number(durMatch[1]);
+    intent.sessionLengthMax = dur;
+  }
+
+  return intent;
+}
+
+/**
  * 执行完整推荐 Pipeline。
  * Intent 解析失败 → parsedOk=false 返回空结果（API 层引导快捷条件降级，不空转）。
  */
@@ -61,7 +115,8 @@ export async function runRecommendation(
       if (!isQuotaError(err)) console.warn("[recommend] parseIntent error:", err);
       parsedOk = false;
     }
-    if (!parsedOk) intent = {};
+    // LLM 解析失败时用启发式关键词兜底，避免 intent 全空导致纯热门推荐
+    if (!parsedOk) intent = extractHeuristicIntent(rawInput);
   } else {
     return emptyResponse(0, false, null, null);
   }

@@ -40,7 +40,7 @@ const intentSchema = z
     negativePreference: z.array(z.string().max(40)).max(5).optional(),
     random: z.boolean().optional(),
   })
-  .strict();
+  .passthrough();
 
 /* ===== 归一化 ===== */
 
