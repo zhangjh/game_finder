@@ -265,8 +265,14 @@ export function rankCandidates(
   intent: GameIntent,
   reference: ReferenceGame | null,
   vectorAvailable: boolean,
-): { items: RankedCandidate[]; relaxed: boolean } {
+  traceId: string,
+): {
+  items: RankedCandidate[];
+  relaxed: boolean;
+  branch: "random" | "empty_intent" | "semantic_threshold" | "top_score_fallback";
+} {
   let pool = hardFilter(candidates, intent, true);
+  const strictPoolCount = pool.length;
   let relaxed = false;
   if (pool.length < MIN_RESULTS) {
     const loose = hardFilter(candidates, intent, false);
@@ -294,14 +300,25 @@ export function rankCandidates(
     }))
     .sort((a, b) => b.scoreDetail.total - a.scoreDetail.total);
 
+  const finish = (
+    items: RankedCandidate[],
+    branch: "random" | "empty_intent" | "semantic_threshold" | "top_score_fallback",
+    semanticMatchCount: number,
+  ) => {
+    console.info(
+      `[ranking] ${JSON.stringify({ traceId, event: "completed", branch, candidateCount: candidates.length, strictPoolCount, finalPoolCount: pool.length, semanticMatchCount, resultCount: items.length, vectorAvailable, relaxed })}`,
+    );
+    return { items, relaxed, branch };
+  };
+
   // random 场景无明确语义，维持固定 TOP_N
   if (intent.random) {
-    return { items: ranked.slice(0, TOP_N), relaxed };
+    return finish(ranked.slice(0, TOP_N), "random", 0);
   }
 
   // AI 解析不确定（intent 为空）：跳过语义阈值，直接返回 top UNCERTAIN_TOP_N
   if (isEmptyIntent(intent)) {
-    return { items: ranked.slice(0, UNCERTAIN_TOP_N), relaxed };
+    return finish(ranked.slice(0, UNCERTAIN_TOP_N), "empty_intent", 0);
   }
 
   // 常规推荐：按语义相似度阈值过滤（≥0.75 全量返回，不强制数量），
@@ -310,7 +327,7 @@ export function rankCandidates(
     (r) => r.candidate.semanticSim >= SEMANTIC_SIM_THRESHOLD,
   );
   if (items.length < MIN_RESULTS) {
-    return { items: ranked.slice(0, MIN_RESULTS), relaxed };
+    return finish(ranked.slice(0, MIN_RESULTS), "top_score_fallback", items.length);
   }
-  return { items, relaxed };
+  return finish(items, "semantic_threshold", items.length);
 }

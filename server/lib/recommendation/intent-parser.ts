@@ -194,15 +194,33 @@ export interface ParsedIntent {
  * 失败（LLM 异常/校验不过）时返回 parsedOk=false + 空 intent，不抛错（调用方降级）。
  * 额度受限（QuotaError）向上抛出，避免无效重试烧 token。
  */
-export async function parseIntent(input: string): Promise<ParsedIntent> {
+export async function parseIntent(
+  input: string,
+  traceId: string,
+): Promise<ParsedIntent> {
   const text = input.trim();
-  if (!text) return { intent: {}, parsedOk: false };
+  if (!text) {
+    console.warn(
+      `[intent-parser] ${JSON.stringify({ traceId, event: "skipped", reason: "empty_input" })}`,
+    );
+    return { intent: {}, parsedOk: false };
+  }
 
-  const client = getAIClient();
-  const model = getModelId();
+  let client: ReturnType<typeof getAIClient>;
+  let model: string;
+  try {
+    client = getAIClient();
+    model = getModelId();
+  } catch (err) {
+    console.warn(
+      `[intent-parser] ${JSON.stringify({ traceId, event: "client_init_failed", error: err instanceof Error ? err.message : String(err) })}`,
+    );
+    throw err;
+  }
 
   // 首次 + 一次重试（校验失败/调用异常共用）
   for (let attempt = 1; attempt <= 2; attempt++) {
+    let content: string | null | undefined;
     try {
       const response = await client.chat.completions.create({
         model,
@@ -215,30 +233,59 @@ export async function parseIntent(input: string): Promise<ParsedIntent> {
         response_format: { type: "json_object" },
         ...noThinkingParams(),
       });
-
-      const content = response.choices[0]?.message?.content;
-      if (!content) continue;
-
-      const raw = JSON.parse(content) as Record<string, unknown>;
-      const normalized = normalizeRaw(raw);
-      const validation = intentSchema.safeParse(normalized);
-
-      if (validation.success) {
-        return { intent: validation.data as GameIntent, parsedOk: true };
+      content = response.choices[0]?.message?.content;
+    } catch (err) {
+      const error = err instanceof Error ? err.message : String(err);
+      if (isQuotaError(err)) {
+        console.warn(
+          `[intent-parser] ${JSON.stringify({ traceId, event: "attempt_failed", attempt, reason: "quota_limited", error })}`,
+        );
+        throw err;
       }
       console.warn(
-        `[intent-parser] validation failed (attempt ${attempt}):`,
-        validation.error.issues.map((i) => `${i.path.join(".")}: ${i.message}`).join("; "),
+        `[intent-parser] ${JSON.stringify({ traceId, event: "attempt_failed", attempt, reason: "llm_call_failed", error })}`,
       );
-    } catch (err) {
-      if (isQuotaError(err)) throw err;
-      console.warn(
-        `[intent-parser] LLM call failed (attempt ${attempt}):`,
-        err instanceof Error ? err.message : String(err),
-      );
+      continue;
     }
+
+    if (!content) {
+      console.warn(
+        `[intent-parser] ${JSON.stringify({ traceId, event: "attempt_failed", attempt, reason: "empty_content" })}`,
+      );
+      continue;
+    }
+
+    let raw: Record<string, unknown>;
+    try {
+      raw = JSON.parse(content) as Record<string, unknown>;
+    } catch (err) {
+      console.warn(
+        `[intent-parser] ${JSON.stringify({ traceId, event: "attempt_failed", attempt, reason: "invalid_json", error: err instanceof Error ? err.message : String(err) })}`,
+      );
+      continue;
+    }
+
+    const normalized = normalizeRaw(raw);
+    const validation = intentSchema.safeParse(normalized);
+    if (validation.success) {
+      const intent = validation.data as GameIntent;
+      const intentFields = Object.keys(intentSchema.shape).filter(
+        (field) => field in intent,
+      );
+      console.info(
+        `[intent-parser] ${JSON.stringify({ traceId, event: "parsed", attempt, model, intentFields })}`,
+      );
+      return { intent, parsedOk: true };
+    }
+
+    console.warn(
+      `[intent-parser] ${JSON.stringify({ traceId, event: "attempt_failed", attempt, reason: "validation_failed", issues: validation.error.issues.map((issue) => `${issue.path.join(".")}: ${issue.message}`) })}`,
+    );
   }
 
+  console.warn(
+    `[intent-parser] ${JSON.stringify({ traceId, event: "exhausted", parsedOk: false })}`,
+  );
   return { intent: {}, parsedOk: false };
 }
 

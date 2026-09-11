@@ -259,10 +259,25 @@ export async function vectorRecall(
   intent: GameIntent,
   reference: ReferenceGame | null,
   lang: "zh" | "en",
+  traceId: string,
 ): Promise<VectorRecallResult> {
-  if (!embeddingConfigured()) return { games: [], available: false };
+  if (!embeddingConfigured()) {
+    const missingConfig = [
+      "EMBEDDING_BASE_URL",
+      "EMBEDDING_API_KEY",
+      "EMBEDDING_MODEL",
+    ].filter((name) => !process.env[name]);
+    console.warn(
+      `[recall] ${JSON.stringify({ traceId, event: "vector_skipped", reason: "embedding_not_configured", missingConfig })}`,
+    );
+    return { games: [], available: false };
+  }
+
+  const zhConds =
+    lang === "zh" ? sql` AND g.metadata_language = 'zh'` : sql``;
 
   let queryVector: number[] | null = null;
+  let queryVectorSource: "reference" | "intent" = "intent";
   try {
     // 参考游戏向量优先（已发布的画像向量）
     if (reference) {
@@ -274,7 +289,11 @@ export async function vectorRecall(
       const raw = rows[0]?.embedding;
       if (raw) {
         queryVector = parseVector(raw);
+        if (queryVector) queryVectorSource = "reference";
       }
+      console.info(
+        `[recall] ${JSON.stringify({ traceId, event: "reference_vector_checked", referenceGameId: reference.id, found: Boolean(raw), valid: Boolean(queryVector) })}`,
+      );
     }
 
     // 无参考向量 → intent 文本 embedding
@@ -285,12 +304,15 @@ export async function vectorRecall(
       if (vec && vec.length > 0) queryVector = vec;
     }
 
-    if (!queryVector) return { games: [], available: false };
+    if (!queryVector) {
+      console.warn(
+        `[recall] ${JSON.stringify({ traceId, event: "vector_skipped", reason: "query_vector_empty" })}`,
+      );
+      return { games: [], available: false };
+    }
 
     const vecLiteral = `[${queryVector.join(",")}]`;
     // 中文界面只召回有中文元数据的游戏（T1.7，与 listGames 口径一致）
-    const zhConds =
-      lang === "zh" ? sql` AND g.metadata_language = 'zh'` : sql``;
     const rows = await db.execute(sql`
       SELECT g.id, g.slug, g.title, g.title_original, g.description, g.thumbnail,
              g.genre, g.tags, g.mechanics, g.mood,
@@ -308,15 +330,18 @@ export async function vectorRecall(
       ORDER BY ge.embedding <=> ${vecLiteral}::vector
       LIMIT ${RECALL_QUOTA.vector}
     `);
+    const vectorGames = (rows.rows as Record<string, unknown>[]).map(mapRawCandidate);
+    console.info(
+      `[recall] ${JSON.stringify({ traceId, event: "vector_completed", queryVectorSource, queryVectorDimensions: queryVector.length, resultCount: vectorGames.length, topSimilarity: vectorGames[0]?.similarity ?? null })}`,
+    );
 
     return {
-      games: (rows.rows as Record<string, unknown>[]).map(mapRawCandidate),
+      games: vectorGames,
       available: true,
     };
   } catch (err) {
     console.warn(
-      "[recall] vector recall failed (skipped):",
-      err instanceof Error ? err.message : String(err),
+      `[recall] ${JSON.stringify({ traceId, event: "vector_failed", error: err instanceof Error ? err.message : String(err) })}`,
     );
     return { games: [], available: false };
   }
@@ -446,7 +471,9 @@ export async function recallAll(
   rawInput: string,
   reference: ReferenceGame | null,
   lang: "zh" | "en",
+  traceId: string,
 ): Promise<RecallResult> {
+  const startedAt = Date.now();
   const keywords: string[] = [];
   if (intent.similarTo) keywords.push(intent.similarTo);
   if (intent.genre) keywords.push(intent.genre);
@@ -459,10 +486,14 @@ export async function recallAll(
   const trimmed = rawInput.trim();
   if (trimmed.length <= 6 && trimmed.length >= 2) keywords.unshift(trimmed);
 
+  console.info(
+    `[recall] ${JSON.stringify({ traceId, event: "started", lang, keywordCount: keywords.length, inputKeywordCount: inputKeywords.length, hasReference: Boolean(reference) })}`,
+  );
+
   const [sqlRes, kwRes, vecRes, popRes, relRes] = await Promise.allSettled([
     sqlRecall(intent, lang),
     keywordRecall(keywords, lang),
-    vectorRecall(intent, reference, lang),
+    vectorRecall(intent, reference, lang, traceId),
     popularRecall(lang),
     reference ? relationsRecall(reference.id, lang) : Promise.resolve([]),
   ]);
@@ -481,24 +512,51 @@ export async function recallAll(
       }
     }
   };
+  const errorMessage = (reason: unknown) =>
+    reason instanceof Error ? reason.message : String(reason);
 
   if (sqlRes.status === "fulfilled") add(sqlRes.value, "sql");
-  else console.warn("[recall] sql failed:", sqlRes.reason);
+  else
+    console.warn(
+      `[recall] ${JSON.stringify({ traceId, event: "source_failed", source: "sql", error: errorMessage(sqlRes.reason) })}`,
+    );
   if (kwRes.status === "fulfilled") add(kwRes.value, "keyword");
-  else console.warn("[recall] keyword failed:", kwRes.reason);
+  else
+    console.warn(
+      `[recall] ${JSON.stringify({ traceId, event: "source_failed", source: "keyword", error: errorMessage(kwRes.reason) })}`,
+    );
 
   let vectorAvailable = false;
   if (vecRes.status === "fulfilled") {
     add(vecRes.value.games, "vector");
     vectorAvailable = vecRes.value.available;
   } else {
-    console.warn("[recall] vector failed:", vecRes.reason);
+    console.warn(
+      `[recall] ${JSON.stringify({ traceId, event: "source_failed", source: "vector", error: errorMessage(vecRes.reason) })}`,
+    );
   }
 
   if (popRes.status === "fulfilled") add(popRes.value, "popular");
-  else console.warn("[recall] popular failed:", popRes.reason);
+  else
+    console.warn(
+      `[recall] ${JSON.stringify({ traceId, event: "source_failed", source: "popular", error: errorMessage(popRes.reason) })}`,
+    );
   if (relRes.status === "fulfilled") add(relRes.value, "relations");
-  else console.warn("[recall] relations failed:", relRes.reason);
+  else
+    console.warn(
+      `[recall] ${JSON.stringify({ traceId, event: "source_failed", source: "relations", error: errorMessage(relRes.reason) })}`,
+    );
+
+  const sourceCounts = {
+    sql: sqlRes.status === "fulfilled" ? sqlRes.value.length : null,
+    keyword: kwRes.status === "fulfilled" ? kwRes.value.length : null,
+    vector: vecRes.status === "fulfilled" ? vecRes.value.games.length : null,
+    popular: popRes.status === "fulfilled" ? popRes.value.length : null,
+    relations: relRes.status === "fulfilled" ? relRes.value.length : null,
+  };
+  console.info(
+    `[recall] ${JSON.stringify({ traceId, event: "completed", sourceCounts, uniqueCandidateCount: byId.size, vectorAvailable, durationMs: Date.now() - startedAt })}`,
+  );
 
   return { candidates: [...byId.values()], vectorAvailable };
 }

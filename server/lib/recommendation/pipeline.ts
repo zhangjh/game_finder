@@ -90,7 +90,9 @@ function extractHeuristicIntent(rawInput: string): GameIntent {
  */
 export async function runRecommendation(
   req: RecommendInput,
+  traceId: string,
 ): Promise<RecommendResponse> {
+  const startedAt = Date.now();
   const lang: "zh" | "en" = req.lang ?? "zh";
   const rawInput = (req.input ?? "").trim();
   const quickId = req.quick?.trim();
@@ -98,33 +100,52 @@ export async function runRecommendation(
   /* ===== Intent 解析 ===== */
   let intent: GameIntent = {};
   let parsedOk = true;
+  let intentSource: "quick" | "llm" | "heuristic" = quickId ? "quick" : "llm";
 
   if (quickId) {
     const quick = quickIntent(quickId);
     if (!quick) {
+      console.warn(
+        `[recommend] ${JSON.stringify({ traceId, event: "stopped", reason: "unknown_quick" })}`,
+      );
       return emptyResponse(0, false, null, null);
     }
     intent = quick;
   } else if (rawInput) {
     try {
-      const parsed = await parseIntent(rawInput);
+      const parsed = await parseIntent(rawInput, traceId);
       intent = parsed.intent;
       parsedOk = parsed.parsedOk;
     } catch (err) {
       // LLM 额度受限等异常：降级为热门召回（绝不空转），前端按 parsedOk=false 提示
-      if (!isQuotaError(err)) console.warn("[recommend] parseIntent error:", err);
+      console.warn(
+        `[recommend] ${JSON.stringify({ traceId, event: "intent_degraded", reason: isQuotaError(err) ? "quota_limited" : "parse_error" })}`,
+      );
       parsedOk = false;
     }
     // LLM 解析失败时用启发式关键词兜底，避免 intent 全空导致纯热门推荐
-    if (!parsedOk) intent = extractHeuristicIntent(rawInput);
+    if (!parsedOk) {
+      intent = extractHeuristicIntent(rawInput);
+      intentSource = "heuristic";
+    }
   } else {
+    console.warn(
+      `[recommend] ${JSON.stringify({ traceId, event: "stopped", reason: "empty_input" })}`,
+    );
     return emptyResponse(0, false, null, null);
   }
+
+  console.info(
+    `[recommend] ${JSON.stringify({ traceId, event: "intent_ready", intentSource, parsedOk, intentFieldCount: Object.keys(intent).length })}`,
+  );
 
   /* ===== 参考游戏解析（similarTo → 站内游戏）===== */
   const reference = intent.similarTo
     ? await resolveReferenceGame(intent.similarTo)
     : null;
+  console.info(
+    `[recommend] ${JSON.stringify({ traceId, event: "reference_resolved", requested: Boolean(intent.similarTo), referenceGameId: reference?.id ?? null })}`,
+  );
 
   /* ===== 召回 → 过滤 → 排序 ===== */
   const { candidates, vectorAvailable } = await recallAll(
@@ -132,13 +153,15 @@ export async function runRecommendation(
     quickId ? QUICK_CONDITIONS.find((q) => q.id === quickId)?.label ?? "" : rawInput,
     reference,
     lang,
+    traceId,
   );
 
-  const { items: ranked, relaxed } = rankCandidates(
+  const { items: ranked, relaxed, branch } = rankCandidates(
     candidates,
     intent,
     reference,
     vectorAvailable,
+    traceId,
   );
 
   /* ===== 理由生成 ===== */
@@ -176,6 +199,11 @@ export async function runRecommendation(
     intent,
     parsedOk,
     items,
+    traceId,
+  );
+
+  console.info(
+    `[recommend] ${JSON.stringify({ traceId, event: "pipeline_completed", requestId, branch, candidateCount: candidates.length, resultCount: items.length, resultGameIds: items.map((item) => item.game.id), vectorAvailable, relaxed, durationMs: Date.now() - startedAt })}`,
   );
 
   return {
@@ -200,6 +228,7 @@ async function persist(
   intent: GameIntent,
   parsedOk: boolean,
   items: RecommendItem[],
+  traceId: string,
 ): Promise<number> {
   try {
     const [request] = await db
@@ -226,7 +255,9 @@ async function persist(
     return request.id;
   } catch (err) {
     // 落库失败不影响推荐返回（统计基础设施的故障不应阻塞用户）
-    console.error("[recommend] persist failed:", err);
+    console.error(
+      `[recommend] ${JSON.stringify({ traceId, event: "persist_failed", error: err instanceof Error ? err.message : String(err) })}`,
+    );
     return 0;
   }
 }

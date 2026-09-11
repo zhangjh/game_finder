@@ -21,6 +21,7 @@
     "backfill:playgama": "node --import tsx scripts/backfill-playgama-quality.ts",
     "cleanup:quality": "node scripts/cleanup-low-quality.mjs",
     "test:e2e": "node scripts/test-recommend-e2e.mjs",
+    "embedding:coverage": "node --import tsx scripts/embedding-coverage.ts",
     "db:studio": "drizzle-kit studio"
   },
   "dependencies": {
