@@ -19,6 +19,7 @@ import type {
 
 /** NOT IN 分块的批大小（PG 参数上限 65535，留足余量） */
 const SQL_CHUNK = 1_000;
+const MIN_SOURCE_QUALITY_SCORE = 0.2;
 
 function* chunks<T>(arr: T[], size: number): Generator<T[]> {
   for (let i = 0; i < arr.length; i += size) yield arr.slice(i, i + size);
@@ -209,8 +210,16 @@ export async function syncSource(
           toInsert.push(rec);
           continue;
         }
-        // 曾下架又重新出现的游戏：复活为 draft 重新走 AI 流程
+        // 曾下架又重新出现的游戏：仍低于质量线时保持下架，否则复活为 draft 重新走 AI 流程
         if (prev.status === "offline") {
+          const remainsLowQuality =
+            adapter.code !== "local" &&
+            rec.qualityScore != null &&
+            rec.qualityScore < MIN_SOURCE_QUALITY_SCORE;
+          if (remainsLowQuality) {
+            stats.unchanged++;
+            continue;
+          }
           await db
             .update(games)
             .set({

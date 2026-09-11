@@ -186,17 +186,42 @@ const RUNNERS: Record<string, JobRunner> = {
     return stats as unknown as Record<string, unknown>;
   },
   embedding_games: async (params) => {
-    const limit =
-      typeof params.limit === "number"
-        ? params.limit
-        : typeof params.limit === "string" && /^\d+$/.test(params.limit)
-          ? Number(params.limit)
-          : undefined;
-    console.log(`[scheduler] embedding-games: start (limit=${limit ?? 20})`);
-    const stats = await runEmbeddingJob(limit);
+    const parseInteger = (
+      value: unknown,
+      min: number,
+      max = Number.MAX_SAFE_INTEGER,
+    ): number | undefined => {
+      const parsed =
+        typeof value === "number"
+          ? value
+          : typeof value === "string" && /^\d+$/.test(value)
+            ? Number(value)
+            : Number.NaN;
+      return Number.isSafeInteger(parsed) && parsed >= min && parsed <= max
+        ? parsed
+        : undefined;
+    };
+    const pageSize = params.pageSize === undefined
+      ? 100
+      : parseInteger(params.pageSize, 1, 500);
+    const batchSize = params.batchSize === undefined
+      ? 5
+      : parseInteger(params.batchSize, 1, 20);
+    const maxGamesParam = params.maxGames ?? params.limit;
+    const maxGames = maxGamesParam === undefined
+      ? 0
+      : parseInteger(maxGamesParam, 0);
+    if (pageSize === undefined || batchSize === undefined || maxGames === undefined) {
+      throw new Error("invalid embedding job parameters");
+    }
+    console.log(
+      `[scheduler] embedding-games: start (pageSize=${pageSize}, ` +
+        `batchSize=${batchSize}, maxGames=${maxGames || "all"})`,
+    );
+    const stats = await runEmbeddingJob({ pageSize, batchSize, maxGames });
     if (stats.error) throw new Error(stats.error);
     console.log(
-      `[scheduler] embedding-games done: 扫描=${stats.scanned} ` +
+      `[scheduler] embedding-games done: 页数=${stats.pages} 扫描=${stats.scanned} ` +
         `新增=${stats.newEmbeddings} 更新=${stats.updatedEmbeddings} ` +
         `跳过未变=${stats.skippedUnchanged} 失败=${stats.failed}`,
     );
@@ -210,7 +235,7 @@ const DEFAULT_PARAMS: Record<string, Record<string, unknown>> = {
   detect_duplicates: {},
   analyze_games: { limit: 20 },
   relation_games: {},
-  embedding_games: { limit: 20 },
+  embedding_games: { pageSize: 100, batchSize: 5, maxGames: 0 },
 };
 
 export const DEFAULT_JOBS: {
@@ -277,9 +302,9 @@ export const DEFAULT_JOBS: {
     type: "embedding_games",
     name: "Embedding 补偿",
     description:
-      "扫描已发布游戏，为缺失或内容 hash 过期的游戏补偿生成 embedding 向量。默认停用：仅手动触发，不自动调度。",
+      "按 ID 分页扫描全部已发布游戏，为缺失、内容变化或模型变化的游戏批量补偿 embedding。默认停用：仅手动触发，不自动调度。",
     schedule: "0 1 * * *",
-    params: { limit: 20 },
+    params: { pageSize: 100, batchSize: 5, maxGames: 0 },
     defaultEnabled: false,
   },
 ];

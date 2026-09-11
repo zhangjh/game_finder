@@ -1,132 +1,164 @@
 /**
- * 批量清洗低质量游戏（一次性运维脚本，可重复执行）：
- *   1.（仅 GamePix）遍历 feed 全量（order=quality，96/页），按 source_game_id
- *      回填 source_quality_score（0~1 官方质量分）。
- *      Playgama 无需此步：其代理质量分由采集 adapter 计算（backfill-playgama-quality.ts
- *      或同步时写入）。
- *   2. 将 source_quality_score < 阈值（默认 0.2，只清"极渣尾部"）的已发布游戏批量
- *      下架（status=offline），前台不可见；之后质量重新 > 阈值时，
- *      同步管道会按 isChanged 复活/更新。
- *
- * 阈值说明：
- * - GamePix quality_score 在全库接近均匀分布（中位数 ~0.58），
- *   0.8 会把 85%+ 目录全下架，正常只清底部垃圾（<0.2 ≈ 8%）。
- * - Playgama 代理分（adapter 合成，0~1）中位数 ~0.45，bottom 10% ≤ 0.20，
- *   同样用默认阈值 0.2 即可对齐。
+ * 按源站质量分批量下架外部来源游戏。默认仅预览，显式传 --apply 才会写库。
+ * 本地来源和 source_quality_score 为 NULL 的游戏始终排除。
  *
  * 用法：
- *   pnpm cleanup:quality                      # GamePix 全量回填 + 下架极渣（阈值 0.2）
- *   pnpm cleanup:quality -- -s playgama       # playgama 只下架极渣（分数已在库，不回填）
- *   pnpm cleanup:quality -- --dry-run         # 只打印将下架的量，不落库
- *   pnpm cleanup:quality -- --threshold=0.5   # 自定义阈值（也支持空格形式 --threshold 0.5）
+ *   pnpm cleanup:quality
+ *   pnpm cleanup:quality -- --source gamepix --threshold 0.2
+ *   pnpm cleanup:quality -- --source all --threshold 0.2 --apply
  */
 import { Client } from "pg";
 
 import { triggerPagesDeploy } from "./pages-deploy.mjs";
 
+const DEFAULT_THRESHOLD = 0.2;
+const MAX_APPLY_THRESHOLD = 0.2;
+const MAX_IMPACT = 0.15;
+const ALLOWED_SOURCES = new Set(["all", "gamepix", "playgama"]);
+
 const url =
   process.env.DATABASE_URL ??
   "postgresql://postgres:postgres@postgres:5432/game_discovery";
 
-const SID = process.env.GAMEPIX_SID ?? "7E317";
-const FEED = `https://feeds.gamepix.com/v2/json?sid=${SID}&pagination=96&order=quality`;
-
-/** 同时支持 `--name value`（空格）与 `--name=value`（等号）两种写法 */
 const argValue = (name, fallback) => {
-  const i = process.argv.indexOf(name);
-  if (i !== -1 && process.argv[i + 1]) return process.argv[i + 1];
-  const eq = process.argv.find((a) => a.startsWith(`${name}=`));
-  return eq ? eq.slice(name.length + 1) : fallback;
+  const index = process.argv.indexOf(name);
+  if (index !== -1 && process.argv[index + 1]) return process.argv[index + 1];
+  const assignment = process.argv.find((arg) => arg.startsWith(`${name}=`));
+  return assignment ? assignment.slice(name.length + 1) : fallback;
 };
 
-const SOURCE = argValue("--source", "gamepix");
-const THRESHOLD = Number(argValue("--threshold", "0.2")) || 0.2;
-const DRY_RUN = process.argv.includes("--dry-run");
+const parseRatio = (name, fallback) => {
+  const raw = argValue(name, String(fallback));
+  const value = Number(raw);
+  if (!Number.isFinite(value) || value < 0 || value > 1) {
+    throw new Error(`${name} 必须是 0~1 之间的数字，40 分应写成 0.40`);
+  }
+  return value;
+};
 
-const asQualityScore = (v) =>
-  typeof v === "number" && Number.isFinite(v)
-    ? Math.min(1, Math.max(0, v))
-    : null;
+const readConfig = () => {
+  const source = argValue("--source", "all").toLowerCase();
+  const threshold = parseRatio("--threshold", DEFAULT_THRESHOLD);
+  const apply = process.argv.includes("--apply");
+  const force = process.argv.includes("--force");
+
+  if (!ALLOWED_SOURCES.has(source)) {
+    throw new Error("--source 只允许 all、gamepix 或 playgama；local 不允许批量下架");
+  }
+  if (apply && process.argv.includes("--dry-run")) {
+    throw new Error("--apply 与 --dry-run 不能同时使用");
+  }
+  if (apply && threshold > MAX_APPLY_THRESHOLD) {
+    throw new Error(
+      `正式下架阈值最高为 ${MAX_APPLY_THRESHOLD}；更高阈值只能预览，避免跨来源误杀`,
+    );
+  }
+
+  return { source, threshold, apply, force };
+};
 
 const client = new Client({ connectionString: url });
+let transactionStarted = false;
 
 try {
+  const { source, threshold, apply, force } = readConfig();
   await client.connect();
 
-  const src = (
-    await client.query("SELECT id FROM game_sources WHERE code = $1", [SOURCE])
-  ).rows[0];
-  if (!src) throw new Error(`缺少 ${SOURCE} 数据源，请先跑 pnpm db:seed / 同步任务`);
-
-  console.log(`[cleanup] 数据源=${SOURCE} 阈值=${THRESHOLD} dry_run=${DRY_RUN}`);
-
-  if (SOURCE === "gamepix") {
-    // 仅 GamePix 需要先从 feed 拉官方质量分回填（playgama 的由 adapter 在采集时写入）
-    const byId = new Map();
-    let page = 1;
-    for (;;) {
-      const res = await fetch(`${FEED}&page=${page}`, {
-        headers: { "User-Agent": "GameFinderBot/0.1 (+cleanup)" },
-      });
-      if (res.status === 400) break; // 越过末页（实测 400 表示页越界）
-      if (!res.ok) throw new Error(`feed HTTP ${res.status}`);
-      const data = await res.json();
-      const items = Array.isArray(data.items) ? data.items : [];
-      if (items.length === 0) break;
-      for (const g of items) {
-        const q = asQualityScore(g.quality_score);
-        if (q != null) byId.set(String(g.id), q);
-      }
-      if (!data.next_url) break;
-      page++;
-    }
-    console.log(`[cleanup] feed 共 ${page} 页，收集到 ${byId.size} 个质量分`);
-
-    const ids = [...byId.keys()];
-    if (ids.length === 0) {
-      console.log("[cleanup] feed 无任何质量分，退出");
-      process.exit(0);
-    }
-
-    const scores = ids.map((id) => byId.get(id));
-    const backfill = await client.query(
-      `UPDATE games
-       SET source_quality_score = u.score, updated_at = now()
-       FROM unnest($1::text[], $2::double precision[]) AS u(game_id, score)
-       WHERE games.source_id = $3 AND games.source_game_id = u.game_id
-         AND games.source_quality_score IS DISTINCT FROM u.score`,
-      [ids, scores, src.id],
-    );
-    console.log(`[cleanup] 回填质量分：${backfill.rowCount} 行更新`);
+  if (apply) {
+    await client.query("BEGIN ISOLATION LEVEL SERIALIZABLE");
+    transactionStarted = true;
   }
 
-  await client.query("BEGIN");
+  const summaryResult = await client.query(
+    `SELECT s.code AS source,
+            COUNT(*)::int AS published,
+            COUNT(g.source_quality_score)::int AS scored,
+            COUNT(*) FILTER (
+              WHERE g.source_quality_score IS NOT NULL
+                AND g.source_quality_score < $2
+            )::int AS candidates,
+            COUNT(*) FILTER (WHERE g.source_quality_score IS NULL)::int AS missing_score,
+            ROUND(AVG(g.source_quality_score)::numeric, 3) AS average_score,
+            ROUND((percentile_cont(0.5) WITHIN GROUP (
+              ORDER BY g.source_quality_score
+            ))::numeric, 3) AS median_score
+       FROM games g
+       JOIN game_sources s ON s.id = g.source_id
+      WHERE g.status = 'published'
+        AND s.code IN ('gamepix', 'playgama')
+        AND ($1 = 'all' OR s.code = $1)
+      GROUP BY s.code
+      ORDER BY s.code`,
+    [source, threshold],
+  );
 
-  if (DRY_RUN) {
-    const { rows } = await client.query(
-      `SELECT count(*)::int AS n FROM games
-       WHERE source_id = $1 AND status = 'published'
-         AND source_quality_score IS NOT NULL AND source_quality_score < $2`,
-      [src.id, THRESHOLD],
-    );
-    console.log(`[cleanup][dry-run] 将被下架的低质游戏：${rows[0].n} 款（未实际下架）`);
+  const summary = summaryResult.rows.map((row) => {
+    const published = Number(row.published);
+    const scored = Number(row.scored);
+    const candidates = Number(row.candidates);
+    const impact = scored === 0 ? 0 : candidates / scored;
+    return {
+      source: row.source,
+      published,
+      scored,
+      missingScore: Number(row.missing_score),
+      candidates,
+      impact,
+      impactOfScored: `${(impact * 100).toFixed(1)}%`,
+      averageScore: row.average_score === null ? null : Number(row.average_score),
+      medianScore: row.median_score === null ? null : Number(row.median_score),
+    };
+  });
+
+  console.log(
+    `[cleanup] mode=${apply ? "apply" : "dry-run"} source=${source} ` +
+      `threshold=${threshold} maxImpact=${MAX_IMPACT}`,
+  );
+  console.table(
+    summary.map(({ impact: _impact, ...row }) => row),
+  );
+
+  const scored = summary.reduce((sum, row) => sum + row.scored, 0);
+  const candidates = summary.reduce((sum, row) => sum + row.candidates, 0);
+  const impact = scored === 0 ? 0 : candidates / scored;
+  console.log(
+    `[cleanup] 候选=${candidates} / 有评分已发布=${scored}，总影响比例=${(impact * 100).toFixed(1)}%`,
+  );
+
+  if (!apply) {
+    console.log("[cleanup] dry-run 完成；确认结果后添加 --apply 执行下架");
   } else {
-    const offlined = await client.query(
-      `UPDATE games SET status = 'offline', updated_at = now()
-       WHERE source_id = $1 AND status = 'published'
-         AND source_quality_score IS NOT NULL AND source_quality_score < $2`,
-      [src.id, THRESHOLD],
-    );
-    console.log(`[cleanup] 已下架低质游戏：${offlined.rowCount} 款`);
-  }
+    const unsafeSources = summary.filter((row) => row.impact > MAX_IMPACT);
+    if (unsafeSources.length > 0 && !force) {
+      throw new Error(
+        `${unsafeSources.map((row) => `${row.source}=${row.impactOfScored}`).join(", ")} ` +
+          `超过单来源 ${(MAX_IMPACT * 100).toFixed(0)}% 保护线；确认无误后添加 --force`,
+      );
+    }
 
-  await client.query("COMMIT");
-  await triggerPagesDeploy("cleanup-low-quality");
-  console.log("[cleanup] 完成");
+    const result = await client.query(
+      `UPDATE games g
+          SET status = 'offline', updated_at = now()
+         FROM game_sources s
+        WHERE s.id = g.source_id
+          AND g.status = 'published'
+          AND g.source_quality_score IS NOT NULL
+          AND g.source_quality_score < $2
+          AND s.code IN ('gamepix', 'playgama')
+          AND ($1 = 'all' OR s.code = $1)
+        RETURNING g.id`,
+      [source, threshold],
+    );
+    await client.query("COMMIT");
+    transactionStarted = false;
+
+    console.log(`[cleanup] 已下架 ${result.rowCount} 款低质量游戏`);
+    await triggerPagesDeploy("cleanup-low-quality");
+  }
 } catch (err) {
-  await client.query("ROLLBACK").catch(() => {});
+  if (transactionStarted) await client.query("ROLLBACK").catch(() => {});
   console.error("FAIL:", err instanceof Error ? err.message : err);
-  process.exit(1);
+  process.exitCode = 1;
 } finally {
   await client.end().catch(() => {});
 }

@@ -297,29 +297,34 @@ docker compose ps               # 确认 healthy
 > server 即可让新列生效。下面的回填/下架脚本在**宿主机**跑一遍即可。
 >
 > 阈值说明：GamePix quality_score 全库接近均匀分布（中位数 ~0.58），默认阈值
-> **0.2** 只清底部垃圾（约 8%）；调大（如 `-- --threshold 0.5`）会下架更多
-> 中低质量游戏，谨慎使用。
+> **0.2** 只清底部垃圾（约 8%）。高于 0.2 的阈值（如 `--threshold 0.5`）
+> 只能用于 dry-run 查看分布，脚本禁止以更高阈值正式下架。
 
-先 `git pull` 拿到最新代码，再用一次性容器执行（连内网 postgres，挂载仓库复用
-`server/node_modules` 里的 `pg`；等价于仓库根 `pnpm cleanup:quality`）：
+先 `git pull` 拿到最新代码，再构建包含源码和依赖的一次性运维镜像：
 
 ```bash
 cd ~/dev/game_finder/server
-
-# 预检：会回填质量分并打印将下架数量，但不会下架游戏
-# --env-file 让脚本在质量分或目录变化后触发 Pages 重建
-docker run --rm --env-file .env --network server_default -v ~/dev/game_finder:/app -w /app/server \
-  -e DATABASE_URL="postgresql://postgres:postgres@postgres:5432/game_discovery" \
-  node:22 node scripts/cleanup-low-quality.mjs -- --dry-run
-
-# 正式执行：回填 + quality<0.2 的已发布游戏 status='offline'
-docker run --rm --env-file .env --network server_default -v ~/dev/game_finder:/app -w /app/server \
-  -e DATABASE_URL="postgresql://postgres:postgres@postgres:5432/game_discovery" \
-  node:22 node scripts/cleanup-low-quality.mjs
+docker build --target builder -f Dockerfile -t game-discovery-ops ..
 ```
 
-> 脚本幂等可重复跑；回填后日常由 `sync_games` 定时任务按 `source_updated_at`
-> 变更自动刷新质量分，无需再手动执行。默认阈值 0.2。
+使用运维镜像连接 Compose 内网的 PostgreSQL：
+
+```bash
+# 预检：纯只读，按来源打印评分覆盖、分布、候选数量和影响比例
+# --env-file 提供数据库与 Pages Hook 配置；dry-run 不会触发 Pages 重建
+docker run --rm --env-file .env --network server_default \
+  -e DATABASE_URL="postgresql://postgres:postgres@postgres:5432/game_discovery" \
+  game-discovery-ops node scripts/cleanup-low-quality.mjs
+
+# 正式执行：显式 --apply，下架 quality<0.2 的已发布外部来源游戏
+docker run --rm --env-file .env --network server_default \
+  -e DATABASE_URL="postgresql://postgres:postgres@postgres:5432/game_discovery" \
+  game-discovery-ops node scripts/cleanup-low-quality.mjs --apply
+```
+
+> 脚本幂等可重复跑；质量分由日常 `sync_games` 刷新。Playgama 历史空分可先运行
+> `backfill:playgama`；脚本本身不会联网回填质量分。默认阈值 0.2，正式执行还会按
+> 单一来源 15% 影响比例做保护，超过时需人工确认后添加 `--force`。
 
 ### 6.2 本地部署游戏更新（中文游戏库 → R2 → 导入）
 
