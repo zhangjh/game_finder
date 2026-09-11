@@ -1,4 +1,4 @@
-import { Link, useNavigate } from "react-router";
+import { Link, useLocation, useNavigate } from "react-router";
 
 import { useFavorites } from "../hooks/use-favorites";
 import { useI18n } from "../i18n";
@@ -17,8 +17,13 @@ const CATEGORIES = [
 
 export function SiteHeader() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { count } = useFavorites();
   const { t, lang, setLang } = useI18n();
+
+  // 首页（AI Finder hero）与搜索页（页内搜索框）自带搜索入口，顶栏搜索隐藏避免重复
+  const hideSearch =
+    location.pathname === "/" || location.pathname === "/search";
 
   return (
     <header className="sticky top-0 z-40 border-b border-border bg-surface/90 backdrop-blur">
@@ -32,39 +37,43 @@ export function SiteHeader() {
           </span>
         </Link>
 
-        <form
-          className="flex flex-1 justify-center"
-          onSubmit={(e) => {
-            e.preventDefault();
-            const q = new FormData(e.currentTarget).get("q");
-            if (typeof q === "string" && q.trim()) {
-              navigate(`/search?q=${encodeURIComponent(q.trim())}`);
-            }
-          }}
-        >
-          <div className="flex w-full max-w-md items-center gap-2 rounded-full border border-border bg-background px-4 py-2 transition-colors focus-within:border-primary">
-            <svg
-              className="h-4 w-4 shrink-0 text-muted"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              strokeWidth={2}
-              aria-hidden="true"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="m21 21-4.35-4.35M17 10.5a6.5 6.5 0 1 1-13 0 6.5 6.5 0 0 1 13 0Z"
+        {hideSearch ? (
+          <div className="flex-1" aria-hidden="true" />
+        ) : (
+          <form
+            className="flex flex-1 justify-center"
+            onSubmit={(e) => {
+              e.preventDefault();
+              const q = new FormData(e.currentTarget).get("q");
+              if (typeof q === "string" && q.trim()) {
+                navigate(`/search?q=${encodeURIComponent(q.trim())}`);
+              }
+            }}
+          >
+            <div className="flex w-full max-w-md items-center gap-2 rounded-full border border-border bg-background px-4 py-2 transition-colors focus-within:border-primary">
+              <svg
+                className="h-4 w-4 shrink-0 text-muted"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={2}
+                aria-hidden="true"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="m21 21-4.35-4.35M17 10.5a6.5 6.5 0 1 1-13 0 6.5 6.5 0 0 1 13 0Z"
+                />
+              </svg>
+              <input
+                name="q"
+                type="search"
+                placeholder={t("searchPlaceholder")}
+                className="w-full bg-transparent text-sm outline-none placeholder:text-muted"
               />
-            </svg>
-            <input
-              name="q"
-              type="search"
-              placeholder={t("searchPlaceholder")}
-              className="w-full bg-transparent text-sm outline-none placeholder:text-muted"
-            />
-          </div>
-        </form>
+            </div>
+          </form>
+        )}
 
         {/* 收藏入口 */}
         <Link
