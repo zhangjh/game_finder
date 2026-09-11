@@ -160,7 +160,7 @@ export function AdminFeedbackPage() {
       {error && <p className="mb-3 text-sm text-red-400">操作失败，请重试</p>}
 
       <div className="overflow-x-auto rounded-lg border border-neutral-800">
-        <table className="w-full min-w-[880px] text-sm">
+        <table className="w-full min-w-[960px] text-sm">
           <thead className="bg-neutral-900 text-left text-neutral-400">
             <tr>
               <th className="px-3 py-2">ID</th>
@@ -168,6 +168,7 @@ export function AdminFeedbackPage() {
               <th className="px-3 py-2">类型</th>
               <th className="px-3 py-2">状态</th>
               <th className="px-3 py-2">补充说明</th>
+              <th className="px-3 py-2">反馈人</th>
               <th className="px-3 py-2">来源</th>
               <th className="px-3 py-2">提交时间</th>
               <th className="px-3 py-2 text-right">操作</th>
@@ -236,6 +237,15 @@ export function AdminFeedbackPage() {
                   ) : (
                     <span className="text-neutral-600">—</span>
                   )}
+                </td>
+                <td className="px-3 py-2">
+                  {/* 匿名设备 ID（_gf_uid Cookie UUID），仅用于区分是否同一人 */}
+                  <span
+                    className="cursor-help font-mono text-xs text-neutral-400"
+                    title={f.userId}
+                  >
+                    {f.userId.slice(0, 8)}
+                  </span>
                 </td>
                 <td className="px-3 py-2 text-neutral-400">{f.sourceCode}</td>
                 <td className="whitespace-nowrap px-3 py-2 text-neutral-400">
