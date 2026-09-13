@@ -7,6 +7,8 @@ import { Seo } from "../components/seo";
 import { useI18n, type UiLang } from "../i18n";
 import { NotFoundPage } from "./not-found";
 import {
+  buildItemListJsonLd,
+  PUBLIC_SITE_URL,
   SEO_LANDING_PAGES,
   getSeoLandingPage,
   sessionLabel,
@@ -15,7 +17,7 @@ import {
 
 const PAGE_SIZE = 24;
 
-export function LandingPage() {
+export function LandingPage({ forcedLang }: { forcedLang?: UiLang }) {
   const { landingSlug = "" } = useParams();
   const config = getSeoLandingPage(landingSlug);
   const location = useLocation();
@@ -25,6 +27,12 @@ export function LandingPage() {
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  // /en/games/* 静态 URL 强制英文内容（不管用户界面语种偏好）
+  const pageLang: UiLang = forcedLang ?? lang;
+  const en = pageLang === "en";
+  const pathPrefix = en ? "/en" : "";
+  const effectivePath = `${pathPrefix}${config?.path ?? ""}`;
   const page = Math.max(1, Number(searchParams.get("page") ?? "1") || 1);
   const sort = searchParams.get("sort");
   const selectedSort =
@@ -39,7 +47,7 @@ export function LandingPage() {
     setError(null);
     void fetchGames({
       ...config.filters,
-      lang,
+      lang: pageLang,
       sort: selectedSort,
       page,
       pageSize: PAGE_SIZE,
@@ -62,14 +70,19 @@ export function LandingPage() {
     return () => {
       active = false;
     };
-  }, [config, lang, page, selectedSort]);
+  }, [config, pageLang, page, selectedSort]);
 
   if (!config) return <NotFoundPage />;
 
-  // 界面语种 → 落地页文案（T1.7）：英文用 shared 内置的 en 版本
-  const content = lang === "en" ? config.en : config;
+  // 界面语种 / /en 路由 → 落地页文案（T1.7）：英文用 shared 内置的 en 版本
+  const content = en ? config.en : config;
   const { title, description, heading, intro, filterLabels, aiExplanation } =
     content;
+  const alternates = [
+    { hreflang: "zh", href: `${PUBLIC_SITE_URL}${config.path}` },
+    { hreflang: "en", href: `${PUBLIC_SITE_URL}/en${config.path}` },
+    { hreflang: "x-default", href: `${PUBLIC_SITE_URL}${config.path}` },
+  ];
 
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
   const featured = games.slice(0, 4);
@@ -80,8 +93,20 @@ export function LandingPage() {
       <Seo
         title={title}
         description={description}
-        path={config.path}
+        path={effectivePath}
+        image={featured[0]?.thumbnail ?? null}
         noIndex={location.search.length > 0}
+        alternates={alternates}
+        jsonLd={buildItemListJsonLd(
+          heading,
+          games.map((game) => ({
+            title: game.title,
+            url: `${PUBLIC_SITE_URL}/game/${game.slug}`,
+            image: game.thumbnail,
+          })),
+          `${PUBLIC_SITE_URL}${effectivePath}`,
+          en ? "en" : "zh-CN",
+        )}
       />
 
       <header className="max-w-3xl">
@@ -110,7 +135,7 @@ export function LandingPage() {
           ].map(([value, label]) => (
             <Link
               key={value}
-              to={`${config.path}?sort=${value}`}
+              to={`${effectivePath}?sort=${value}`}
               className={`rounded-full border px-3 py-1 ${
                 selectedSort === value
                   ? "border-primary text-primary"
@@ -183,12 +208,12 @@ export function LandingPage() {
       {totalPages > 1 && !loading && (
         <nav className="mt-6 flex justify-center gap-2 text-sm" aria-label={t("prevPage") + "/" + t("nextPage")}>
           {page > 1 && (
-            <Link className="rounded-full border border-border px-4 py-2" to={`${config.path}?sort=${selectedSort}&page=${page - 1}`}>
+            <Link className="rounded-full border border-border px-4 py-2" to={`${effectivePath}?sort=${selectedSort}&page=${page - 1}`}>
               {t("prevPage")}
             </Link>
           )}
           {page < totalPages && (
-            <Link className="rounded-full border border-border px-4 py-2" to={`${config.path}?sort=${selectedSort}&page=${page + 1}`}>
+            <Link className="rounded-full border border-border px-4 py-2" to={`${effectivePath}?sort=${selectedSort}&page=${page + 1}`}>
               {t("nextPage")}
             </Link>
           )}
@@ -201,8 +226,8 @@ export function LandingPage() {
           {config.relatedPaths.map((path) => {
             const related = SEO_LANDING_PAGES.find((pageConfig) => pageConfig.path === path);
             return related ? (
-              <Link key={path} to={path} className="rounded-full border border-border px-4 py-2 text-sm hover:border-primary hover:text-primary">
-                {lang === "en" ? related.en.heading : related.heading}
+              <Link key={path} to={`${pathPrefix}${path}`} className="rounded-full border border-border px-4 py-2 text-sm hover:border-primary hover:text-primary">
+                {en ? related.en.heading : related.heading}
               </Link>
             ) : null;
           })}

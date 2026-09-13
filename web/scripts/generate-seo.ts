@@ -2,7 +2,9 @@ import { mkdir, readFile, readdir, writeFile } from "node:fs/promises";
 import path from "node:path";
 
 import {
+  buildItemListJsonLd,
   buildVideoGameJsonLd,
+  buildWebSiteJsonLd,
   PUBLIC_SITE_URL,
   SEO_LANDING_PAGES,
   type SeoGameExportResponse,
@@ -15,6 +17,10 @@ const API_BASE_URL = normalizeApiUrl(
   process.env.SEO_API_BASE_URL ?? process.env.VITE_API_BASE_URL,
 );
 const SEO_EXPORT_TOKEN = requiredEnv("SEO_EXPORT_TOKEN");
+/** 可选：Google Search Console 站点验证 token（`SEO_GOOGLE_VERIFICATION`），注入所有静态页 meta */
+const GOOGLE_VERIFICATION = process.env.SEO_GOOGLE_VERIFICATION?.trim() || "";
+/** 本页所代表内容语种 */
+type HtmlLang = "zh-CN" | "en";
 const MAX_OUTPUT_FILES = readPositiveInteger(
   process.env.SEO_MAX_OUTPUT_FILES,
   19_000,
@@ -44,7 +50,13 @@ interface PageMetadata {
   noIndex?: boolean;
   bodyHtml?: string;
   jsonLd?: Record<string, unknown>;
+  /** <html lang>（en landing 页为 "en"，其余默认 zh-CN） */
+  htmlLang?: HtmlLang;
+  /** 多语版本的 hreflang alternate 链接（按需注入） */
+  alternates?: Array<{ hreflang: string; href: string }>;
 }
+
+const BUILT_AT = new Date().toISOString();
 
 async function main() {
   const startedAt = Date.now();
@@ -75,6 +87,12 @@ async function main() {
       description:
         "告诉 AI 你现在想怎么玩，它会结合时间、心情、人数和设备，从在线网页游戏中挑出更合适的选择。",
       pathname: "/",
+      image: (featuredGames[0]?.thumbnail ?? null),
+      jsonLd: buildWebSiteJsonLd(
+        SITE_URL,
+        "玩什么 PlayWhat",
+        `${SITE_URL}/search?q={search_term_string}`,
+      ),
       bodyHtml: renderStaticBody(
         "玩什么 PlayWhat",
         "告诉 AI 你现在想怎么玩，它会结合时间、心情、人数和设备，从在线网页游戏中挑出更合适的选择。",
@@ -88,11 +106,12 @@ async function main() {
     writePage(template, "games.html", {
       title: "在线网页游戏大全｜按时长、人数和设备筛选",
       description:
-        "浏览无需下载的在线网页游戏，按类型、单局时长、玩家人数、设备和评分筛选。",
+        "浏览无需下载的在线网页游戏，按类型、单局时长、玩家人数和设备筛选。",
       pathname: "/games",
+      image: (featuredGames[0]?.thumbnail ?? null),
       bodyHtml: renderStaticBody(
         "在线网页游戏大全",
-        "浏览无需下载的在线网页游戏，按类型、单局时长、玩家人数、设备和评分筛选。",
+        "浏览无需下载的在线网页游戏，按类型、单局时长、玩家人数和设备筛选。",
         SEO_LANDING_PAGES.map((landing) => ({
           path: landing.path,
           label: landing.heading,
@@ -104,6 +123,7 @@ async function main() {
       title: "高品质在线游戏精选 | 玩什么 PlayWhat",
       description: "按质量分筛选的高品质在线网页游戏，免下载直接游玩。",
       pathname: "/high-quality",
+      image: (highQualityGames[0]?.thumbnail ?? null),
       bodyHtml: renderStaticBody(
         "高品质在线游戏精选",
         "按质量分筛选的高品质在线网页游戏，免下载直接游玩。",
@@ -116,6 +136,7 @@ async function main() {
       description:
         "精选本地部署的中文 H5 小游戏，无需下载、打开即玩，棋牌、消除、动作小游戏都有。",
       pathname: "/chinese-games",
+      image: (chineseGames[0]?.thumbnail ?? null),
       bodyHtml: renderStaticBody(
         "中文精品游戏专区",
         "精选本地部署的中文 H5 小游戏，无需下载、打开即玩。",
@@ -126,17 +147,42 @@ async function main() {
         chineseGames,
       ),
     }),
-    ...SEO_LANDING_PAGES.map((landing) =>
-      writePage(template, `games/${landing.slug}.html`, {
-        title: landing.title,
-        description: landing.description,
-        pathname: landing.path,
-        bodyHtml: renderLandingBody(
-          landing,
-          landingGames.get(landing.path) ?? [],
-        ),
-      }),
-    ),
+    ...SEO_LANDING_PAGES.flatMap((landing) => {
+      const zhGames = landingGames.get(landing.path) ?? [];
+      const image = zhGames[0]?.thumbnail ?? null;
+      const alternates = landingAlternates(landing);
+      return [
+        writePage(template, `games/${landing.slug}.html`, {
+          title: landing.title,
+          description: landing.description,
+          pathname: landing.path,
+          htmlLang: "zh-CN",
+          image,
+          bodyHtml: renderLandingBody(landing, zhGames, false),
+          jsonLd: buildItemListJsonLd(
+            landing.heading,
+            toItemListEntries(zhGames),
+            `${SITE_URL}${landing.path}`,
+          ),
+          alternates,
+        }),
+        writePage(template, `en/games/${landing.slug}.html`, {
+          title: landing.en.title,
+          description: landing.en.description,
+          pathname: `/en${landing.path}`,
+          htmlLang: "en",
+          image,
+          bodyHtml: renderLandingBody(landing, zhGames, true),
+          jsonLd: buildItemListJsonLd(
+            landing.en.heading,
+            toItemListEntries(zhGames),
+            `${SITE_URL}/en${landing.path}`,
+            "en",
+          ),
+          alternates,
+        }),
+      ];
+    }),
     ...NOINDEX_PAGES.map(([file, title, description, pathname]) =>
       writePage(template, file, {
         title,
@@ -321,7 +367,8 @@ function parseSeoGame(value: unknown): SeoGameMetadata {
 
 async function assertOutputFileLimit(gameCount: number) {
   const existingFiles = await countFiles(DIST_DIR);
-  const fixedHtmlFiles = 2 + SEO_LANDING_PAGES.length + NOINDEX_PAGES.length + 1;
+  const fixedHtmlFiles =
+    4 + SEO_LANDING_PAGES.length * 2 + NOINDEX_PAGES.length + 1;
   const sitemapFiles = 4 + Math.ceil(gameCount / SITEMAP_PAGE_SIZE);
   const projectedFiles =
     existingFiles + gameCount + fixedHtmlFiles + sitemapFiles;
@@ -378,13 +425,16 @@ function renderStaticBody(
 function renderLandingBody(
   landing: SeoLandingPage,
   games: SeoGameMetadata[],
+  en: boolean,
 ): string {
+  const content = en ? landing.en : landing;
+  const pathPrefix = en ? "/en" : "";
   const links = [
     ...landing.relatedPaths.map((relatedPath) => {
       const related = SEO_LANDING_PAGES.find((page) => page.path === relatedPath);
       return {
-        path: relatedPath,
-        label: related?.heading ?? relatedPath,
+        path: `${pathPrefix}${relatedPath}`,
+        label: en ? (related?.en.heading ?? relatedPath) : (related?.heading ?? relatedPath),
       };
     }),
     ...games.map((game) => ({
@@ -392,9 +442,9 @@ function renderLandingBody(
       label: game.title,
     })),
   ];
-  return `<main><h1>${escapeHtml(landing.heading)}</h1>${landing.intro
+  return `<main><h1>${escapeHtml(content.heading)}</h1>${content.intro
     .map((paragraph) => `<p>${escapeHtml(paragraph)}</p>`)
-    .join("")}<p>${escapeHtml(landing.aiExplanation)}</p><nav>${links
+    .join("")}<p>${escapeHtml(content.aiExplanation)}</p><nav>${links
     .map(
       (link) =>
         `<a href="${escapeHtml(link.path)}">${escapeHtml(link.label)}</a>`,
@@ -407,12 +457,31 @@ function renderGameBody(
   relatedGames: SeoGameMetadata[],
 ): string {
   const image = game.thumbnail
-    ? `<img src="${escapeHtml(new URL(game.thumbnail, SITE_URL).toString())}" alt="${escapeHtml(game.title)}" width="640" height="400" decoding="async" />`
+    ? `<img src="${escapeHtml(new URL(game.thumbnail, SITE_URL).toString())}" alt="${escapeHtml(game.title)}" width="640" height="400" decoding="async" fetchpriority="high" />`
     : "";
   const originalTitle =
     game.titleOriginal !== game.title
       ? `<p>${escapeHtml(game.titleOriginal)}</p>`
       : "";
+  const specs: string[] = [];
+  if (game.genre) specs.push(`<li>类型：${escapeHtml(game.genre)}</li>`);
+  if (game.sessionLengthMax != null) {
+    specs.push(`<li>单局时长：≤ ${game.sessionLengthMax} 分钟</li>`);
+  }
+  specs.push(
+    `<li>玩家人数：${game.minPlayers}${game.maxPlayers > game.minPlayers ? `~${game.maxPlayers}` : ""} 人</li>`,
+  );
+  const devices = [
+    game.mobile && "手机",
+    game.desktop && "电脑",
+  ].filter(Boolean);
+  if (devices.length > 0) specs.push(`<li>设备：${devices.join(" / ")}</li>`);
+  if (game.multiplayer) specs.push("<li>支持多人游玩</li>");
+  if (game.gameLanguage) {
+    specs.push(`<li>游戏语言：${escapeHtml(game.gameLanguage)}</li>`);
+  }
+  if (game.developer) specs.push(`<li>开发商：${escapeHtml(game.developer)}</li>`);
+  if (game.publisher) specs.push(`<li>发行商：${escapeHtml(game.publisher)}</li>`);
   const genre = game.genre ? `<p>类型：${escapeHtml(game.genre)}</p>` : "";
   const links = [
     { path: "/games", label: "浏览全部游戏" },
@@ -421,12 +490,35 @@ function renderGameBody(
       label: related.title,
     })),
   ];
-  return `<main><article><h1>${escapeHtml(game.title)}</h1>${originalTitle}${image}<p>${escapeHtml(game.description)}</p>${genre}</article><nav>${links
+  const facts =
+    specs.length > 0
+      ? `<h2>基本信息</h2><ul>${specs.join("")}</ul>`
+      : "";
+  return `<main><article><h1>${escapeHtml(game.title)}</h1>${originalTitle}${image}<p>${escapeHtml(game.description)}</p>${genre}${facts}</article><nav>${links
     .map(
       (link) =>
         `<a href="${escapeHtml(link.path)}">${escapeHtml(link.label)}</a>`,
     )
     .join(" ")}</nav></main>`;
+}
+
+/** landing 页中英文版本的 hreflang 交叉引用（两种版本用同一组标记） */
+function landingAlternates(
+  landing: SeoLandingPage,
+): Array<{ hreflang: string; href: string }> {
+  return [
+    { hreflang: "zh", href: `${SITE_URL}${landing.path}` },
+    { hreflang: "en", href: `${SITE_URL}/en${landing.path}` },
+    { hreflang: "x-default", href: `${SITE_URL}${landing.path}` },
+  ];
+}
+
+function toItemListEntries(games: SeoGameMetadata[]) {
+  return games.map((game) => ({
+    title: game.title,
+    url: `${SITE_URL}/game/${game.slug}`,
+    image: game.thumbnail,
+  }));
 }
 
 function matchesLanding(
@@ -488,6 +580,8 @@ function buildRelatedGames(
 
 function renderHtml(template: string, metadata: PageMetadata): string {
   const canonical = `${SITE_URL}${metadata.pathname}`;
+  const htmlLang: HtmlLang = metadata.htmlLang ?? "zh-CN";
+  const ogLocale = htmlLang === "en" ? "en_US" : "zh_CN";
   const tags = [
     `<title>${escapeHtml(metadata.title)}</title>`,
     `<meta name="description" content="${escapeHtml(metadata.description)}" />`,
@@ -498,6 +592,7 @@ function renderHtml(template: string, metadata: PageMetadata): string {
     `<meta property="og:description" content="${escapeHtml(metadata.description)}" />`,
     `<meta property="og:type" content="${metadata.type ?? "website"}" />`,
     `<meta property="og:url" content="${escapeHtml(canonical)}" />`,
+    `<meta property="og:locale" content="${ogLocale}" />`,
     '<meta name="twitter:card" content="summary_large_image" />',
     `<meta name="twitter:title" content="${escapeHtml(metadata.title)}" />`,
     `<meta name="twitter:description" content="${escapeHtml(metadata.description)}" />`,
@@ -510,6 +605,19 @@ function renderHtml(template: string, metadata: PageMetadata): string {
       `<meta name="twitter:image" content="${escapeHtml(image)}" />`,
     );
   }
+
+  for (const { hreflang, href } of metadata.alternates ?? []) {
+    tags.push(
+      `<link rel="alternate" hreflang="${escapeHtml(hreflang)}" href="${escapeHtml(href)}" />`,
+    );
+  }
+
+  if (GOOGLE_VERIFICATION) {
+    tags.push(
+      `<meta name="google-site-verification" content="${escapeHtml(GOOGLE_VERIFICATION)}" />`,
+    );
+  }
+
   if (metadata.jsonLd) {
     const json = JSON.stringify(metadata.jsonLd).replace(/</g, "\\u003c");
     tags.push(`<script id="page-json-ld" type="application/ld+json">${json}</script>`);
@@ -518,6 +626,10 @@ function renderHtml(template: string, metadata: PageMetadata): string {
   const html = template
     .replace(/\s*<title>[\s\S]*?<\/title>/i, "")
     .replace(/\s*<meta\s+name="description"[\s\S]*?>/i, "")
+    .replace(
+      `<html lang="zh-CN">`,
+      `<html lang="${escapeHtml(htmlLang)}">`,
+    )
     .replace("</head>", `    ${tags.join("\n    ")}\n  </head>`);
   return metadata.bodyHtml
     ? html.replace(
@@ -531,17 +643,16 @@ async function writeSitemaps(games: SeoGameMetadata[]) {
   const sitemapDir = path.join(DIST_DIR, "sitemaps");
   await mkdir(sitemapDir, { recursive: true });
 
-  const staticEntries = [
-    "/",
-    "/games",
-    "/high-quality",
-    "/chinese-games",
-  ].map((pathname) => ({
-    location: `${SITE_URL}${pathname}`,
-  }));
-  const landingEntries = SEO_LANDING_PAGES.map((landing) => ({
-    location: `${SITE_URL}${landing.path}`,
-  }));
+  const staticEntries = ["/", "/games", "/high-quality", "/chinese-games"].map(
+    (pathname) => ({
+      location: `${SITE_URL}${pathname}`,
+      lastModified: BUILT_AT,
+    }),
+  );
+  const landingEntries = SEO_LANDING_PAGES.flatMap((landing) => [
+    { location: `${SITE_URL}${landing.path}`, lastModified: BUILT_AT },
+    { location: `${SITE_URL}/en${landing.path}`, lastModified: BUILT_AT },
+  ]);
   const gameChunks = chunk(games, SITEMAP_PAGE_SIZE);
 
   await Promise.all([

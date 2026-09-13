@@ -404,6 +404,9 @@ docker compose up -d server
 - [ ] `3001`/`5432` 未直接暴露公网，仅 `443` 可达
 - [ ] `.env` 权限 600、`ALLOWED_ORIGINS`/`ADMIN_PASSWORD`/`SEO_EXPORT_TOKEN`/`CLOUDFLARE_PAGES_DEPLOY_HOOK_URL` 已设
 - [ ] 发布新 slug 后 Pages 自动重建且详情进入 sitemap；下线后自动重建且详情返回 404 并从 sitemap 移除
+- [ ] 英文落地页 `/en/games/*` 返回 200 且 `hreflang="en"` 与中文版互指（2026-09 SEO 优化）
+- [ ] GSC 已验证并提交 sitemap：任选其一——A. Cloudflare DNS 添加 `google-site-verification=<token>` TXT 记录；B. 在 Pages 构建环境变量设 `SEO_GOOGLE_VERIFICATION=<GSC 提供的 meta content>`（已验证时所有静态页自动带 meta）
+- [ ] `_headers` 生效：`curl -sI https://playwhat.cc/` 含 `strict-transport-security` 与 `x-frame-options`
 - [ ] 本地游戏更新走完整链路：开发机 `build:local-catalog` → `publish:local-games` → 提交 catalog → VPS `import:local`（见 6.2）
 - [ ] 每日备份 cron 已生效，且能恢复
 - [ ] 镜像已打稳定 tag（非 `latest`），升级有回滚路径

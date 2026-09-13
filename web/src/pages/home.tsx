@@ -6,7 +6,7 @@ import { GameCard } from "../components/game-card";
 import { RecommendResults } from "../components/recommend-results";
 import { Seo } from "../components/seo";
 import { useI18n } from "../i18n";
-import { QUICK_CONDITIONS, genreLabel, type GameListItem, type RecommendResponse } from "@game-finder/shared";
+import { QUICK_CONDITIONS, genreLabel, buildWebSiteJsonLd, PUBLIC_SITE_URL, type GameListItem, type RecommendResponse } from "@game-finder/shared";
 
 /** 分类入口：genre 链接值保持 DB 中文值，仅翻译展示 */
 const CATEGORIES = [
@@ -75,6 +75,12 @@ export function HomePage() {
         title={t("homeSeoTitle")}
         description={t("homeSeoDesc")}
         path="/"
+        image={today[0]?.thumbnail ?? null}
+        jsonLd={buildWebSiteJsonLd(
+          PUBLIC_SITE_URL,
+          "玩什么 PlayWhat",
+          `${PUBLIC_SITE_URL}/search?q={search_term_string}`,
+        )}
       />
       {/* ===== AI Game Finder（首页第一核心，PRD §20/§32）===== */}
       <section className="rounded-2xl bg-gradient-to-br from-primary/15 via-surface to-surface p-6 sm:p-10">

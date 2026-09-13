@@ -22,6 +22,7 @@ export function Seo({
   type = "website",
   noIndex = false,
   jsonLd,
+  alternates,
 }: {
   title: string;
   description: string;
@@ -30,6 +31,8 @@ export function Seo({
   type?: "website" | "article";
   noIndex?: boolean;
   jsonLd?: object;
+  /** 多语版本 hreflang alternate 链接（如中英 landing 页） */
+  alternates?: Array<{ hreflang: string; href: string }>;
 }) {
   const { lang } = useI18n();
   const jsonLdText = jsonLd
@@ -109,7 +112,32 @@ export function Seo({
     } else {
       existingJsonLd?.remove();
     }
-  }, [description, image, jsonLdText, lang, noIndex, path, title, type]);
+
+    // hreflang alternate：先清空上一版标记，再按需重建（带 data-seo-alternate 便于生命周期管理）
+    document
+      .querySelectorAll('link[rel="alternate"][data-seo-alternate="true"]')
+      .forEach((link) => link.remove());
+    if (alternates) {
+      for (const { hreflang, href } of alternates) {
+        const link = document.createElement("link");
+        link.rel = "alternate";
+        link.hreflang = hreflang;
+        link.href = href;
+        link.dataset.seoAlternate = "true";
+        document.head.appendChild(link);
+      }
+    }
+  }, [
+    alternates,
+    description,
+    image,
+    jsonLdText,
+    lang,
+    noIndex,
+    path,
+    title,
+    type,
+  ]);
 
   return null;
 }
