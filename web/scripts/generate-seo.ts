@@ -27,7 +27,7 @@ const MAX_OUTPUT_FILES = readPositiveInteger(
 );
 const DIST_DIR = path.resolve(process.cwd(), "dist");
 const PAGE_SIZE = 1_000;
-const SITEMAP_PAGE_SIZE = 45_000;
+const SITEMAP_PAGE_SIZE = 2_000;
 const STATIC_GAME_LINK_LIMIT = 12;
 const RELATED_GAME_LINK_LIMIT = 4;
 const NOINDEX_PAGES = [
