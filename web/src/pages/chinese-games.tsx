@@ -10,7 +10,7 @@ import type { GameListItem } from "@game-finder/shared";
 const PAGE_SIZE = 24;
 
 /**
- * 中文精品游戏专区：数据源 code=local（本地部署）的中文 H5 小游戏，
+ * 中文游戏专区：数据源 code=local（本地部署）的中文 H5 小游戏，
  * 源码随站点静态托管在 Cloudflare Pages，同源 iframe 打开即玩。
  */
 export function ChineseGamesPage() {

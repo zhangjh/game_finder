@@ -59,7 +59,7 @@ async function main() {
         (right.sourceQualityScore ?? 0) - (left.sourceQualityScore ?? 0),
     )
     .slice(0, STATIC_GAME_LINK_LIMIT);
-  // 中文精品专区：本地部署游戏（slug 统一 local- 前缀），静态页列出全部链接
+  // 中文专区：本地部署游戏（slug 统一 local- 前缀），静态页列出全部链接
   const chineseGames = games.filter((game) => game.slug.startsWith("local-"));
   const landingGames = new Map(
     SEO_LANDING_PAGES.map((landing) => [
@@ -112,12 +112,12 @@ async function main() {
       ),
     }),
     writePage(template, "chinese-games.html", {
-      title: "中文精品小游戏专区 | 玩什么 PlayWhat",
+      title: "中文小游戏专区 | 玩什么 PlayWhat",
       description:
         "精选本地部署的中文 H5 小游戏，无需下载、打开即玩，棋牌、消除、动作小游戏都有。",
       pathname: "/chinese-games",
       bodyHtml: renderStaticBody(
-        "中文精品游戏专区",
+        "中文游戏专区",
         "精选本地部署的中文 H5 小游戏，无需下载、打开即玩。",
         [
           { path: "/games", label: "浏览全部游戏" },
