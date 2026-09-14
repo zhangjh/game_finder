@@ -56,8 +56,6 @@ interface PageMetadata {
   alternates?: Array<{ hreflang: string; href: string }>;
 }
 
-const BUILT_AT = new Date().toISOString();
-
 async function main() {
   const startedAt = Date.now();
   const template = await readFile(path.join(DIST_DIR, "index.html"), "utf8");
@@ -644,14 +642,11 @@ async function writeSitemaps(games: SeoGameMetadata[]) {
   await mkdir(sitemapDir, { recursive: true });
 
   const staticEntries = ["/", "/games", "/high-quality", "/chinese-games"].map(
-    (pathname) => ({
-      location: `${SITE_URL}${pathname}`,
-      lastModified: BUILT_AT,
-    }),
+    (pathname) => ({ location: `${SITE_URL}${pathname}` }),
   );
   const landingEntries = SEO_LANDING_PAGES.flatMap((landing) => [
-    { location: `${SITE_URL}${landing.path}`, lastModified: BUILT_AT },
-    { location: `${SITE_URL}/en${landing.path}`, lastModified: BUILT_AT },
+    { location: `${SITE_URL}${landing.path}` },
+    { location: `${SITE_URL}/en${landing.path}` },
   ]);
   const gameChunks = chunk(games, SITEMAP_PAGE_SIZE);
 

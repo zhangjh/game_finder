@@ -1,0 +1,3 @@
+# 本地部署游戏经 R2 公开桶托管；以 200 代理回同源路径，
+# 使 iframe 与父页共享 localStorage（B1 存档桥前提）。
+/local-games/* https://r2.playwhat.cc/local-games/* 200

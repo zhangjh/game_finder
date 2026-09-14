@@ -20,6 +20,8 @@ import fs from "node:fs";
 import path from "node:path";
 import { createHash } from "node:crypto";
 
+import { patchEntry } from "./patch-local-games.mjs";
+
 const existsSync = fs.existsSync;
 
 const WORKSPACE_ROOT = path.resolve(import.meta.dirname, "../..");
@@ -205,6 +207,60 @@ async function readUtf8(file) {
 async function copyCollection(src, target) {
   await mkdir(path.dirname(target), { recursive: true });
   await cp(src, target, { recursive: true, force: true });
+}
+
+/**
+ * B2/B3：对拷入 web/public/local-games/ 的各游戏入口 index.html 做脚本注入。
+ * - 命名空间隔离：每个游戏读写 localStorage 时自动加上 `__gf:<部署目录>:` 前缀，
+ *   根治同源下跨游戏 key 冲突（34 个 key 被多游戏复用）。
+ * - 幂等：页面已有 __gfLocalGameNs 标记则跳过；整目录覆盖拷贝后等价于全新注入。
+ * - 环境变量 LOCAL_PATCH_DISABLE=1 可整体关闭（构建兜底）。
+ */
+async function applyPatches(games) {
+  if (process.env.LOCAL_PATCH_DISABLE === "1") {
+    console.log("patch-local-games：LOCAL_PATCH_DISABLE=1，跳过注入");
+    return;
+  }
+  let ok = 0;
+  let skipped = 0;
+  const engines = {};
+  const b3Applied = {};
+  for (const g of games) {
+    const parts = g.gameUrl.replace(/^\//, "").split("/");
+    if (parts.length < 4) {
+      skipped++;
+      continue;
+    }
+    const namespace = parts.slice(1, -1).join("/"); // collection-01/canvasplane
+    const entryAbs = path.join(TARGET_ROOT, ...parts.slice(1)); // …/collection-01/canvasplane/index.html
+    if (!existsSync(entryAbs)) {
+      skipped++;
+      continue;
+    }
+    try {
+      const raw = await readUtf8(entryAbs);
+      const out = patchEntry(raw, { namespace, dirAbs: path.dirname(entryAbs) });
+      if (out.patched) {
+        await writeFile(entryAbs, out.html, "utf8");
+        if (out.engine) engines[out.engine] = (engines[out.engine] ?? 0) + 1;
+        if (out.b3) b3Applied[out.b3] = (b3Applied[out.b3] ?? 0) + 1;
+      }
+      ok++;
+    } catch (err) {
+      console.warn(`patch-local-games：注入失败 ${g.gameUrl}：${err.message}`);
+    }
+  }
+  const engineDesc = Object.entries(engines)
+    .map(([e, n]) => `${e}×${n}`)
+    .join(" ");
+  const b3Desc = Object.entries(b3Applied)
+    .map(([e, n]) => `${e}×${n}`)
+    .join(" ");
+  console.log(
+    `patch-local-games: 已检查 ${ok} 款（跳过 ${skipped}），完成命名空间隔离注入；` +
+      `识别共享引擎：${engineDesc || "无"}` +
+      `；B3 逐游戏续玩注入：${b3Desc || "无"}`,
+  );
 }
 
 /* ===== 合集01：README 表格（目录 | 游戏名）===== */
@@ -589,6 +645,9 @@ async function main() {
 
   await mkdir(path.dirname(OUT_JSON), { recursive: true });
   await writeFile(OUT_JSON, JSON.stringify(final, null, 2) + "\n", "utf8");
+
+  // 4. B2/B3 构建期脚本注入：对每个游戏入口 index.html 做命名空间隔离等补丁
+  await applyPatches(final);
 
   const perColl = { "c1-": 0, "c2-": 0, "c3-": 0, "c4-": 0, "c5-": 0 };
   for (const g of final) {

@@ -9,6 +9,13 @@ import {
   putGameSave,
   withExternalSave,
 } from "../api";
+import {
+  clearLocalStorageForGame,
+  isLocalGameUrl,
+  restoreLocalStorage,
+  snapshotLocalStorage,
+  toSameOriginLocalUrl,
+} from "../local-save";
 import { useToast } from "./toast";
 
 /** LOAD_DATA 注入循环节奏：每 400ms 一次，收到执行回执即停 */
@@ -60,7 +67,12 @@ export function GamePlayer({
   const { showToast } = useToast();
   const { t } = useI18n();
 
-  const saveable = isGamePixEmbed(gameUrl);
+  /** 存档路径：GamePix（postMessage 协议） vs 本地同源（localStorage 快照） */
+  const gamePix = isGamePixEmbed(gameUrl);
+  const local = isLocalGameUrl(gameUrl);
+  const saveable = gamePix || local;
+  /** 最近一次（已加载/已采集）本地存档快照的 key 集合，用于「重新开始」清理 */
+  const lastSnapshotKeysRef = useRef<string[]>([]);
   /** GamePix 播放器 origin（postMessage targetOrigin / 来源校验） */
   const gameOrigin = (() => {
     try {
@@ -117,7 +129,7 @@ export function GamePlayer({
 
   /** 仅 GamePix：注入 LOAD_DATA 直到播放器回执（幂等，可安全重复发送） */
   const startLoadInjection = () => {
-    if (!saveable) return;
+    if (!gamePix) return;
     stopLoadLoop();
     const payload = loadPayloadRef.current;
     let posts = 0;
@@ -146,6 +158,11 @@ export function GamePlayer({
     } else {
       loadPayloadRef.current = "{}";
     }
+    // 本地同源游戏：续玩 = 把服务端快照写回 localStorage（iframe 同源加载自然读到）；
+    // 新开局 = 保持现状（restart 会先清理旧键）。
+    if (local && mode === "continue") {
+      restoreLocalStorage(gameSave?.data ?? null);
+    }
     startLoadInjection();
 
     // 再次开始（同一页面已玩过）→ 同时上报 replay
@@ -164,12 +181,16 @@ export function GamePlayer({
 
   /** 「重新开始」：先清档，再以空档开始本局 */
   const restart = () => {
+    if (local) {
+      clearLocalStorageForGame(lastSnapshotKeysRef.current);
+      lastSnapshotKeysRef.current = [];
+    }
     setGameSave({ data: null, hasSave: false });
     void clearGameSave(slug).catch(() => {});
     start("fresh");
   };
 
-  // 加载续玩存档（GamePix 源）
+  // 加载续玩存档（GamePix 源 / 本地同源游戏）
   useEffect(() => {
     if (!saveable) {
       setGameSave({ data: null, hasSave: false });
@@ -178,7 +199,19 @@ export function GamePlayer({
     let cancelled = false;
     fetchGameSave(slug)
       .then((r) => {
-        if (!cancelled) setGameSave({ data: r.data, hasSave: r.saved });
+        if (cancelled) return;
+        if (local && r.saved) {
+          // 记录本次加载快照的 key，供重新开始时清理旧档
+          try {
+            const entries = JSON.parse(r.data as string);
+            if (entries && typeof entries === "object" && !Array.isArray(entries)) {
+              lastSnapshotKeysRef.current = Object.keys(entries);
+            }
+          } catch {
+            /* 非对象快照不记录 keys */
+          }
+        }
+        setGameSave({ data: r.data, hasSave: r.saved });
       })
       .catch(() => {
         if (!cancelled) setGameSave({ data: null, hasSave: false });
@@ -186,11 +219,11 @@ export function GamePlayer({
     return () => {
       cancelled = true;
     };
-  }, [slug, saveable]);
+  }, [slug, saveable, local]);
 
   // 接收 SAVE_DATA（GamePix 播放器→本站），防抖落库
   useEffect(() => {
-    if (!saveable || !playing) return;
+    if (!gamePix || !playing) return;
 
     const onMessage = (e: MessageEvent) => {
       if (e.origin !== gameOrigin) return;
@@ -219,18 +252,39 @@ export function GamePlayer({
       flushSave();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [saveable, playing, slug]);
+  }, [gamePix, playing, slug]);
+
+  // 本地同源游戏：监听 iframe 对 localStorage 的写入（storage 事件），
+  // 防抖采集全量快照 → 复用 flushSave 落库。无需修改游戏源码。
+  useEffect(() => {
+    if (!local || !playing) return;
+
+    const onStorageCapture = () => {
+      const snap = snapshotLocalStorage();
+      lastSnapshotKeysRef.current = snap.keys;
+      pendingSaveRef.current = snap.raw;
+      if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
+      saveTimerRef.current = setTimeout(flushSave, SAVE_DEBOUNCE_MS);
+    };
+
+    window.addEventListener("storage", onStorageCapture);
+    return () => {
+      window.removeEventListener("storage", onStorageCapture);
+      flushSave();
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [local, playing, slug]);
 
   // 启动停顿检测：GamePix 在移动端浏览器拦截广告/跨站跟踪时（Edge 跟踪防护、
   // 广告拦截/第三方 Cookie 隔离）会永久停在加载态。超时未收到播放器消息 →
   // 展示兜底提示（关闭拦截 / 直接打开 / 重新加载）。
   useEffect(() => {
-    if (!saveable || !playing) return;
+    if (!gamePix || !playing) return;
     const t = setTimeout(() => {
       if (!bootSignaledRef.current) setStalled(true);
     }, STALL_TIMEOUT_MS);
     return () => clearTimeout(t);
-  }, [saveable, playing, reloadKey]);
+  }, [gamePix, playing, reloadKey]);
 
   // 退出时上报 game_exit（含会话时长）
   useEffect(() => {
@@ -399,7 +453,7 @@ export function GamePlayer({
         key={reloadKey}
         ref={iframeRef}
         name={typeof window !== "undefined" ? window.location.origin : undefined}
-        src={withExternalSave(gameUrl)}
+        src={local ? toSameOriginLocalUrl(gameUrl) : withExternalSave(gameUrl)}
         title={title}
         className="h-full w-full"
         allow="fullscreen; autoplay; gamepad; encrypted-media; clipboard-read; clipboard-write; picture-in-picture"
