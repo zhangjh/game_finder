@@ -6,7 +6,8 @@
  *
  * 事件类型（PRD §25）：game_impression / game_click / game_start /
  *   game_30s / game_2min / game_5min / game_exit / game_replay /
- *   favorite / share / recommendation_impression / recommendation_click
+ *   favorite / share / recommendation_impression / recommendation_click /
+ *   page_view（流量看板/DANTE-7：携带 path + UTM + referrer）/ search_query
  */
 import { db } from "@/lib/db";
 import { games, userEvents } from "@/lib/db/schema";
@@ -25,6 +26,8 @@ export const VALID_EVENT_TYPES = [
   "share",
   "recommendation_impression",
   "recommendation_click",
+  "page_view",
+  "search_query",
 ] as const;
 
 export type ValidEventType = (typeof VALID_EVENT_TYPES)[number];

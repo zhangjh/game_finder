@@ -5,6 +5,7 @@ import { useI18n } from "../i18n";
 import { QUICK_CONDITIONS, displayTitle, type RecommendResponse } from "@game-finder/shared";
 
 import { GameCard } from "./game-card";
+import { MiniShareButton } from "./share-menu";
 
 /**
  * AI Finder 推荐结果区（T5.5，PRD §23/§44）：
@@ -79,6 +80,18 @@ export function RecommendResults({ result }: { result: RecommendResponse }) {
               <span className="mr-1 font-semibold text-primary">#{i + 1}</span>
               {item.reason}
             </p>
+            <div className="flex justify-end">
+              <MiniShareButton
+                target={{
+                  slug: item.game.slug,
+                  title: item.game.title,
+                  titleOriginal: item.game.titleOriginal,
+                  description: item.game.description,
+                  thumbnail: item.game.thumbnail,
+                  gameId: item.game.id,
+                }}
+              />
+            </div>
           </div>
         ))}
       </div>

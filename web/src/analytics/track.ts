@@ -9,10 +9,12 @@
  *
  * 事件全集（PRD §25）：game_impression / game_click / game_start /
  *   game_30s / game_2min / game_5min / game_exit / game_replay /
- *   favorite / share / recommendation_impression / recommendation_click
+ *   favorite / share / recommendation_impression / recommendation_click /
+ *   page_view / search_query（DANTE-7 流量看板）
  */
 import { API_BASE_URL as BASE_URL } from "../api-base";
 import { getUserId } from "./user-id";
+import { getUtm } from "./utm";
 
 const FLUSH_INTERVAL_MS = 10_000;
 const FLUSH_BATCH_SIZE = 20;
@@ -29,7 +31,9 @@ export type EventType =
   | "favorite"
   | "share"
   | "recommendation_impression"
-  | "recommendation_click";
+  | "recommendation_click"
+  | "page_view"
+  | "search_query";
 
 export interface TrackEvent {
   eventType: EventType;
@@ -130,4 +134,34 @@ export function stopTracking(): void {
     flushTimer = null;
   }
   started = false;
+}
+
+/**
+ * SPA 路由级 page_view（DANTE-7 流量看板）。
+ * context 携带 path / referrer / 会话 UTM，由后端按此做渠道归因。
+ */
+export function trackPageView(path: string): void {
+  const utm = getUtm();
+  trackEvent({
+    eventType: "page_view",
+    context: {
+      path: path || "/",
+      referrer:
+        typeof document !== "undefined" ? document.referrer || "" : "",
+      utm_source: utm?.source ?? "",
+      utm_medium: utm?.medium ?? "",
+      utm_campaign: utm?.campaign ?? "",
+      utm_content: utm?.content ?? "",
+      utm_term: utm?.term ?? "",
+      ts: Date.now(),
+    },
+  });
+}
+
+/** 传统关键词搜索执行（DANTE-7 搜索 vs AI 对比）。context: { mode, q } */
+export function trackSearchQuery(q: string): void {
+  trackEvent({
+    eventType: "search_query",
+    context: { mode: "keyword", q: String(q ?? "").slice(0, 200) },
+  });
 }

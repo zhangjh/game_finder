@@ -22,6 +22,7 @@
     "cleanup:quality": "node scripts/cleanup-low-quality.mjs",
     "test:e2e": "node scripts/test-recommend-e2e.mjs",
     "embedding:coverage": "node --import tsx scripts/embedding-coverage.ts",
+    "seo:check": "node --import tsx scripts/seo-index-check.ts",
     "db:studio": "drizzle-kit studio"
   },
   "dependencies": {

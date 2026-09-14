@@ -5,6 +5,7 @@ import { fetchGames, fetchRecommendation } from "../api";
 import { Seo } from "../components/seo";
 import { GameCard } from "../components/game-card";
 import { RecommendResults } from "../components/recommend-results";
+import { trackSearchQuery } from "../analytics/track";
 import { useI18n, type UiLang } from "../i18n";
 import type { GameListItem, RecommendResponse } from "@game-finder/shared";
 
@@ -135,6 +136,12 @@ export function SearchPage() {
       saveRecent(next);
       return next;
     });
+  }, [q]);
+
+  /* 传统关键词搜索埋点（DANTE-7：搜索 vs AI 对比；按 q 变化计一次，分页不重复计） */
+  useEffect(() => {
+    if (!q || isAiQuery(q)) return;
+    trackSearchQuery(q);
   }, [q]);
 
   useEffect(() => {

@@ -50,6 +50,11 @@ import {
   getTopGames,
   getTopQueries,
 } from "@/lib/games/analytics-queries";
+import { getTrafficDashboard } from "@/lib/games/traffic-queries";
+import { runSeoIndexCheck } from "@/lib/seo/check";
+import { db } from "@/lib/db";
+import { games } from "@/lib/db/schema";
+import { desc, eq } from "drizzle-orm";
 
 /**
  * /api/admin/* — 管理后台 API（T2.3，PRD §36）。
@@ -543,4 +548,28 @@ adminRouter.get("/analytics", async (_req, res) => {
     topQueries,
     dailyActivity,
   });
+});
+
+/** GET /api/admin/analytics/traffic — 流量/渠道看板（DANTE-7，T9.6） */
+adminRouter.get("/analytics/traffic", async (req, res) => {
+  const days =
+    typeof req.query.days === "string" && /^\d+$/.test(req.query.days)
+      ? Math.min(Math.max(Number(req.query.days), 7), 90)
+      : 30;
+  res.json(await getTrafficDashboard(days));
+});
+
+/** GET /api/admin/seo/status — SEO 索引状态一键检查（DANTE-7，T9.1/T9.4） */
+adminRouter.get("/seo/status", async (_req, res) => {
+  const latest = await db
+    .select({ slug: games.slug })
+    .from(games)
+    .where(eq(games.status, "published"))
+    .orderBy(desc(games.publishedAt), desc(games.id))
+    .limit(5);
+  res.json(
+    await runSeoIndexCheck(
+      latest.map((g) => g.slug).filter((s): s is string => typeof s === "string"),
+    ),
+  );
 });

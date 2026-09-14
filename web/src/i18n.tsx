@@ -249,6 +249,25 @@ const zh = {
   copyFailed: "复制失败，请手动复制地址栏链接",
   shareText: "来玩《{title}》——{desc}",
 
+  /* 分享菜单（DANTE-7 渠道分享） */
+  shareMenu: "分享到",
+  shareChannelWechat: "微信",
+  shareViaWechatTag: "公众号文章",
+  shareChannelXiaohongshu: "小红书",
+  shareChannelBilibili: "B站账号",
+  shareChannelLink: "复制带跟踪链接",
+  shareChannelPoster: "生成分享海报",
+  shareSystem: "系统分享",
+  shareWechatHint: "粘贴到微信/公众号即可分享",
+  shareXiaohongshuHint: "粘贴到小红书撰写笔记引用",
+  shareBilibiliHint: "粘贴到 B 站动态 / 私信使用",
+  sharePosterTitle: "分享海报",
+  sharePosterSave: "保存图片",
+  sharePosterRendering: "生成中…",
+  sharePosterFailed: "海报生成失败，请重试",
+  sharePosterMobileHint: "移动端请长按图片保存或转发",
+  sharePosterClose: "关闭",
+
   /* 收藏按钮 */
   favorite: "收藏",
   favorited: "已收藏",
@@ -511,6 +530,25 @@ const en: Record<I18nKey, string> = {
   copiedToastSub: "Paste it into any chat to share",
   copyFailed: "Copy failed — please copy the URL from the address bar",
   shareText: "Come play \"{title}\" — {desc}",
+
+  /* Share menu (channel sharing with UTM) */
+  shareMenu: "Share to",
+  shareChannelWechat: "WeChat",
+  shareViaWechatTag: "Official account",
+  shareChannelXiaohongshu: "RED (Xiaohongshu)",
+  shareChannelBilibili: "Bilibili",
+  shareChannelLink: "Copy tracked link",
+  shareChannelPoster: "Create share poster",
+  shareSystem: "System share",
+  shareWechatHint: "Paste it into WeChat to share",
+  shareXiaohongshuHint: "Paste it into a Xiaohongshu post",
+  shareBilibiliHint: "Paste it into a Bilibili trending page",
+  sharePosterTitle: "Share poster",
+  sharePosterSave: "Save image",
+  sharePosterRendering: "Rendering…",
+  sharePosterFailed: "Failed to render poster, please retry",
+  sharePosterMobileHint: "On mobile, long-press the image to save or forward",
+  sharePosterClose: "Close",
 
   /* Favorite button */
   favorite: "Favorite",

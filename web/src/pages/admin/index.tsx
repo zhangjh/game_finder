@@ -16,6 +16,8 @@ import { AdminLoginPage } from "./login";
 import { AdminOverviewPage } from "./overview";
 import { AdminSourcesPage } from "./sources";
 import { AdminAnalyticsPage } from "./analytics";
+import { AdminTrafficPage } from "./traffic";
+import { AdminSeoPage } from "./seo";
 
 export function AdminPage() {
   const [authed, setAuthed] = useState<boolean | null>(null);
@@ -53,6 +55,8 @@ const NAV = [
   { path: "/admin/duplicates", label: "重复处理" },
   { path: "/admin/cron-jobs", label: "定时任务" },
   { path: "/admin/analytics", label: "数据看板" },
+  { path: "/admin/traffic", label: "流量看板" },
+  { path: "/admin/seo", label: "SEO 索引" },
 ];
 
 const PAGE_TITLES: Record<string, string> = {
@@ -63,6 +67,8 @@ const PAGE_TITLES: Record<string, string> = {
   "/admin/duplicates": "重复处理 | GameFinder Admin",
   "/admin/cron-jobs": "定时任务 | GameFinder Admin",
   "/admin/analytics": "数据看板 | GameFinder Admin",
+  "/admin/traffic": "流量看板 | GameFinder Admin",
+  "/admin/seo": "SEO 索引 | GameFinder Admin",
 };
 
 function pageTitle(path: string): string {
@@ -126,6 +132,8 @@ function AdminShell({ onLogout }: { onLogout: (authed: boolean) => void }) {
           <Route path="duplicates" element={<AdminDuplicatesPage />} />
           <Route path="cron-jobs" element={<AdminCronJobsPage />} />
           <Route path="analytics" element={<AdminAnalyticsPage />} />
+          <Route path="traffic" element={<AdminTrafficPage />} />
+          <Route path="seo" element={<AdminSeoPage />} />
           <Route path="*" element={<Navigate to="/admin" replace />} />
         </Routes>
       </main>

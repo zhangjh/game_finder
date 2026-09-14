@@ -485,3 +485,137 @@ export interface AdminAnalytics {
 export function fetchAdminAnalytics(): Promise<AdminAnalytics> {
   return adminFetch("/analytics");
 }
+
+// ===== 流量/渠道看板（DANTE-7，T9.6）=====
+
+export interface TrafficChannelRow {
+  channel: string;
+  pv: number;
+  uv: number;
+}
+
+export interface TrafficSourceRow {
+  source: string;
+  pv: number;
+  uv: number;
+}
+
+export interface TrafficDailyRow {
+  date: string;
+  pv: number;
+  uv: number;
+}
+
+export interface TrafficFunnelRow {
+  channel: string;
+  users: number;
+  starts: number;
+  fiveMin: number;
+  startsPerUser: number;
+  successRate: number;
+}
+
+export interface TrafficLandingRow {
+  path: string;
+  users: number;
+  utmUsers: number;
+}
+
+export interface TrafficUtmLandingRow {
+  path: string;
+  source: string;
+  medium: string | null;
+  pv: number;
+  uv: number;
+}
+
+export interface TrafficRetentionRow {
+  cohortDate: string;
+  users: number;
+  d1: number;
+  d3: number;
+  d7: number;
+  d1Rate: number;
+  d3Rate: number;
+  d7Rate: number;
+}
+
+export interface TrafficCompareRow {
+  group: "ai" | "keyword";
+  label: string;
+  users: number;
+  requests: number;
+  impressions: number;
+  clicks: number;
+  starts: number;
+  fiveMin: number;
+  ctr: number;
+  successRate: number;
+}
+
+export interface AdminTraffic {
+  days: number;
+  totals: { pv: number; uv: number };
+  channels: TrafficChannelRow[];
+  sources: TrafficSourceRow[];
+  daily: TrafficDailyRow[];
+  funnel: TrafficFunnelRow[];
+  landing: { top: TrafficLandingRow[]; withUtm: TrafficUtmLandingRow[] };
+  retention: TrafficRetentionRow[];
+  compare: TrafficCompareRow[];
+}
+
+export function fetchAdminTraffic(days = 30): Promise<AdminTraffic> {
+  return adminFetch(`/analytics/traffic?days=${days}`);
+}
+
+// ===== SEO 索引状态（DANTE-7，T9.1/T9.4）=====
+
+export interface SeoCheckItem {
+  name: string;
+  url: string;
+  ok: boolean;
+  status: number | null;
+  detail?: string;
+}
+
+export interface SeoSitemapPage {
+  loc: string;
+  ok: boolean;
+  status: number | null;
+  urlCount?: number;
+  detail?: string;
+}
+
+export interface SeoSampleDetail {
+  slug: string;
+  url: string;
+  ok: boolean;
+  status: number | null;
+  hasTitle?: boolean;
+  hasCanonical?: boolean;
+  hasJsonLd?: boolean;
+  detail?: string;
+}
+
+export interface SeoStatus {
+  ok: boolean;
+  runAt: string;
+  siteUrl: string;
+  checks: SeoCheckItem[];
+  sitemapPages: SeoSitemapPage[];
+  sampleDetail: SeoSampleDetail[];
+  summary: {
+    checksOk: number;
+    checksFail: number;
+    sitemapOk: number;
+    sitemapFail: number;
+    totalUrls: number;
+    detailOk: number;
+    detailFail: number;
+  };
+}
+
+export function fetchSeoStatus(): Promise<SeoStatus> {
+  return adminFetch("/seo/status");
+}
