@@ -1,0 +1,10 @@
+/sitemap.xml
+  Cache-Control: public, max-age=3600
+
+/sitemaps/*
+  Cache-Control: public, max-age=3600
+
+/*
+  Strict-Transport-Security: max-age=31536000
+  X-Frame-Options: SAMEORIGIN
+  Referrer-Policy: strict-origin-when-cross-origin

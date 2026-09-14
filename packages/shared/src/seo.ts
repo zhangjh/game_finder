@@ -308,6 +308,58 @@ export function getSeoLandingPage(slug: string): SeoLandingPage | undefined {
   return SEO_LANDING_PAGES.find((page) => page.slug === slug);
 }
 
+export function buildWebSiteJsonLd(
+  url: string,
+  name: string,
+  searchUrlTemplate: string,
+): Record<string, unknown> {
+  return {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    name,
+    alternateName: "PlayWhat 玩什么",
+    url,
+    inLanguage: "zh-CN",
+    potentialAction: {
+      "@type": "SearchAction",
+      target: {
+        "@type": "EntryPoint",
+        urlTemplate: searchUrlTemplate,
+      },
+      "query-input": "required name=search_term_string",
+    },
+  };
+}
+
+export interface ItemListEntry {
+  title: string;
+  url: string;
+  image?: string | null;
+}
+
+export function buildItemListJsonLd(
+  name: string,
+  items: ItemListEntry[],
+  url?: string,
+  inLanguage?: string,
+): Record<string, unknown> {
+  return {
+    "@context": "https://schema.org",
+    "@type": "ItemList",
+    name,
+    url,
+    inLanguage: inLanguage ?? "zh-CN",
+    numberOfItems: items.length,
+    itemListElement: items.map((item, index) => ({
+      "@type": "ListItem",
+      position: index + 1,
+      name: item.title,
+      url: item.url,
+      image: item.image ?? undefined,
+    })),
+  };
+}
+
 export function buildVideoGameJsonLd(
   game: VideoGameJsonLdInput,
   canonicalUrl: string,

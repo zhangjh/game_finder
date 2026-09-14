@@ -22,6 +22,7 @@ export function App() {
         <Route index element={<HomePage />} />
         <Route path="games" element={<GamesPage />} />
         <Route path="games/:landingSlug" element={<LandingPage />} />
+        <Route path="en/games/:landingSlug" element={<LandingPage forcedLang="en" />} />
         <Route path="chinese-games" element={<ChineseGamesPage />} />
         <Route path="high-quality" element={<HighQualityPage />} />
         <Route path="game/:slug" element={<DetailPage />} />
